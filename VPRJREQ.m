@@ -5,25 +5,77 @@ VPRJREQ ;SLC/KCM -- Listen for HTTP requests
  ;
 START(TCPPORT) ; set up listening for connections
  Q:$G(^VPRHTTP(0,"updating"))        ; don't allow starting during upgrade
+ ;
+ ; Setup for different M implementations/Virtual machines
+ N OS S OS=$S(+$SY=47:"GT.M",+$SY=50:"MV1",1:"CACHE") ; Get Mumps Virtual Machine
+ I OS="GT.M" S @("$ZINTERRUPT=""I $$JOBEXAM^VPRJREQ($ZPOSITION)""") ; for GT.M, set interrupt.
+ ;
+ ; Device ID
+ I OS="CACHE" S TCPIO="|TCP|"_TCPPORT
+ I OS="GT.M" S TCPIO="SCK$"_TCPPORT
+ ;
+ ; Open Code
+ I OS="CACHE" O TCPIO:(:TCPPORT:"ACT"):15 E  U 0 W !,"error cannot open port "_TCPPORT Q
+ I OS="GT.M" O TCPIO:(LISTEN=TCPPORT_":TCP":delim=$C(13,10):attach="server"):15:"socket" E  U 0 W !,"error cannot open port "_TCPPORT Q
+ ;
+ ; Now we are really really listening.
  S ^VPRHTTP(0,"listener")="running"
  ;
- S TCPPORT=$G(TCPPORT,9080)
- S TCPIO="|TCP|"_TCPPORT
- O TCPIO:(:TCPPORT:"ACT"):15 E  U 0 W !,"error" Q
+ ; This is the same for GT.M and Cache
  U TCPIO
+ ;
+ I OS="GT.M" W /LISTEN(5) ; Listen 5 deep - sets $KEY to "LISTENING|socket_handle|portnumber"
+ N PARSOCK S PARSOCK=$P($KEY,"|",2)  ; Parent socket
+ N CHILDSOCK  ; That will be set below; Child socket
+ ;
 LOOP ; wait for connection, spawn process to handle it
  I $E(^VPRHTTP(0,"listener"),1,4)="stop" C TCPIO S ^VPRHTTP(0,"listener")="stopped" Q
  D CHRON
  ;
- R *X:10 I '$T G LOOP
- ; Disable localhost check for eHMP deployment
- ;I '$$LCLHOST^VPRJRUT() W *-2 G LOOP ; reject & close port if not localhost
+ ; ---- CACHE CODE ----
+ I OS="CACHE" D  G LOOP
+ . R *X:10
+ . E  QUIT  ; Loop back again when listening and nobody on the line
+ . J CHILD:(:4:TCPIO:TCPIO):10 ; Send off the device to another job for input and output.
+ . I $ZA\8196#2=1 W *-2  ; job failed to clear bit
+ ; ---- END CACHE CODE ----
  ;
- J CHILD:(:4:TCPIO:TCPIO):10
- I $ZA\8196#2=1 W *-2 ;job failed to clear bit
+ ; ----- GT.M CODE ----
+ ; In GT.M $KEY is "CONNECT|socket_handle|portnumber" then "READ|socket_handle|portnumber"
+ ; N GTMDONE S GTMDONE=0  ; To tell us if we should loop waiting or process HTTP requests ; don't need this anymore
+ ; I OS="GT.M" D  G LOOP:'GTMDONE,CHILD:GTMDONE
+ I OS="GT.M" D  G LOOP
+ . ;
+ . ; Wait until we have a connection (inifinte wait). 
+ . ; Stop if the listener asked us to stop.
+ . FOR  W /WAIT(10) Q:$KEY]""  Q:($E(^VPRHTTP(0,"listener"),1,4)="stop")
+ . ;
+ . ; We have to stop! When we quit, we go to loop, and we exit at LOOP+1
+ . I $E(^VPRHTTP(0,"listener"),1,4)="stop" QUIT
+ . ; 
+ . ; At connection, job off the new child socket to be served away.
+ . ; I $P($KEY,"|")="CONNECT" QUIT ; before 6.1
+ . I $P($KEY,"|")="CONNECT" D  ; >=6.1
+ . . S CHILDSOCK=$P($KEY,"|",2)
+ . . U TCPIO:(detach=CHILDSOCK)
+ . . N Q S Q=""""
+ . . N ARG S ARG=Q_"SOCKET:"_CHILDSOCK_Q
+ . . N J S J="CHILD:(input="_ARG_":output="_ARG_")"
+ . . J @J
+ . ;
+ . ; GT.M before 6.1:
+ . ; Use the incoming socket; close the server, and restart it and goto CHILD
+ . ; USE TCPIO:(SOCKET=$P($KEY,"|",2))
+ . ; CLOSE TCPIO:(SOCKET="server")
+ . ; JOB START^VPRJREQ(TCPPORT):(IN="/dev/null":OUT="/dev/null":ERR="/dev/null"):5
+ . ; SET GTMDONE=1  ; Will goto CHILD at the DO exist up above
+ . ; ---- END GT.M CODE ----
+ ; 
+ QUIT
  ;
- G LOOP
- ;
+JOBEXAM(%ZPOS) ; Interrupt framework for GT.M.
+ ZSHOW "*":^VPRHTTP("processlog",+$H,$P($H,",",2),$J)
+ QUIT 1
  ;
 CHRON ; handle events related to passage of time
  ; TODO: start job every n seconds to handle logging check, review xrefs, etc.
@@ -37,6 +89,13 @@ ESECS(TS) ; return elapsed seconds since TS (in $H format)
  S D=D-TS I D>11 Q 999999  ; just return 999999 if >11 days
  S S=S-$P(TS,",",2),S=S+(D*86400)
  Q S
+ ;
+GTMLNX  ;From Linux xinetd script; $P is the main stream
+ S ^VPRHTTP(0,"listener")="starting"
+ S @("$ZINTERRUPT=""I $$JOBEXAM^VPRJREQ($ZPOSITION)""")
+ X "U $P:(nowrap:nodelimiter:ioerror=""ETSOCK"")"
+ S %="",@("%=$ZTRNLNM(""REMOTE_HOST"")") S:$L(%) IO("IP")=%
+ G CHILD
  ;
  ; Child Handling Process ---------------------------------
  ;
@@ -57,7 +116,9 @@ ESECS(TS) ; return elapsed seconds since TS (in $H format)
  ; HTTPERR non-zero if there is an error state
  ;
 CHILD ; handle HTTP requests on this connection
- S HTTPLOG("DT")=+$H  ; same timestamp used for log throughout session
+ N TCP S TCP=$GET(TCPIO,$PRINCIPAL) ; TCP Device
+ N OS S OS=$S(+$SY=47:"GT.M",+$SY=50:"MV1",1:"CACHE") ; Get Mumps Virtual Machine
+ S HTTPLOG("DT")=+$H
  N $ET S $ET="G ETSOCK^VPRJREQ"
  ;
 NEXT ; begin next request
@@ -67,10 +128,11 @@ NEXT ; begin next request
  I HTTPLOG=2,'$D(HTTPLOG("path")) S HTTPLOG("path")=$G(^VPRHTTP(0,"logging","path"))
  ;
 WAIT ; wait for request on this connection
- I $E(^VPRHTTP(0,"listener"),1,4)="stop" C $P Q
- U $P:(::"CT")
- R TCPX:10 I '$T G WAIT
- I '$L(TCPX) G WAIT
+ I $E($G(^VPRHTTP(0,"listener")),1,4)="stop" C TCP Q
+ X:OS="CACHE" "U TCP:(::""CT"")" ;VEN/SMH - Cache Only line; Terminators are $C(10,13)
+ X:OS="GT.M" "U TCP:(delim=$C(13,10))" ; VEN/SMH - GT.M Delimiters
+ R TCPX:10 I '$T G ETDC
+ I '$L(TCPX) G ETDC
  ;
  ; -- got a request and have the first line
  D INCRLOG ; set unique request id
@@ -87,7 +149,8 @@ WAIT ; wait for request on this connection
  F  S TCPX=$$RDCRLF() Q:'$L(TCPX)  D ADDHEAD(TCPX)
  ;
  ; -- decide how to read body, if any
- U $P:(::"S")
+ X:OS="CACHE" "U TCP:(::""S"")" ; Stream mode
+ X:OS="GT.M" "U TCP:(nodelim)" ; VEN/SMH - GT.M Delimiters
  ; TODO: handle chunked input of body
  I $$LOW^VPRJRUT($G(HTTPREQ("header","transfer-encoding")))="chunked" D RDCHNKS
  ; handle regular input of body
@@ -101,7 +164,8 @@ WAIT ; wait for request on this connection
  ; TODO: restore HTTPLOG if necessary
  ;
  ; -- write out the response (error if HTTPERR>0)
- U $P:(::"S")
+ X:OS="CACHE" "U TCP:(::""S"")" ; Stream mode
+ X:OS="GT.M" "U TCP:(nodelim)" ; VEN/SMH - GT.M Delimiters
  I $G(HTTPERR) D RSPERROR^VPRJRSP ; switch to error response
  D SENDATA^VPRJRSP
  I HTTPLOG D LOGGING
@@ -109,7 +173,7 @@ WAIT ; wait for request on this connection
  ; -- exit on Connection: Close
  I $$LOW^VPRJRUT($G(HTTPREQ("header","connection")))="close" D  Q
  . K ^TMP($J),^TMP("HTTPERR",$J)
- . C $P
+ . C TCP
  ;
  ; -- otherwise get ready for the next request
  G NEXT
@@ -155,7 +219,7 @@ ADDHEAD(LINE) ; add header name and header value
  ;
 ETSOCK ; error trap when handling socket (i.e., client closes connection)
  D LOGERR
- C $P H 2
+ C TCP
  HALT  ; exit because connection has been closed
  ;
 ETCODE ; error trap when calling out to routines
@@ -172,11 +236,17 @@ ETCODE ; error trap when calling out to routines
  ; for the next HTTP request (goto NEXT).
  S $ETRAP="Q:$ESTACK&$QUIT 0 Q:$ESTACK  S $ECODE="""" G NEXT"
  Q
-ETBAIL ; error trap of error traps
- U $P
- W "HTTP/1.1 500 Internal Server Error",$C(13,10),$C(13,10),!
- C $P H 1
+ETDC ; error trap for client disconnect ; not a true M trap
+ D LOGDC
  K ^TMP($J),^TMP("HTTPERR",$J)
+ C $P  
+ HALT ; Stop process 
+ ;
+ETBAIL ; error trap of error traps
+ U TCP
+ W "HTTP/1.1 500 Internal Server Error",$C(13,10),$C(13,10),!
+ K ^TMP($J),^TMP("HTTPERR",$J)
+ C TCP
  HALT  ; exit because we can't recover
  ;
 INCRLOG ; get unique log id for each request
