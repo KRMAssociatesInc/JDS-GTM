@@ -55,6 +55,24 @@ MED6 ; Sample Med to Add
  ;;ityOrdered":"180","daysSupply":90,"fillsAllowed":3,"fillsRemaining":3,"fillCost":"11.88","location":"","vaRouting":"W","vaDispensed":true,"vaOrderStatus":"DISCONTINUED","ordered":"20040330145422.000","expiration":"20050
  ;;331","provider":{"uid":"11745","name":"LABTECH,SPECIAL"},"pharmacist":{"uid":"11745","name":"LABTECH,SPECIAL"}}]}
  ;;zzzzz
+MED6HDR1 ; Sample Med to Add
+ ;;{"patient":"-7","pid":"1HDR;-777V123777","facilityName":"Camp Master","uid":"urn:va:med:93EF:-7:15231","localId":"402300;O","productFormName":"TAB","sig":"HDR TAKE ONE TABLET BY BY MOUTH TWICE A DAY","medStatus":"urn:sct:73425007"
+ ;;,"medStatusName":"not active","medType":"urn:sct:7363
+ ;;9000","vaType":"O","vaStatus":"DISCONTINUED","qualifiedName":"METOPROLOL","kind":"Medication, Outpatient","overallStart":"20040330","overallStop":"20050331","stopped":"20040330","stampTime":"76","products":[{"ingredientCode":"urn:vuid:4
+ ;;019836","ingredientName":"METOPROLOL","drugClassCode":"urn:vadc:CV100","drugClassName":"BETA BLOCKERS/RELATED","suppliedCode":"urn:vuid:4004608","suppliedName":"METOPROLOL TARTRATE 50MG TAB","ingredientRole":"urn:sct:41
+ ;;0942007"}],"dosages":[{"dose":"50 MG","units":"MG","routeName":"PO","scheduleName":"BID","relativeStart":0,"relativeStop":0,"start":"20040330","stop":"20040330"}],"orders":[{"orderId":"","prescriptionId":"500046","quant
+ ;;ityOrdered":"180","daysSupply":90,"fillsAllowed":3,"fillsRemaining":3,"fillCost":"11.88","location":"","vaRouting":"W","vaDispensed":true,"vaOrderStatus":"DISCONTINUED","ordered":"20040330145422.000","expiration":"20050
+ ;;331","provider":{"uid":"11745","name":"LABTECH,SPECIAL"},"pharmacist":{"uid":"11745","name":"LABTECH,SPECIAL"}}]}
+ ;;zzzzz
+MED6HDR2 ; Sample Med to Add
+ ;;{"patient":"-7","pid":"HDR1;-777V123777","facilityName":"Camp Master","uid":"urn:va:med:93EF:-7:15231","localId":"402300;O","productFormName":"TAB","sig":"HDR TAKE ONE TABLET BY BY MOUTH TWICE A DAY","medStatus":"urn:sct:73425007"
+ ;;,"medStatusName":"not active","medType":"urn:sct:7363
+ ;;9000","vaType":"O","vaStatus":"DISCONTINUED","qualifiedName":"METOPROLOL","kind":"Medication, Outpatient","overallStart":"20040330","overallStop":"20050331","stopped":"20040330","stampTime":"76","products":[{"ingredientCode":"urn:vuid:4
+ ;;019836","ingredientName":"METOPROLOL","drugClassCode":"urn:vadc:CV100","drugClassName":"BETA BLOCKERS/RELATED","suppliedCode":"urn:vuid:4004608","suppliedName":"METOPROLOL TARTRATE 50MG TAB","ingredientRole":"urn:sct:41
+ ;;0942007"}],"dosages":[{"dose":"50 MG","units":"MG","routeName":"PO","scheduleName":"BID","relativeStart":0,"relativeStop":0,"start":"20040330","stop":"20040330"}],"orders":[{"orderId":"","prescriptionId":"500046","quant
+ ;;ityOrdered":"180","daysSupply":90,"fillsAllowed":3,"fillsRemaining":3,"fillCost":"11.88","location":"","vaRouting":"W","vaDispensed":true,"vaOrderStatus":"DISCONTINUED","ordered":"20040330145422.000","expiration":"20050
+ ;;331","provider":{"uid":"11745","name":"LABTECH,SPECIAL"},"pharmacist":{"uid":"11745","name":"LABTECH,SPECIAL"}}]}
+ ;;zzzzz
 MED6N ; Sample new Med version to Add
  ;;{"patient":"-7","pid":"93EF;-7","facilityName":"Camp Master","uid":"urn:va:med:93EF:-7:15231","localId":"402300;O","productFormName":"TAB","sig":"TAKE ONE TABLET BY BY MOUTH TWICE A DAY","medStatus":"urn:sct:73425007"
  ;;,"medStatusName":"not active","medType":"urn:sct:7363

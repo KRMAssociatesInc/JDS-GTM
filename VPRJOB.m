@@ -9,10 +9,10 @@ VPRJOB ;CNP/JD -- Handle Job operations ;2015-04-15  8:33 PM
  ; ^VPRJOB("A",JPID,Type,Root Job ID,Job ID,TimeStamp,Status)=Sequential Counter
  ; ^VPRJOB("B",Sequential counter)=JPID^Type^Root Job ID^Job ID^TimeStamp^Status
  ; ^VPRJOB("C",Job ID,Root Job ID)=""
- ; ^VPRJOB("D",JPID,Type,TimeStamp)=""
+ ; ^VPRJOB("D",JPID,Type,TimeStamp,Sequential counter)=Sequential counter
  ; ^VPRJOB(Sequential counter)=Passed JSON Object
 SET(ARGS,BODY) ; Store job info
- N DEMOG,ERR,JID,JPID,RJID,JSTAT,VPRA,VPRCNT,VPRTS,U,PID,ICN
+ N DEMOG,ERR,JID,JPID,RJID,JSTAT,VPRA,VPRCNT,VPRTS,U,PID,ICN,JTYPE
  S U="^"
  D DECODE^VPRJSON("BODY","DEMOG","ERR") ; From JSON to an array
  ; Ensure required variables exist
@@ -44,91 +44,120 @@ SET(ARGS,BODY) ; Store job info
  ; If (1,2) exists, then for (n,2), n can only be 1
  S VPRA=$O(^VPRJOB("C",JID,""))
  I VPRA,(RJID'=VPRA) D SETERROR^VPRJRER(236) Q ""
- L +^VPRJOB:2 E  D SETERROR^VPRJRER(502) Q ""
- TSTART
- S ^VPRJOB(0)=$G(^VPRJOB(0))+1
- S VPRCNT=^VPRJOB(0)
+ S VPRCNT=$I(^VPRJOB(0))
  S ^VPRJOB("A",JPID,JTYPE,RJID,JID,VPRTS,JSTAT)=VPRCNT
  S ^VPRJOB("B",VPRCNT)=JPID_U_JTYPE_U_RJID_U_JID_U_VPRTS_U_JSTAT
  S ^VPRJOB("C",JID,RJID)=""
- S ^VPRJOB("D",JPID,JTYPE,VPRTS)=VPRCNT
+ S ^VPRJOB("D",JPID,JTYPE,VPRTS,VPRCNT)=VPRCNT
  M ^VPRJOB(VPRCNT)=DEMOG
- TCOMMIT
- L -^VPRJOB
  Q ""
  ;
-GET(RESULT,ARGS) ; Return job info
- N DEMOG,ERR,JID,JPID,JTYPE,RJID,VPRA,VPRB,VPRC,VPRD,VPRE,VPRF,VPRJQ,U,FILTER,CLAUSES,CLAUSE,VALUE,BODY,HTTPERR,I
+GET(RESULT,ARGS,ENCODE,TEMPLATE) ; Return job info
+ N DEMOG,ERR,JID,JPID,JTYPE,RJID,VPRA,VPRB,VPRC,VPRD,VPRE,VPRF,VPRJQ,U,FILTER,CLAUSES,CLAUSE,VALUE,BODY,I,FIELD
  S VPRJQ=""""
  S U="^"
+ ; TEMPLATE contains list of fields to return
+ ;
  ; Verify required arguments exist
  I $$UNKARGS^VPRJCU(.ARGS,"jpid,rootJobId,jobId,filter") Q
  S JPID=$G(ARGS("jpid"))
  S RJID=$G(ARGS("rootJobId"))
  S JID=$G(ARGS("jobId"))
  S FILTER=$G(ARGS("filter"))
+ ;
+ ; Parse filter argument
  I $L(FILTER) D PARSE^VPRJCF(FILTER,.CLAUSES) Q:$G(HTTPERR)
+ ;
  ; If what we are passed isn't a JPID get a JPID
  I '$$ISJPID^VPRJPR(JPID) S JPID=$$JPID4PID^VPRJPR(JPID)
  ; No JPID
  I $G(JPID)']"" D  Q
- .S RESULT="{"_VPRJQ_"message"_VPRJQ_":"_VPRJQ_"JPID is a required field"_VPRJQ_"}"
+ . S RESULT="{"_VPRJQ_"message"_VPRJQ_":"_VPRJQ_"JPID is a required field"_VPRJQ_"}"
+ ;
  ; Ensure jobs exist for a JPID
  I $O(^VPRJOB("A",JPID,""))']"" D  Q
- .S RESULT="[]"
+ . S RESULT="[]"
+ ;
  ; Ensure result variable is empty
  K DEMOG
  ; VPRD=rootJobId-1 or 0
  S VPRD=$S(RJID]"":RJID-1,1:0)
  ; Setup JTYPE for $Order
  S JTYPE=""
- ; Loop through A index
- ; ^VPRJOB("A",JPID,Job Type,Root Job ID,Job ID,TimeStamp,Status)=Sequential Counter
- F  S JTYPE=$O(^VPRJOB("A",JPID,JTYPE)) Q:JTYPE=""  D
- .; VPRD=Root Job Id
- .F  S VPRD=$O(^VPRJOB("A",JPID,JTYPE,VPRD)) Q:VPRD=""  Q:(VPRD'=VPRD)  D
- ..;VPRE=JobId-1 or 0
- ..S VPRE=$S(JID]"":JID-1,1:0)
- ..F  S VPRE=$O(^VPRJOB("A",JPID,JTYPE,VPRD,VPRE)) Q:VPRE=""  Q:(VPRE'=VPRE)  D
- ...;VPRC=TimeStamp
- ...S VPRC=$O(^VPRJOB("A",JPID,JTYPE,VPRD,VPRE,""),-1)  ; Most recent
- ...;VPRF=Status
- ...S VPRF=$O(^VPRJOB("A",JPID,JTYPE,VPRD,VPRE,VPRC,""))
- ...;VPRA=Sequential Counter for Job
- ...S VPRA=^VPRJOB("A",JPID,JTYPE,VPRD,VPRE,VPRC,VPRF)
- ...;VPRB=JPID^Job Type^Root Job ID^Job ID^TimeStamp^Status
- ...S VPRB=$G(^VPRJOB("B",VPRA))
- ...; Eval filter if clauses exists
- ...; This uses the basics of EVALEXPR^VPRJCF not a complete implementation
- ...; If the clause evaluates to true add it to the return
- ...; EVALONE requires CLAUSE and VALUE
- ...I $D(CLAUSES) D  Q
- ....; Ensure we only run this for the last timestamp for the JPID and job type
- ....I VPRC'=$O(^VPRJOB("D",JPID,JTYPE,""),-1) Q
- ....N I
- ....S I=""
- ....; Loop through all of the clauses we have
- ....F  S I=$O(CLAUSES(I)) Q:I=""  D
- .....M CLAUSE=CLAUSES(I)
- .....I CLAUSE("type")=1 S VALUE=$G(^VPRJOB(VPRA,CLAUSE("field"))) M:$$EVALONE^VPRJCF DEMOG("items",VPRA)=^VPRJOB(VPRA)
- ...; If we have a rootJobId and JobId and TimeStamp and they match return the Job
- ...I $G(RJID)]"",$G(JID)]"",$P(VPRB,U)=JPID,$P(VPRB,U,3)=RJID,$P(VPRB,U,4)=JID,$P(VPRB,U,5)=VPRC M DEMOG("items",VPRA)=^VPRJOB(VPRA) Q
- ...; If we have a rootJobId and TimeStamp and they match return the Job
- ...I $G(RJID)]"",$G(JID)']"",$P(VPRB,U)=JPID,$P(VPRB,U,3)=RJID,$P(VPRB,U,5)=VPRC M DEMOG("items",VPRA)=^VPRJOB(VPRA) Q
- ...; If we have neither just return the latest Job
- ...I $G(RJID)']"",$G(JID)']"",$P(VPRB,U)=JPID,$P(VPRB,U,5)=VPRC M DEMOG("items",VPRA)=^VPRJOB(VPRA) Q
+ ;
+ ; Route filters that are looking only for enterprise-sync-request to the D index
+ I ($D(CLAUSES))&($O(CLAUSES(1))="")&($G(CLAUSES(1,"field"))="type")&($G(CLAUSES(1,"pattern"))="1""enterprise-sync-request""") D ; This means that there is only one clause which makes the routing correct
+ . N TIMESTAMP,COUNTER
+ . S TIMESTAMP=""
+ . S TIMESTAMP=$O(^VPRJOB("D",JPID,"enterprise-sync-request",TIMESTAMP),-1)
+ . S COUNTER=$O(^VPRJOB("D",JPID,"enterprise-sync-request",TIMESTAMP,""))
+ . M DEMOG("items",COUNTER)=^VPRJOB(COUNTER)
+ ;
+ E  D
+ . ; Loop through A index
+ . ; ^VPRJOB("A",JPID,Job Type,Root Job ID,Job ID,TimeStamp,Status)=Sequential Counter
+ . F  S JTYPE=$O(^VPRJOB("A",JPID,JTYPE)) Q:JTYPE=""  D
+ . . ; VPRD=Root Job Id
+ . . F  S VPRD=$O(^VPRJOB("A",JPID,JTYPE,VPRD)) Q:VPRD=""  Q:(VPRD'=VPRD)  D
+ . . . ;VPRE=JobId-1 or 0
+ . . . S VPRE=$S(JID]"":JID-1,1:0)
+ . . . F  S VPRE=$O(^VPRJOB("A",JPID,JTYPE,VPRD,VPRE)) Q:VPRE=""  Q:(VPRE'=VPRE)  D
+ . . . . ;VPRC=TimeStamp
+ . . . . S VPRC=$O(^VPRJOB("A",JPID,JTYPE,VPRD,VPRE,""),-1)  ; Most recent
+ . . . . ;VPRF=Status
+ . . . . S VPRF=$O(^VPRJOB("A",JPID,JTYPE,VPRD,VPRE,VPRC,""))
+ . . . . ;VPRA=Sequential Counter for Job
+ . . . . S VPRA=^VPRJOB("A",JPID,JTYPE,VPRD,VPRE,VPRC,VPRF)
+ . . . . ;VPRB=JPID^Job Type^Root Job ID^Job ID^TimeStamp^Status
+ . . . . S VPRB=$G(^VPRJOB("B",VPRA))
+ . . . . ;
+ . . . . ; Eval filter if clauses exists
+ . . . . ; This uses the basics of EVALEXPR^VPRJCF not a complete implementation
+ . . . . ; If the clause evaluates to true add it to the return
+ . . . . ; EVALONE requires CLAUSE and VALUE
+ . . . . I $D(CLAUSES) D  Q
+ . . . . . ; Ensure we only run this for the last timestamp for the JPID and job type
+ . . . . . I VPRC'=$O(^VPRJOB("D",JPID,JTYPE,""),-1) Q
+ . . . . . N I
+ . . . . . S I=""
+ . . . . . ; Loop through all of the clauses we have
+ . . . . . F  S I=$O(CLAUSES(I)) Q:I=""  D
+ . . . . . . M CLAUSE=CLAUSES(I)
+ . . . . . . N FILTERRSLT
+ . . . . . . I CLAUSE("type")=1 D
+ . . . . . . . I $D(^VPRJOB(VPRA,CLAUSE("field")))\10 D
+ . . . . . . . . S FIELD=""
+ . . . . . . . . F  S FIELD=$O(^VPRJOB(VPRA,CLAUSE("field"),FIELD),-1) D  Q:FIELD=""  Q:VALUE'=""
+ . . . . . . . . . S VALUE=$G(^VPRJOB(VPRA,CLAUSE("field"),FIELD))
+ . . . . . . . E  D
+ . . . . . . . . S VALUE=$G(^VPRJOB(VPRA,CLAUSE("field")))
+ . . . . . . . S FILTERRSLT=$$EVALONE^VPRJCF D:FILTERRSLT
+ . . . . . . . . M:'$D(TEMPLATE) DEMOG("items",VPRA)=^VPRJOB(VPRA)
+ . . . . . . . . I $D(TEMPLATE) N FIELD S FIELD="" F  S FIELD=$O(TEMPLATE(FIELD)) Q:FIELD=""  D
+ . . . . . . . . . I FIELD'["." M DEMOG("items",VPRA,FIELD)=^VPRJOB(VPRA,FIELD)
+ . . . . . . . . . E  M DEMOG("items",VPRA,$P(FIELD,".",1),$P(FIELD,".",2))=^VPRJOB(VPRA,$P(FIELD,".",1),$P(FIELD,".",2))
+ . . . . ;
+ . . . . ; Return jobs without filter
+ . . . . ; If we have a rootJobId and JobId and TimeStamp and they match return the Job
+ . . . . I $G(RJID)]"",$G(JID)]"",$P(VPRB,U)=JPID,$P(VPRB,U,3)=RJID,$P(VPRB,U,4)=JID,$P(VPRB,U,5)=VPRC M DEMOG("items",VPRA)=^VPRJOB(VPRA) Q
+ . . . . ; If we have a rootJobId and TimeStamp and they match return the Job
+ . . . . I $G(RJID)]"",$G(JID)']"",$P(VPRB,U)=JPID,$P(VPRB,U,3)=RJID,$P(VPRB,U,5)=VPRC M DEMOG("items",VPRA)=^VPRJOB(VPRA) Q
+ . . . . ; If we have neither just return the latest Job
+ . . . . I $G(RJID)']"",$G(JID)']"",$P(VPRB,U)=JPID,$P(VPRB,U,5)=VPRC M DEMOG("items",VPRA)=^VPRJOB(VPRA) Q
+ ;
  I '$D(DEMOG) D  Q
- .; nothing to return
- .S RESULT="{"_VPRJQ_"message"_VPRJQ_":"_VPRJQ_"Nothing to return!"_VPRJQ_"}"
+ . ; nothing to return
+ . S RESULT="{"_VPRJQ_"message"_VPRJQ_":"_VPRJQ_"Nothing to return!"_VPRJQ_"}"
+ ;
  ; Encode JSON
- D ENCODE^VPRJSON("DEMOG","BODY","ERR") ; From an array to JSON
+ D:'$G(ENCODE) ENCODE^VPRJSON("DEMOG","RESULT","ERR") ; From an array to JSON
+ M:$G(ENCODE) RESULT=DEMOG
  ; If we can't encode the JSON error out
- I $D(ERR) D SETERROR^VPRJRER(202) Q
- M RESULT=BODY
+ I '$G(ENCODE),$D(ERR) D SETERROR^VPRJRER(202) Q
  Q
 CLEAR(RESULT,ARGS) ; Delete all job state data
  K ^VPRJOB
- Q ""
+ Q
 DEL(PID) ; Delete all job statuses for a PID
  ; Get the JPID for a PID as Job status depends on JPID
  N JPID,JTYPE,RJID,JID,TS,SC,STATUS
@@ -161,7 +190,63 @@ DEL(PID) ; Delete all job statuses for a PID
  . . . . . K ^VPRJOB("A",JPID,JTYPE,RJID,JID,TS,STATUS)
  Q
  ;
-DELETE(RESULT,ARGS) ; V4W/DLW - REST entry point for DEL^VPRJOB
+DELJID(RESULT,ARGS) ; REST entry point to delete a job id
+ N JID,JPID,JTYPE,RJID,TS,SC,STATUS
+ S JID=$G(ARGS("jobid"))
+ ; quit if job id is not valid
+ I $G(JID)="",$G(JID)'?.N Q
+ ; Loop through A index to get sequential counter
+ S JPID=""
+ F  S JPID=$O(^VPRJOB("A",JPID)) Q:JPID=""  D
+ . S JTYPE=""
+ . F  S JTYPE=$O(^VPRJOB("A",JPID,JTYPE)) Q:JTYPE=""  D
+ . . S RJID=""
+ . . F  S RJID=$O(^VPRJOB("A",JPID,JTYPE,RJID)) Q:RJID=""  D
+ . . . Q:'$D(^VPRJOB("A",JPID,JTYPE,RJID,JID))
+ . . . S TS=""
+ . . . F  S TS=$O(^VPRJOB("A",JPID,JTYPE,RJID,JID,TS)) Q:TS=""  D
+ . . . . S STATUS=""
+ . . . . F  S STATUS=$O(^VPRJOB("A",JPID,JTYPE,RJID,JID,TS,STATUS)) Q:STATUS=""  D
+ . . . . . ; Get the sequential counter
+ . . . . . S SC=$G(^VPRJOB("A",JPID,JTYPE,RJID,JID,TS,STATUS))
+ . . . . . ; Kill the data
+ . . . . . K ^VPRJOB(SC)
+ . . . . . ; Kill the B index
+ . . . . . K ^VPRJOB("B",SC)
+ . . . . . ; Kill the D index
+ . . . . . K ^VPRJOB("D",JPID,JTYPE,TS,SC)
+ . . . ; Needs to be killed outside the inner two loops, as it is being iterated
+ . . . ; Kill the A index
+ . . . K ^VPRJOB("A",JPID,JTYPE,RJID,JID)
+ ; Don't keep killing the same nodes over and over in all the inner loops
+ ; Kill the C index
+ K ^VPRJOB("C",JID)
+ S RESULT="{}"
+ Q
+ ;
+DELSITE(PID) ; Delete the job status for a site
+ ; No site info in ^VPRJOB, so need to use PID
+ I '$L(PID) D SETERROR^VPRJRER(208) QUIT
+ ;
+ N VPRJOB,JPID,RJID,JID,SC,STAMP,TYPE
+ ;
+ S SC=0
+ F  S SC=$O(^VPRJOB(SC)) Q:SC=""!(+SC'=SC)  D
+ . Q:^VPRJOB(SC,"patientIdentifier","type")'="pid"
+ . I ^VPRJOB(SC,"patientIdentifier","value")=PID D
+ . . S JPID=^VPRJOB(SC,"jpid")
+ . . S TYPE=^VPRJOB(SC,"type")
+ . . S RJID=^VPRJOB(SC,"rootJobId")
+ . . S JID=^VPRJOB(SC,"jobId")
+ . . S STAMP=^VPRJOB(SC,"timestamp")
+ . . ;
+ . . K ^VPRJOB("A",JPID,TYPE,RJID,JID,STAMP)
+ . . K ^VPRJOB("B",SC)
+ . . K ^VPRJOB("C",JID,RJID)
+ . . K ^VPRJOB("D",JPID,TYPE,STAMP)
+ . . K ^VPRJOB(SC)
+ Q
+DELETE(RESULT,ARGS) ; REST entry point wrapper for DEL^VPRJOB
  N PID
  S PID=$G(ARGS("id"))
  D DEL(PID)

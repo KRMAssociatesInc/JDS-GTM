@@ -28,24 +28,14 @@ COUNTS ; set counts for different collection types
 SCOUNT(GROUP,TOPIC,OBJECT) ; Increment a count index
  Q:$D(OBJECT)<10
  N TALLY
- S TALLY=+$G(^VPRJDX("tally",GROUP,TOPIC))
- S ^VPRJDX("tally",GROUP,TOPIC)=TALLY+1 ; incr count for collection
- ;
- L +^VPRJDX("count",GROUP,TOPIC):1 E  D SETERROR^VPRJRER(502,GROUP_" "_TOPIC) QUIT
- S TALLY=+$G(^VPRJDX("count",GROUP,TOPIC))
- S ^VPRJDX("count",GROUP,TOPIC)=TALLY+1 ; incr count across patients
- L -^VPRJDX("count",GROUP,TOPIC)
+ S TALLY=$I(^VPRJDX("tally",GROUP,TOPIC)) ; incr count for collection
+ S TALLY=$I(^VPRJDX("count",GROUP,TOPIC))
  Q
 KCOUNT(GROUP,TOPIC,OBJECT) ; Decrement a count index
  Q:$D(OBJECT)<10
  N TALLY
- S TALLY=+$G(^VPRJDX("tally",GROUP,TOPIC))
- S ^VPRJDX("tally",GROUP,TOPIC)=TALLY-1 ; decr count for collection
- ;
- L +^VPRJDX("count",GROUP,TOPIC):1 E  D SETERROR^VPRJRER(502,GROUP_" "_TOPIC) QUIT
- S TALLY=+$G(^VPRJDX("count",GROUP,TOPIC))
- S ^VPRJDX("count",GROUP,TOPIC)=TALLY-1 ; decr count across patients
- L -^VPRJDX("count",GROUP,TOPIC)
+ S TALLY=$I(^VPRJDX("tally",GROUP,TOPIC),-1) ; decr count for collection
+ S TALLY=$I(^VPRJDX("count",GROUP,TOPIC),-1)
  Q
  ;
  ; ----- Index Logic: tally by attribute value -----
@@ -61,16 +51,14 @@ STALLY(OBJECT) ; Increment a tally index
  N VALUES,I,TALLY
  D IDXVALS^VPRJCV(.OBJECT,.VALUES,.IDXMETA) Q:'$D(VALUES)
  S I="" F  S I=$O(VALUES(I)) Q:I=""  D
- . S TALLY=+$G(^VPRJDX("tally",IDXNAME,VALUES(I,1)))
- . S ^VPRJDX("tally",IDXNAME,VALUES(I,1))=TALLY+1
+ . S TALLY=$I(^VPRJDX("tally",IDXNAME,VALUES(I,1)))
  Q
 KTALLY(OBJECT) ; Decrement a tally index
  Q:$D(OBJECT)<10
  N VALUES,I,TALLY
  D IDXVALS^VPRJCV(.OBJECT,.VALUES,.IDXMETA) Q:'$D(VALUES)
  S I="" F  S I=$O(VALUES(I)) Q:I=""  D
- . S TALLY=+$G(^VPRJDX("tally",IDXNAME,VALUES(I,1)))
- . S ^VPRJDX("tally",IDXNAME,VALUES(I,1))=TALLY-1
+ . S TALLY=$I(^VPRJDX("tally",IDXNAME,VALUES(I,1)),-1)
  . I ^VPRJDX("tally",IDXNAME,VALUES(I,1))=0 K ^VPRJDX("tally",IDXNAME,VALUES(I,1))
  Q
  ;

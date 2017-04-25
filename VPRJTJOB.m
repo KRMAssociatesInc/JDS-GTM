@@ -6,6 +6,7 @@ VPRJTJOB ;KRM/CJE -- Unit Tests for GET/PUT Job Status
  ; GET job/{jpid}/{rootJobId} GET^VPRJOB
  ; GET job/{jpid} GET^VPRJOB
  ; DELETE job/{id} DELETE^VPRJOB
+ ; DELETE job/jobid/{jobid} DELJID^VPRJOB
  ; API tested
  ; DEL(PID) - Delete all Jobs for a PID
 STARTUP  ; Run once before all tests
@@ -737,9 +738,9 @@ DELPID ;; @TEST all jobs deleted for a JPID
  D ASSERT(0,$D(^VPRJOB(7)),"Data for Sequential Counter 7 does not exist and should not")
  D ASSERT(0,$D(^VPRJOB(8)),"Data for Sequential Counter 8 does not exist and should not")
  Q
-DELETEJPID ;; @TEST delete all job statuses by JPID
- ; V4W/DLW
- N ARG,JPID,JPID2,STAMP,TYPE
+ ;
+DELETEJPID ;; @TEST REST endpoint to delete all job statuses by JPID
+ N ARG,JPID,JPID2,STAMP,TYPE,RESULT
  K ^VPRJOB
  S JPID="52833885-af7c-4899-90be-b3a6630b2369"
  S JPID2="52833885-af7c-4899-90be-b3a6630b2370"
@@ -757,9 +758,8 @@ DELETEJPID ;; @TEST delete all job statuses by JPID
  D ASSERT(1,$D(^VPRJOB("A",JPID2,TYPE,2,3,STAMP,"created")),"jobId 3 for JPID: "_JPID2_" was deleted, and should not have been")
  D ASSERT(1,$D(^VPRJOB("A",JPID2,TYPE,2,4,STAMP+1,"created")),"jobId 4 for JPID: "_JPID2_" was deleted, and should not have been")
  Q
-DELETEICN ;; @TEST delete all job statuses by ICN
- ; V4W/DLW
- N ARG,JPID,JPID2,STAMP,TYPE
+DELETEICN ;; @TEST REST endpoint to delete all job statuses by ICN
+ N ARG,JPID,JPID2,STAMP,TYPE,RESULT
  K ^VPRJOB
  S JPID="52833885-af7c-4899-90be-b3a6630b2369"
  S JPID2="52833885-af7c-4899-90be-b3a6630b2370"
@@ -777,9 +777,8 @@ DELETEICN ;; @TEST delete all job statuses by ICN
  D ASSERT(1,$D(^VPRJOB("A",JPID2,TYPE,2,3,STAMP,"created")),"jobId 3 for JPID: "_JPID2_" was deleted, and should not have been")
  D ASSERT(1,$D(^VPRJOB("A",JPID2,TYPE,2,4,STAMP+1,"created")),"jobId 4 for JPID: "_JPID2_" was deleted, and should not have been")
  Q
-DELETEPID ;; @TEST delete all job statuses by PID
- ; V4W/DLW
- N ARG,JPID,JPID2,STAMP,TYPE
+DELETEPID ;; @TEST REST endpoint to delete all job statuses by PID
+ N ARG,JPID,JPID2,STAMP,TYPE,RESULT
  K ^VPRJOB
  S JPID="52833885-af7c-4899-90be-b3a6630b2369"
  S JPID2="52833885-af7c-4899-90be-b3a6630b2370"
@@ -796,6 +795,37 @@ DELETEPID ;; @TEST delete all job statuses by PID
  D ASSERT(0,$D(^VPRJOB("A",JPID,TYPE,1,2,STAMP+1,"created")),"jobId 2 for JPID: "_JPID_" was not deleted, and should have been")
  D ASSERT(1,$D(^VPRJOB("A",JPID2,TYPE,2,3,STAMP,"created")),"jobId 3 for JPID: "_JPID2_" was deleted, and should not have been")
  D ASSERT(1,$D(^VPRJOB("A",JPID2,TYPE,2,4,STAMP+1,"created")),"jobId 4 for JPID: "_JPID2_" was deleted, and should not have been")
+ Q
+ ;
+DELJID ;; @TEST REST endpoint to delete a Job by ID
+ N ARG,JPID,STAMP,TYPE,RESULT
+ K ^VPRJOB
+ S JPID="52833885-af7c-4899-90be-b3a6630b2369"
+ S TYPE="jmeadows-lab-sync-request"
+ S STAMP=201412180711200
+ D JOBSTATG(1,1,JPID,TYPE,STAMP,"created")
+ D JOBSTATG(2,1,JPID,TYPE,STAMP+1,"completed")
+ D JOBSTATG(3,1,JPID,TYPE,STAMP,"created")
+ D JOBSTATG(4,1,JPID,TYPE,STAMP+1,"completed")
+ D ASSERT(10,$D(^VPRJOB("A",JPID,TYPE,1)),"No jobs exist to test endpoint")
+ D ASSERT(1,$D(^VPRJOB("A",JPID,TYPE,1,1,STAMP,"created")),"jobId 1 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("C",1,1)),"jobId 1 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("A",JPID,TYPE,1,2,STAMP+1,"completed")),"jobId 2 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("C",2,1)),"jobId 2 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("A",JPID,TYPE,1,3,STAMP,"created")),"jobId 3 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("C",3,1)),"jobId 3 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("A",JPID,TYPE,1,4,STAMP+1,"completed")),"jobId 4 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("C",4,1)),"jobId 4 does not exist, but it should")
+ S ARG("jobid")="2"
+ D DELJID^VPRJOB(.RESULT,.ARG)
+ D ASSERT(1,$D(^VPRJOB("A",JPID,TYPE,1,1,STAMP,"created")),"jobId 1 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("C",1,1)),"jobId 1 does not exist, but it should")
+ D ASSERT(0,$D(^VPRJOB("A",JPID,TYPE,1,2,STAMP+1,"completed")),"jobId 2 exists, but it shouldn't")
+ D ASSERT(0,$D(^VPRJOB("C",2,1)),"jobId 2 exists, but it shouldn't")
+ D ASSERT(1,$D(^VPRJOB("A",JPID,TYPE,1,3,STAMP,"created")),"jobId 3 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("C",3,1)),"jobId 3 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("A",JPID,TYPE,1,4,STAMP+1,"completed")),"jobId 4 does not exist, but it should")
+ D ASSERT(1,$D(^VPRJOB("C",4,1)),"jobId 4 does not exist, but it should")
  Q
  ;
 GETPIDFIL ;; @TEST retrieve non-completed job status by PID (uses filter)

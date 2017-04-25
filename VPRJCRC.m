@@ -7,30 +7,30 @@ ALL() ;
  ;
 ATTR(X) ; -- return list of attributes needed for collection X
  N Y S Y=""
- I X="vital"        S Y="^observed^typeName^result^"
- I X="problem"      S Y="^onset^problemText^statusName^"
- I X="allergy"      S Y="^entered^summary^"
- I X="order"        S Y="^start^name^statusName^"
- I X="treatment"    S Y="^start^name^statusName^"
- I X="med"          S Y="^overallstart^name^vaStatus^"
- I X="consult"      S Y="^startDate^typeName^statusName^"
- I X="procedure"    S Y="^dateTime^name^statusName^"
- I X="obs"          S Y="^observed^typeName^result^"
- I X="lab"          S Y="^observed^typeName^"
- I X="image"        S Y="^dateTime^name^statusName^"
- I X="surgery"      S Y="^dateTime^typeName^statusName^"
- I X="document"     S Y="^referenceDateTime^localTitle^statusName^"
- I X="mh"           S Y="^administeredDateTime^name^"
- I X="immunization" S Y="^administeredDateTime^name^"
- I X="pov"          S Y="^entered^name^"
- I X="skin"         S Y="^entered^name^result^"
- I X="exam"         S Y="^entered^name^result^"
- I X="cpt"          S Y="^entered^name^"
- I X="education"    S Y="^entered^name^result^"
- I X="factor"       S Y="^entered^name^"
- I X="appointment"  S Y="^dateTime^typeName^appointmentStatus^"
- I X="visit"        S Y="^dateTime^typeName^"
- I X="ptf"          S Y="^arrivalDateTime^icdCode^"
+ I X="vital"           S Y="^observed^typeName^result^"
+ E  I X="problem"      S Y="^onset^problemText^statusName^"
+ E  I X="allergy"      S Y="^entered^summary^"
+ E  I X="order"        S Y="^start^name^statusName^"
+ E  I X="treatment"    S Y="^start^name^statusName^"
+ E  I X="med"          S Y="^overallstart^name^vaStatus^"
+ E  I X="consult"      S Y="^startDate^typeName^statusName^"
+ E  I X="procedure"    S Y="^dateTime^name^statusName^"
+ E  I X="obs"          S Y="^observed^typeName^result^"
+ E  I X="lab"          S Y="^observed^typeName^"
+ E  I X="image"        S Y="^dateTime^name^statusName^"
+ E  I X="surgery"      S Y="^dateTime^typeName^statusName^"
+ E  I X="document"     S Y="^referenceDateTime^localTitle^statusName^"
+ E  I X="mh"           S Y="^administeredDateTime^name^"
+ E  I X="immunization" S Y="^administeredDateTime^name^"
+ E  I X="pov"          S Y="^entered^name^"
+ E  I X="skin"         S Y="^entered^name^result^"
+ E  I X="exam"         S Y="^entered^name^result^"
+ E  I X="cpt"          S Y="^entered^name^"
+ E  I X="education"    S Y="^entered^name^result^"
+ E  I X="factor"       S Y="^entered^name^"
+ E  I X="appointment"  S Y="^dateTime^typeName^appointmentStatus^"
+ E  I X="visit"        S Y="^dateTime^typeName^"
+ E  I X="ptf"          S Y="^arrivalDateTime^icdCode^"
  Q Y
  ;
 CRC(FLDVAL,CRC) ;
@@ -38,9 +38,13 @@ CRC(FLDVAL,CRC) ;
  Q
  ;
 DATA(PID,UID,DOMAIN,ARRAY,CRC) ;
- N FIELD,VALUE
+ N FIELD,VALUE,JPID
+ ;
+ S JPID=$$JPID4PID^VPRJPR(PID)
+ I JPID="" Q
+ ;
  S FIELD="" F  S FIELD=$O(ARRAY(DOMAIN,FIELD)) Q:FIELD=""  D
- . I $D(^VPRPT(PID,UID,FIELD)) S VALUE=$G(^VPRPT(PID,UID,FIELD)) D CRC(FIELD_":"_VALUE,.CRC)
+ . I $D(^VPRPT(JPID,PID,UID,FIELD)) S VALUE=$G(^VPRPT(JPID,PID,UID,FIELD)) D CRC(FIELD_":"_VALUE,.CRC)
  Q
  ;
 PATCRC(DOMARRY) ;
@@ -50,7 +54,7 @@ PATCRC(DOMARRY) ;
  Q CRC
  ;
 EN(RESULT,SYS,PID) ;
- N ARRAY,CNT,CRC,DOMARRY,ERROR,FIELDS,TEMP,TYPE,U,UID,UIDCRC,VPRP,VPRTYPE
+ N ARRAY,CNT,CRC,DOMARRY,ERROR,FIELDS,TEMP,TYPE,U,UID,UIDCRC,VPRP,VPRTYPE,JPID
  S U="^"
  S VPRTYPE=$$ALL
  F VPRP=1:1:$L(VPRTYPE,";") S TYPE=$P(VPRTYPE,";",VPRP) I $L(TYPE) D
@@ -62,7 +66,11 @@ EN(RESULT,SYS,PID) ;
  ..I $P(FIELDS,U,X)="" Q
  ..S ARRAY(TYPE,$P(FIELDS,U,X))=""
  ;D ENCODE^VPRJSON("ARRAY","TEST","ERROR")
- S UID="" F  S UID=$O(^VPRPT(PID,UID)) Q:UID=""  D
+ ;
+ S JPID=$$JPID4PID^VPRJPR(PID)
+ I JPID="" Q
+ ;
+ S UID="" F  S UID=$O(^VPRPT(JPID,PID,UID)) Q:UID=""  D
  .I $P(UID,":",4)'=SYS Q
  .S DOMAIN=$P(UID,":",3),UIDCRC="" I '$D(ARRAY(DOMAIN)) Q
  .D DATA(PID,UID,DOMAIN,.ARRAY,.UIDCRC)

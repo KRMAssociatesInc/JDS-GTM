@@ -22,7 +22,7 @@ TMP2ARY(ARY) ; convert JSON object in ^TMP($J) to array
  S HTTPREQ("store")="vpr" ; normally this gets set in RESPOND^VPRJRSP
  D PAGE^VPRJRUT("^TMP($J)",0,999,.SIZE,.PREAMBLE)
  N SRC,N,I,J
- S N=0,SRC(N)="{""apiVersion"":""1.0"",""data"":{""totalItems"":"_^TMP($J,"total")_",""items"":["
+ S N=0,SRC(N)="{""data"":{""totalItems"":"_^TMP($J,"total")_",""items"":["
  S I="" F  S I=$O(^TMP($J,$J,I)) Q:I=""  D
  . I I S SRC(N)=SRC(N)_","
  . S J=0 F  S J=$O(^TMP($J,$J,I,J)) Q:'J  D
@@ -147,7 +147,7 @@ MATCH ;; match query (DISABLED for NOW)
  D ASSERT(1,$G(ARY("data","totalItems")))
  D ASSERT("urn:vadc:BL110",$G(ARY("data","items",1,"products",1,"drugClassCode")))
  Q
-TALLY ;; @TEST tally items
+TALLY ;; @TEST tally items by PID
  N HTTPERR
  K ^TMP($J)
  D QTALLY^VPRJPQ(VPRJTPID,"kind")
@@ -156,6 +156,16 @@ TALLY ;; @TEST tally items
  D ASSERT(0,$G(ERR(0),0),"JSON conversion error")
  D ASSERT(2,ARY("data","totalItems"))
  D ASSERT(4,ARY("data","items",2,"count"))
+ Q
+TALLY2 ;; @TEST get tally items by JPID
+ N HTTPERR,RESULT,ARGS,ARY
+ K ^TMP($J)
+ S ARGS("pid")=VPRJTPID
+ S ARGS("countName")="collection"
+ D COUNT^VPRJPR(.RESULT,.ARGS)
+ D DECODE^VPRJSON(RESULT,"ARY","ERR")
+ I $D(ERR) D ASSERT(0,$D(ERR),"JSON conversion error") ZWRITE ERR Q
+ D ASSERT(3,$G(ARY("data","items",3,"count")),"count not found or wrong")
  Q
 UID ;; @TEST get uid
  N HTTPERR

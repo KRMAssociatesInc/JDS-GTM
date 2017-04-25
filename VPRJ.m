@@ -79,7 +79,6 @@ VPRSTAT ; VPR statistics
  Q
 PIDSTAT ; PID statistics
  N PID S PID=$$ASKPID^VPRJ2P Q:'$L(PID)
- S PID=""""_PID_""""
  D STATUS^VPRJ2P(PID)
  Q
 RIDXALL ; Re-index entire VPR
@@ -105,15 +104,17 @@ LISTPTP ; List patients by PID
  D LISTPTS(0)
  Q
 LISTPTS(ALPHA) ; List all the patients in the VPR
- N PID,DFN,UID,NAME,ICN,SSN,LIST,X,STAMP
+ N PID,DFN,UID,NAME,ICN,SSN,LIST,X,STAMP,JPID
  S ALPHA=$G(ALPHA)
- S PID="" F  S PID=$O(^VPRPT(PID)) Q:'$L(PID)  D
- . S UID=$O(^VPRPT(PID,"urn:va:patient:"))
- . S STAMP=$O(^VPRPT(PID,UID,""),-1)
- . I $P(UID,":",3)'="patient" W !,"Missing demographics: ",PID Q
- . S NAME=^VPRPT(PID,UID,STAMP,"fullName"),ICN=$G(^("icn")),SSN=$G(^("ssn"))
- . I ALPHA S LIST(NAME,PID)=SSN_"^"_ICN_"^"_PID Q
- . S LIST(PID,NAME)=SSN_"^"_ICN_"^"_PID
+ S JPID="" F  S JPID=$O(^VPRPT(JPID)) Q:JPID=""  D
+ . S PID="" F  S PID=$O(^VPRPT(JPID,PID)) Q:'$L(PID)  D
+ . . S UID=$O(^VPRPT(JPID,PID,"urn:va:patient:"))
+ . . S STAMP=$O(^VPRPT(JPID,PID,UID,""),-1)
+ . . I $P(UID,":",3)'="patient" W !,"Missing demographics: ",PID Q
+ . . S NAME=$G(^VPRPT(JPID,PID,UID,STAMP,"fullName")),ICN=$G(^("icn")),SSN=$G(^("ssn"))
+ . . I NAME="" W !,"Missing patient full name: ",PID Q
+ . . I ALPHA S LIST(NAME,PID)=SSN_"^"_ICN_"^"_PID Q
+ . . S LIST(PID,NAME)=SSN_"^"_ICN_"^"_PID
  I ALPHA D
  . W !,"Name",?30,"SSN",?40,"ICN",?60,"DFN/PID"
  . S NAME="" F  S NAME=$O(LIST(NAME)) Q:NAME=""  D
@@ -159,6 +160,7 @@ FULLRSET ; reset (delete data and re-init) for VPR and non-patient data
  K ^TMP($J)
  D KILLDB^VPRJ2P
  D KILLDB^VPRJ2D
+ D SETUP^VPRJCONFIG
  D RESUME
  ;BL eHMP may require multiple ports. Store ports in VPRHTTP(X,"port") and restart
  I $G(^VPRHTTP(1,"port")) D
@@ -194,12 +196,12 @@ ISYES(MSG) ; returns 1 if user answers yes to message, otherwise 0
 LOGMSG(TYPE,MSG) ; log a new message
  N IDX
  W !,MSG,!
- S IDX=$G(^XTMP("VPRJVUP",TYPE,"msg"),0)+1,^XTMP("VPRJVUP",TYPE,"msg")=IDX
+ S IDX=$I(^XTMP("VPRJVUP",TYPE,"msg"))
  S ^XTMP("VPRJVUP",TYPE,"msg",IDX)=MSG
  Q
 LOGCNT(TYPE) ; increment a count
  N CNT
- S CNT=$G(^XTMP("VPRJVUP",TYPE,"count"),0)+1,^XTMP("VPRJVUP",TYPE,"count")=CNT
+ S CNT=$I(^XTMP("VPRJVUP",TYPE,"count"))
  I TYPE="odc" W:CNT#100=0 "." Q
  W "."
  Q

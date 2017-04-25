@@ -1,13 +1,15 @@
-VPRJRCL ;SLC/KCM -- Control the HTTP listener
+VPRJRCL ;SLC/KCM -- Control the HTTP listener ; 4/25/17 3:37pm
  ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 GO(PORT) ; start up REST listener with defaults
  I $G(PORT) D SPORT(PORT)
  S PORT=$G(^VPRHTTP(0,"port"),9080)
- D SETUP^VPRJPMD             ; make sure meta data is in place
+ I '$D(^VPRMETA) D SETUP^VPRJPMD             ; make sure meta data is in place
  J START^VPRJREQ(PORT)       ; start the listener
  ;BL HARD CODING MULTI BROKER FOR PERFORMANCE TESTING
- S PORT=9081
+ S PORT=9080
+ J START^VPRJREQ(PORT)
+ S PORT=9082
  J START^VPRJREQ(PORT)
  Q
 STOP ; tell the listener to stop running
@@ -31,6 +33,7 @@ SPORT(PORT) ; set the port that should be listened on
  ;S ^VPRHTTP(0,"port")=PORT
  S ^VPRHTTP(0,"port")=9080
  S ^VPRHTTP(1,"port")=9081
+ S ^VPRHTTP(2,"port")=9082
  Q
 SLOG(LEVEL) ; set log level -  0:errors,1:headers&errors,2:raw,3:body&response
  ; ** called from VPRJREQ -- cannot be interactive **
@@ -63,14 +66,13 @@ STATUS() ; Return status of the HTTP listener
  ;
  N HTTPLOG,HTTPREQ,PORT,X
  S HTTPLOG=0,PORT=$G(^VPRHTTP(0,"port"),9080)
- ;O "|TCP|2":("127.0.0.1":PORT:"CT"):2 E  Q "not responding"
- ;U "|TCP|2"
- ;W "GET /ping HTTP/1.1"_$C(10,13)_"Host: JDSlocalhost"_$C(10,13,10,13),!
- ;F  S X=$$RDCRLF^VPRJREQ() Q:'$L(X)  D ADDHEAD^VPRJREQ(X)
- ;U "|TCP|2":(::"S")
- ;I $G(HTTPREQ("header","content-length"))>0 D RDLEN^VPRJREQ(HTTPREQ("header","content-length"),2)
- ;C "|TCP|2"
- ;S X=$P($G(HTTPREQ("body",1)),"""",4)
- ;I '$L(X) Q "unknown"
- q "unknown"
+ O "|TCP|2":("127.0.0.1":PORT:"CT"):2 E  Q "not responding"
+ U "|TCP|2"
+ W "GET /ping HTTP/1.1"_$C(10,13)_"Host: JDSlocalhost"_$C(10,13,10,13),!
+ F  S X=$$RDCRLF^VPRJREQ() Q:'$L(X)  D ADDHEAD^VPRJREQ(X)
+ U "|TCP|2":(::"S")
+ I $G(HTTPREQ("header","content-length"))>0 D RDLEN^VPRJREQ(HTTPREQ("header","content-length"),2)
+ C "|TCP|2"
+ S X=$P($G(HTTPREQ("body",1)),"""",4)
+ I '$L(X) Q "unknown"
  Q X

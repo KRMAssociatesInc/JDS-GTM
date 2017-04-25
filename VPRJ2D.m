@@ -6,7 +6,7 @@ RIDXALL ; Reindex data
  K ^XTMP("VPRJVUP","odc")
  S ^XTMP("VPRJVUP","odc","total")=$$TOTCTNI()
  D LOGMSG^VPRJ("odc","Re-indexing all non-patient data")
- L +^VPRJD:5 E  D LOGMSG^VPRJ("odc","Unable to lock all operational data") Q
+ L +^VPRJD:$G(^VPRCONFIG("timeout","odindex"),5) E  D LOGMSG^VPRJ("odc","Unable to lock all operational data") Q
  D SUSPEND^VPRJ
  D CLRINDEX(.OK) Q:'OK
  S KEY="" F  S KEY=$O(^VPRJD(KEY)) Q:KEY=""  D
@@ -25,7 +25,7 @@ RBLDALL ; Rebuild all objects (includes templates)
  K ^XTMP("VPRJVUP","odc")
  S ^XTMP("VPRJVUP","odc","total")=$$TOTCTNI()
  D LOGMSG^VPRJ("odc","Rebuild ALL non-patient data (including templates)")
- L +^VPRJD:5 E  D LOGMSG^VPRJ("odc","Unable to lock ALL operational data")
+ L +^VPRJD:$G(^VPRCONFIG("timeout","odbuild"),5) E  D LOGMSG^VPRJ("odc","Unable to lock ALL operational data")
  D SUSPEND^VPRJ
  D CLRINDEX(.OK) Q:'OK  ; clears VPRJDX,VPRTMP
  D CLRDATA(.OK) Q:'OK   ; clears VPRJD,VPRJDJ except VPRJDJ("JSON")
@@ -42,7 +42,7 @@ RBLDCTN(CTN) ; Rebuild single collection (includes templates)
  ; We don't know which tallies to kill.
  Q
 RIDXOBJ(KEY) ; Re-index a single object
- L +^VPRJD(KEY):2 E  D LOGMSG^VPRJ("odc","Unable to obtain lock for "_KEY) QUIT
+ L +^VPRJD(KEY):$G(^VPRCONFIG("timeout","odindex"),5) E  D LOGMSG^VPRJ("odc","Unable to obtain lock for "_KEY) QUIT
  N OBJECT,STAMP
  S STAMP=$O(^VPRJD(KEY,""),-1)
  M OBJECT=^VPRJD(KEY,STAMP)
@@ -52,7 +52,7 @@ RIDXOBJ(KEY) ; Re-index a single object
  L -^VPRJD(KEY)
  Q
 RBLDOBJ(KEY) ; Re-build a single object
- L +^VPRJD(KEY):2 E  D LOGMSG^VPRJ("odc","Unable to obtain lock for "_KEY) QUIT
+ L +^VPRJD(KEY):$G(^VPRCONFIG("timeout","odbuild"),5) E  D LOGMSG^VPRJ("odc","Unable to obtain lock for "_KEY) QUIT
  N LINE,JSON,STAMP
  S STAMP=$O(^VPRJDJ("JSON",KEY,""),-1)
  ; get the original JSON object without the templates
@@ -66,14 +66,14 @@ RBLDOBJ(KEY) ; Re-build a single object
  L -^VPRJD(KEY)
  Q
 CLRINDEX(OK) ; Clear all the indexes
- L +^VPRJD:2 E  D LOGMSG^VPRJ("odc","Unable to get lock for indexes.") S OK=0 Q
+ L +^VPRJD:$G(^VPRCONFIG("timeout","odindex"),5) E  D LOGMSG^VPRJ("odc","Unable to get lock for indexes.") S OK=0 Q
  K ^VPRJDX,^VPRTMP
  L -^VPRJD
  D SETUP^VPRJPMD
  S OK=1
  Q
 CLRDATA(OK) ; Clear data except for original JSON
- L +^VPRJD:2 E  D LOGMSG^VPRJ("odc","Unable to get lock for data.") S OK=0 Q
+ L +^VPRJD:$G(^VPRCONFIG("timeout","odclear"),5) E  D LOGMSG^VPRJ("odc","Unable to get lock for data.") S OK=0 Q
  K ^VPRJD,^VPRJDJ("TEMPLATE")
  L -^VPRJD
  S OK=1

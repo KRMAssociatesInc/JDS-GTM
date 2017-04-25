@@ -424,6 +424,10 @@ XIDXATTR ; cross-patient attribute indexes
  ;;    fields: taskName/s, createdByCode, dueDate/V/0
  ;;    sort: dueDate asc
  ;;    setif: $$TASKPND^VPRJFPS
+ ;;document-author
+ ;;    collections: document
+ ;;    fields: authorUid/s
+ ;;    sort: referenceDateTime desc
  ;;zzzzz
  ;
  ; --------------------------------------------------------

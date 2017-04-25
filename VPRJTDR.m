@@ -184,6 +184,19 @@ DELCTN ;; @TEST delete collection
  D ASSERT(10,$D(^VPRJD("urn:va:testb:29")))
  D ASSERT(0,+$G(^VPRJDX("count","collection","test")))
  Q
+DELSITE ;; @TEST REST endpoint to delete all objects for a site
+ N HTTPERR
+ D SETPUT^VPRJTX("/data","OTHER1","VPRJTD01") ; add something from another collection
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D ASSERT(0,$D(^VPRJD("urn:va:testb:29"))#2)
+ D ASSERT(5,$G(^VPRJDX("count","collection","testb")))
+ D SETDEL^VPRJTX("/data/site/29")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D ASSERT(0,$D(^VPRJD("urn:va:testb:29"))#2)
+ D ASSERT(4,$G(^VPRJDX("count","collection","testb")))
+ Q
 1 ; run just one test
  D STARTUP,SETUP,GETNONE,TEARDOWN,SHUTDOWN
  Q

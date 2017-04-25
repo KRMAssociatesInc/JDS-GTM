@@ -28,6 +28,7 @@ SETERROR(ERRCODE,MESSAGE) ; set error info into ^TMP("HTTPERR",$J)
  I ERRCODE=204 S HTTPERR=404,TOPMSG="Not Found",ERRNAME="Unable to determine collection" ; unused?
  I ERRCODE=205 S ERRNAME="Patient mismatch with object"
  I ERRCODE=207 S ERRNAME="Missing UID"
+ I ERRCODE=208 S HTTPERR=404,TOPMSG="Not Found",ERRNAME="Missing site identifier"
  I ERRCODE=209 S ERRNAME="Missing range or index" ; unused?
  I ERRCODE=210 S ERRNAME="Unknown UID format"
  I ERRCODE=211 S HTTPERR=404,TOPMSG="Not Found",ERRNAME="Missing patient identifiers"
@@ -53,6 +54,7 @@ SETERROR(ERRCODE,MESSAGE) ; set error info into ^TMP("HTTPERR",$J)
  I ERRCODE=229 S HTTPERR=404,ERRNAME="No data on file"
  I ERRCODE=230 S ERRNAME="Invalid Patient Identifier passed"
  I ERRCODE=241 S HTTPERR=404,ERRNAME="A Site must be specified"
+ I ERRCODE=242 S HTTPERR=400,ERRNAME="Invalid query"
  ; Job Storage error codes
  I ERRCODE=231 S HTTPERR=404,TOPMSG="Not Found",ERRNAME="Missing job patient identifier"
  I ERRCODE=232 S HTTPERR=404,TOPMSG="Not Found",ERRNAME="Missing rootJobId"
@@ -63,19 +65,45 @@ SETERROR(ERRCODE,MESSAGE) ; set error info into ^TMP("HTTPERR",$J)
  I ERRCODE=237 S HTTPERR=404,TOPMSG="Not Found",ERRNAME="Missing job type"
  ; More generic error codes
  I ERRCODE=251 S HTTPERR=404,TOPMSG="Not Found",ERRNAME="Missing Site Hash"
+ I ERRCODE=252 S HTTPERR=400,ERRNAME="Store name too long or not specified"
+ I ERRCODE=253 S HTTPERR=400,ERRNAME="JDS isn't setup correctly, run VPRJCONFIG"
+ I ERRCODE=254 S HTTPERR=412,TOPMSG="file_exists",ERRNAME="The database could not be created, the file already exists."
+ I ERRCODE=255 S HTTPERR=400,ERRNAME="No JSON passed in BODY"
+ I ERRCODE=256 S HTTPERR=400,ERRNAME="UID Mismatch between URL and Document"
+ ; Generic Data Store Error codes
+ I ERRCODE=270 S HTTPERR=400,ERRNAME="Error generating index metadata"
+ I ERRCODE=271 S HTTPERR=400,ERRNAME="Duplicate index found"
  ; HTTP errors
  I ERRCODE=400 S ERRNAME="Bad Request"
  I ERRCODE=404 S ERRNAME="Not Found"
  I ERRCODE=405 S ERRNAME="Method Not Allowed"
  ; system errors (500-599)
  I ERRCODE=501 S ERRNAME="M execution error"
- I ERRCODE=502 S ERRNAME="Unable to lock record"
+ ; For lock errors report back statistics on the locks in the system
+ I ERRCODE=502 D
+ . S ERRNAME="Unable to lock record"
+ . ; Attempt to get lock information (Cache implementation only)
+ . N LOCKS,NAMESPACE,RSET,LCNT
+ . S LOCKS=""
+ . I $ZV["Cache" D
+ . . S NAMESPACE=$ZU(5)
+ . . ZN "%SYS" S LOCKS=##Class(SYS.Lock).GetLockSpaceInfo() ZN NAMESPACE
+ . . ; Get lock table
+ . . ; Setup the resultSet/Query
+ . . S RSET=##class(%ResultSet).%New("%SYS.LockQuery:List")
+ . . ; Execute the query to get all locks (includes remote systems from ECP)
+ . . D RSET.Execute("")
+ . . WHILE (RSET.Next()){S LCNT=$G(LCNT)+1 S ^TMP("HTTPERR",$J,1,"error","locks",LCNT)=RSET.Data("LockString")}
+ . I LOCKS'="" D
+ . . S ERRNAME=$G(ERRNAME)_" Lock space available "_$P(LOCKS,",",1)
+ . . S ERRNAME=$G(ERRNAME)_" Lock space usable "_$P(LOCKS,",",2)
+ . . S ERRNAME=$G(ERRNAME)_" Lock space used "_$P(LOCKS,",",3)
+ I ERRCODE=503 S ERRNAME="Unable to acquire garbage collector lock"
  I '$L($G(ERRNAME)) S ERRNAME="Unknown error"
  ;
  I ERRCODE>500 S HTTPERR=500,TOPMSG="Internal Server Error"  ; M Server Error
  I ERRCODE<500,ERRCODE>400 S HTTPERR=ERRCODE,TOPMSG=ERRNAME  ; Other HTTP Errors
  S NEXTERR=$G(^TMP("HTTPERR",$J,0),0)+1,^TMP("HTTPERR",$J,0)=NEXTERR
- S ^TMP("HTTPERR",$J,1,"apiVersion")="1.0"
  S ^TMP("HTTPERR",$J,1,"error","code")=HTTPERR
  S ^TMP("HTTPERR",$J,1,"error","message")=TOPMSG
  S ^TMP("HTTPERR",$J,1,"error","request")=$G(HTTPREQ("method"))_" "_$G(HTTPREQ("path"))_" "_$G(HTTPREQ("query"))

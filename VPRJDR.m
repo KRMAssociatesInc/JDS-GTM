@@ -17,9 +17,7 @@ NEWOBJ(ARGS,BODY) ; PUTs an object into the database, returning UID
 BLDUID(CTN) ; build the uid for a new item in a collection
  N UID
  I '$L(CTN) Q ""
- L +^VPRJD("COLLECTION",CTN):2 E  D SETERROR^VPRJRER(502) Q ""
- S UID=$G(^VPRJD("COLLECTION",CTN))+1,^VPRJD("COLLECTION",CTN)=UID
- L -^VPRJD("COLLECTION",CTN)
+ S UID=$I(^VPRJD("COLLECTION",CTN))
  Q "urn:va:"_CTN_":"_$G(^VPRMETA("system"))_":"_UID
  ;
 GETOBJ(RESULT,ARGS) ; gets an object given a UID
@@ -110,6 +108,11 @@ DELUID(RESULT,ARGS) ; DELETE an object
 DELCTN(RESULT,ARGS) ; DELETE an entire collection
  I $$UNKARGS^VPRJCU(.ARGS,"collectionName,system") Q
  D DELCTN^VPRJDS(ARGS("collectionName"),$G(ARGS("system")))
+ S RESULT=$NA(^TMP($J))
+ Q
+DELSITE(RESULT,ARGS) ; DELETE an entire site
+ I $$UNKARGS^VPRJCU(.ARGS,"site") Q
+ D DELSITE^VPRJDS(ARGS("site"))
  S RESULT=$NA(^TMP($J))
  Q
 DELALL(RESULT,ARGS) ; DELETE the entire non-patient data store

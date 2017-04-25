@@ -300,6 +300,56 @@ GET ;; @TEST Get operational data mutable
  K ^TMP("HTTPERR",$J)
  ; leave these around so they can be killed in the next test
  Q
+GETFILTER ;; @TEST Get operational data mutable with filter
+ N RETURN,ARG,BODY,DATA,ARGS,OBJECT,ERR,HTTPERR
+ ; Create operational data mutable
+ S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-1000")
+ S RETURN=$$SET^VPRJODM(.ARG,.BODY)
+ D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
+ D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
+ D ASSERT("20150127-1000",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
+ ; Cleanup HTTPERR
+ K ^TMP("HTTPERR",$J)
+ ; Cleanup Vars
+ K RETURN,ARG,BODY
+ ; Create operational data mutable update
+ S BODY(1)=$$SITEOD("ZZUT1","lastUpdate","20150127-1500")
+ S RETURN=$$SET^VPRJODM(.ARG,.BODY)
+ D ASSERT(10,$D(^VPRJODM("ZZUT1")),"operational data mutable does not exist and it should")
+ D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT("ZZUT1",$G(^VPRJODM("ZZUT1","_id")),"The _id field was not stored correctly")
+ D ASSERT("20150127-1500",$G(^VPRJODM("ZZUT1","lastUpdate")),"The lastUpdate field was not stored correctly")
+ ; Cleanup HTTPERR
+ K ^TMP("HTTPERR",$J)
+ ; Cleanup Vars
+ K RETURN,ARG,BODY
+ ; Get the data we stored update
+ S ARGS("filter")="ne(_id,abc)"
+ D GET^VPRJODM(.DATA,.ARGS)
+ D DECODE^VPRJSON("DATA","OBJECT","ERR")
+ D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
+ D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT("ZZUT",$G(OBJECT("items",1,"_id")),"returned data for the wrong _id")
+ D ASSERT("20150127-1000",$G(OBJECT("items",1,"lastUpdate")),"returned data for lastUpdate didn't match")
+ D ASSERT("ZZUT1",$G(OBJECT("items",2,"_id")),"returned data for the wrong _id")
+ D ASSERT("20150127-1500",$G(OBJECT("items",2,"lastUpdate")),"returned data for lastUpdate didn't match")
+ ; Cleanup HTTPERR
+ K ^TMP("HTTPERR",$J)
+ ; Cleanup Vars
+ K DATA,ARGS,OBJECT,ERR
+ ; Get second operational data mutable
+ S ARGS("filter")="ne(_id,ZZUT)"
+ D GET^VPRJODM(.DATA,.ARGS)
+ D DECODE^VPRJSON("DATA","OBJECT","ERR")
+ D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
+ D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT("ZZUT1",$G(OBJECT("items",1,"_id")),"returned data for the wrong _id")
+ D ASSERT("20150127-1500",$G(OBJECT("items",1,"lastUpdate")),"returned data for lastUpdate didn't match")
+ ; Cleanup HTTPERR
+ K ^TMP("HTTPERR",$J)
+ ; leave these around so they can be killed in the next test
+ Q
 CLR ;; @TEST Clear ALL operational data mutable
  N RETURN,BODY,ARG,DATA,ARGS,OBJECT,ERR,HTTPERR
  D CLR^VPRJODM(.DATA,.ARGS)

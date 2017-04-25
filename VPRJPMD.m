@@ -29,11 +29,10 @@ SETUP ;
  S ^VPRMETA("codes","med","dosages[]","bodySite")=""
  S ^VPRMETA("codes","med","fills[]","fillStatus")=""
  ;
- L +^VPRPTJ("JPID"):2 E  QUIT
+ L +^VPRPTJ("JPID"):$G(^VPRCONFIG("timeout"),5) E  QUIT
  I '$G(^VPRPTJ("JPID")) S ^VPRPTJ("JPID")=0 ; initialize PID counter
  I '$D(^VPRPTX("count","patient","patient")) S ^VPRPTX("count","patient","patient")=0
  L -^VPRPTJ("JPID")
- S ^VPRCONFIG("timeout")=30
  Q
 INDEXES ; -- build meta data for all indexes
  K ^VPRMETA("index")
@@ -50,6 +49,15 @@ INDEXES ; -- build meta data for all indexes
  ; Non-Patient Data Indexes
  D BLDMETA^VPRJCD("index:tally","IDXTALLY","VPRJDMX")
  D BLDMETA^VPRJCD("index:attr","IDXATTR","VPRJDMX")
+ ;
+ ; Generic Data Store Indexes
+ N STORE,INDEX
+ S STORE=""
+ S INDEX=""
+ F  S STORE=$O(^VPRCONFIG("store",STORE)) Q:STORE=""  D
+ . F  S INDEX=$O(^VPRCONFIG("store",STORE,"index",INDEX)) Q:INDEX=""  D
+ . . M ^VPRMETA("index")=^VPRCONFIG("store",STORE,"index",INDEX)
+ . . S ^VPRMETA("collection",STORE,"index",INDEX)=""
  Q
  ;
  ;

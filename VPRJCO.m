@@ -38,7 +38,7 @@ SETORDER(ORDER) ; set up the order subscripts
  . Q:+ORDER(I)
  . I F["[" D SETERROR^VPRJRER(109,F) Q  ; arrays have to be indexed for sorting
  . N SPEC
- . D FLDSPEC^VPRJCD(F,.SPEC,$S(HTTPREQ("store")="data":"data",1:"vpr"))
+ . D FLDSPEC^VPRJCD(F,.SPEC,$S(HTTPREQ("store")="data":"data",$D(^VPRCONFIG("store",$G(HTTPREQ("store")),"global")):HTTPREQ("store"),1:"vpr"))
  . M ORDER(I,0)=SPEC
  . Q:'$L(TEMPLATE)
  . ; TODO: iterate through template aliases and build a spec for each collection
