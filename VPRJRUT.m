@@ -1,4 +1,4 @@
-VPRJRUT ;SLC/KCM -- Utilities for HTTP communications
+VPRJRUT ;SLC/KCM -- Utilities for HTTP communications;2017-05-25  5:09 PM
  ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 LOW(X) Q $TR(X,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")
@@ -193,37 +193,61 @@ LCLHOST() ; return TRUE if the peer connection is localhost
  Q 0
  ;
 HASH(X) ; return CRC-32 of string contained in X
- Q $ZCRC(X,7) ; return the CRC-32 value
+ Q $$CRC32(X) ; support both GT.M and Cache
  ;
 GMT() ; return HTTP date string (this is really using UTC instead of GMT)
+ ; from Sam Habiel
  N TM,DAY
- S TM=$ZTIMESTAMP,DAY=$ZDATETIME(TM,11)
- Q $P(DAY," ")_", "_$ZDATETIME(TM,2)_" GMT"
+ I $$UP($ZV)["CACHE" D  Q $P(DAY," ")_", "_$ZDATETIME(TM,2)_" GMT"
+ . S TM=$ZTIMESTAMP,DAY=$ZDATETIME(TM,11)
+ ;
+ N OUT
+ I $$UP($ZV)["GT.M" D  Q OUT
+ . N D S D="datetimepipe"
+ . N OLDIO S OLDIO=$I
+ . O D:(shell="/bin/sh":comm="date -u +'%a, %d %b %Y %H:%M:%S %Z'|sed 's/UTC/GMT/g'")::"pipe"
+ . U D R OUT:1 
+ . U OLDIO C D
+ ;
+ QUIT "UNIMPLEMENTED"
  ;
 SYSID() ; return a likely unique system ID
  N X
- S X=$ZUTIL(110)_":"_$G(^VPRHTTP("port"),9080)
- Q $ZHEX($ZCRC(X,6))
+ S X=$SYSTEM_":"_$G(^VPRHTTP("port"),9080) ; from Sam Habiel
+ Q $$CRC16HEX(X) ; return CRC16 in HEX
+ ;
+ ; Begin from Sam Habiel
+CRC16HEX(X) ; return CRC-16 in hexadecimal
+ QUIT $$BASE($$CRC16(X),10,16) ; return CRC-16 in hex
+ ;
+CRC32HEX(X) ; return CRC-32 in hexadecimal
+ QUIT $$BASE($$CRC32(X),10,16) ; return CRC-32 in hex
  ;
 DEC2HEX(NUM) ; return a decimal number as hex
- Q $ZHEX(NUM)
+ Q $$BASE(NUM,10,16)
+ ;Q $ZHEX(NUM)
  ;
 HEX2DEC(HEX) ; return a hex number as decimal
- Q $ZHEX(HEX_"H")
+ Q $$BASE(HEX,16,10)
+ ;Q $ZHEX(HEX_"H")
  ;
 WR4HTTP ; open file to save HTTP response
- O "VPRJT.TXT":"WNS"  ; open for writing
+ I $$UP($ZV)["CACHE" O "VPRJT.TXT":"WNS"
+ I $$UP($ZV)["GT.M" O "VPRJT.TXT":(newversion)
  U "VPRJT.TXT"
  Q
 RD4HTTP() ; read HTTP body from file and return as value
  N X
- O "VPRJT.TXT":"RSD" ; for reading and delete when done
+ I $$UP($ZV)["CACHE" O "VPRJT.TXT":"RSD" ; read sequential and delete afterwards
+ I $$UP($ZV)["GT.M" O "VPRJT.TXT":(readonly:rewind) ; read sequential from the top.
  U "VPRJT.TXT"
- F  R X:1 Q:'$L(X)  ; read lines until there is an empty one
+ F  R X:1 S X=$TR(X,$C(13)) Q:'$L(X)  ; read lines until there is an empty one ($TR for GT.M)
  R X:2              ; now read the JSON object
- D C4HTTP
+ I $$UP($ZV)["GT.M" C "VPRJT.TXT":(delete) U $P
+ I $$UP($ZV)["CACHE" D C4HTTP
  Q X
  ;
+ ; End from Sam Habiel
 C4HTTP ; close file used for HTTP response
  C "VPRJT.TXT"
  U $P
@@ -253,3 +277,55 @@ CURRTIME() ; Get last access time
  S LEN=14-$L(TIME)
  S TIME=TIME_$E("00",1,LEN)
  Q TIME
+ ; 
+ ; From Sam Habiel
+CRC32(string,seed) ;
+ ; Polynomial X**32 + X**26 + X**23 + X**22 +
+ ;          + X**16 + X**12 + X**11 + X**10 +
+ ;          + X**8  + X**7  + X**5  + X**4 +
+ ;          + X**2  + X     + 1
+ N I,J,R
+ I '$D(seed) S R=4294967295
+ E  I seed'<0,seed'>4294967295 S R=4294967295-seed
+ E  S $ECODE=",M28,"
+ F I=1:1:$L(string) D
+ . S R=$$XOR($A(string,I),R,8)
+ . F J=0:1:7 D
+ . . I R#2 S R=$$XOR(R\2,3988292384,32)
+ . . E  S R=R\2
+ . . Q
+ . Q
+ Q 4294967295-R
+XOR(a,b,w) N I,M,R
+ S R=b,M=1
+ F I=1:1:w D
+ . S:a\M#2 R=R+$S(R\M#2:-M,1:M)
+ . S M=M+M
+ . Q
+ Q R
+BASE(%X1,%X2,%X3) ;Convert %X1 from %X2 base to %X3 base
+ I (%X2<2)!(%X2>16)!(%X3<2)!(%X3>16) Q -1
+ Q $$CNV($$DEC(%X1,%X2),%X3)
+DEC(N,B) ;Cnv N from B to 10
+ Q:B=10 N N I,Y S Y=0
+ F I=1:1:$L(N) S Y=Y*B+($F("0123456789ABCDEF",$E(N,I))-2)
+ Q Y
+CNV(N,B) ;Cnv N from 10 to B
+ Q:B=10 N N I,Y S Y=""
+ F I=1:1 S Y=$E("0123456789ABCDEF",N#B+1)_Y,N=N\B Q:N<1
+ Q Y
+CRC16(string,seed) ;
+ ; Polynomial x**16 + x**15 + x**2 + x**0
+ N I,J,R
+ I '$D(seed) S R=0
+ E  I seed'<0,seed'>65535 S R=seed\1
+ E  S $ECODE=",M28,"
+ F I=1:1:$L(string) D
+ . S R=$$XOR($A(string,I),R,8)
+ . F J=0:1:7 D
+ . . I R#2 S R=$$XOR(R\2,40961,16)
+ . . E  S R=R\2
+ . . Q
+ . Q
+ Q R
+ ; End from Sam Habiel
