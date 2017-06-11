@@ -1,4 +1,4 @@
-VPRJDSTATUS ;KRM/CJE -- Handle Operational Data Sync Status operations ; 10/20/2015
+VPRJDSTATUS ;KRM/CJE -- Handle Operational Data Sync Status operations ;2017-06-11  4:28 PM
  ; No entry from top
  Q
  ;
@@ -239,6 +239,7 @@ DATA(RESULT,ID,DETAILED,CLAUSES) ; GET Operational Data Sync Status algorithm
  . S:$G(^VPRSTATUSOD(SOURCE,"syncCompleteAsOf"))'="" @BUILD@("sourceMetaStamp",SSOURCE,"syncCompleteAsOf")=$G(^VPRSTATUSOD(SOURCE,"syncCompleteAsOf"))
  . M @RESULT@("inProgress")=@BUILD
  K @BUILD
+ QUIT
  ;
 DEL(RESULT,ARGS) ; Delete all sync status data
  ; If we are passed an id only kill that site's sync status
