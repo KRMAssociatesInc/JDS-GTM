@@ -5,7 +5,7 @@ RESPOND ; find entry point to handle request and call it
  ; expects HTTPREQ, HTTPRSP is used to return the response
  ;
  ; TODO: check cache of HEAD requests first and return that if there?
- K:$D(^||TMP($J)) ^||TMP($J)
+ K ^TMP($J)
  N ROUTINE,LOCATION,HTTPARGS,HTTPBODY,LOWPATH,QARGS,BAIL
  D QSPLIT(.QARGS) I $G(HTTPERR) QUIT  ; need to see if query=true before calling MATCH
  ; support for POST queries, so that we can treat them like regular GET requests
@@ -90,8 +90,8 @@ QCONCAT(ARGS) ; flatten any extension nodes in ARGS, caused by long query argume
 SENDATA ; write out the data as an HTTP response
  ; expects HTTPERR to contain the HTTP error code, if any
  ; RSPTYPE=1  local variable
- ; RSPTYPE=2  data in ^||TMP($J)
- ; RSPTYPE=3  pageable data in ^||TMP($J,"data") or ^VPRTMP(hash,"data")
+ ; RSPTYPE=2  data in ^TMP($J)
+ ; RSPTYPE=3  pageable data in ^TMP($J,"data") or ^VPRTMP(hash,"data")
  N SIZE,RSPTYPE,PREAMBLE,START,LIMIT,STARTID,RETCNTS
  S RSPTYPE=$S($E($G(HTTPRSP))'="^":1,$D(HTTPRSP("pageable")):3,1:2)
  I RSPTYPE=1 S SIZE=$$VARSIZE^VPRJRUT(.HTTPRSP)
@@ -103,37 +103,49 @@ SENDATA ; write out the data as an HTTP response
  . D PAGE^VPRJRUT(.HTTPRSP,START,LIMIT,.SIZE,.PREAMBLE,RETCNTS)
  . ; if an error was generated during the paging, switch to return the error
  . I $G(HTTPERR) D RSPERROR S RSPTYPE=2,SIZE=$$REFSIZE^VPRJRUT(.HTTPRSP)
- ;
- ; TODO: Handle HEAD requests differently
+ ; ; TODO: Handle HEAD requests differently
  ;       (put HTTPRSP in ^XTMP and return appropriate header)
  ; TODO: Handle 201 responses differently (change simple OK to created)
  ;
- W $$RSPLINE(),$C(13,10)
- W "Date: "_$$GMT^VPRJRUT_$C(13,10)
- I $D(HTTPREQ("location")) W "Location: "_HTTPREQ("location")_$C(13,10)
- W "Content-Type: application/json"_$C(13,10)
- W "Access-Control-Allow-Origin: *"_$C(13,10)
- W "Content-Length: ",SIZE,$C(13,10)_$C(13,10)
- I 'SIZE W $C(13,10),! QUIT  ; flush buffer and quit
+ D W($$RSPLINE()_$C(13,10)) ; Status Line (200, 404, etc)
+ D W("Date: "_$$GMT^VPRJRUT_$C(13,10)) ; RFC 1123 date
+ I $D(HTTPREQ("location")) D W("Location: "_HTTPREQ("location")_$C(13,10))  ; ?? Request location; TODO: Check this. Should be Response.
+ D W("Content-Type: application/json"_$C(13,10))
+ D W("Access-Control-Allow-Origin: *"_$C(13,10))
+ D W("Content-Length: "_SIZE_$C(13,10)_$C(13,10))
+ I 'SIZE D FLUSH Q  ; flush buffer and quit if empty
  ;
  N I,J,HASDATA
  I RSPTYPE=1 D            ; write out local variable
- . I $D(HTTPRSP)#2 W HTTPRSP
- . I $D(HTTPRSP)>1 S I=0 F  S I=$O(HTTPRSP(I)) Q:'I  W HTTPRSP(I)
+ . I $D(HTTPRSP)#2 D W(HTTPRSP)
+ . I $D(HTTPRSP)>1 S I=0 F  S I=$O(HTTPRSP(I)) Q:'I  D W(HTTPRSP(I))
  I RSPTYPE=2 D            ; write out global using indirection
- . I $D(@HTTPRSP)#2 W @HTTPRSP
- . I $D(@HTTPRSP)>1 S I=0 F  S I=$O(@HTTPRSP@(I)) Q:'I  W @HTTPRSP@(I)
+ . I $D(@HTTPRSP)#2 D W(@HTTPRSP)
+ . I $D(@HTTPRSP)>1 S I=0 F  S I=$O(@HTTPRSP@(I)) Q:'I  D W(@HTTPRSP@(I))
  I RSPTYPE=3 D            ; write out pageable records
- . W PREAMBLE
+ . D W(PREAMBLE)
  . F I=START:1:(START+LIMIT-1) Q:'$D(@HTTPRSP@($J,I))  D
- . . I I>START W "," ; separate items with a comma
- . . S J="" F  S J=$O(@HTTPRSP@($J,I,J)) Q:'J  W @HTTPRSP@($J,I,J)
+ . . I I>START D W(",") ; separate items with a comma
+ . . S J="" F  S J=$O(@HTTPRSP@($J,I,J)) Q:'J  D W(@HTTPRSP@($J,I,J))
  . S HASDATA=$D(@HTTPRSP@($J))
- . W $S('$D(^VPRCONFIG("store",$G(HTTPREQ("store")),"global")):"]}}",+HASDATA:"]}",1:"}")
- . K:$D(@HTTPRSP@($J)) @HTTPRSP@($J)
- W !  ; flush buffer
- I RSPTYPE=3,(($E(HTTPRSP,1,4)="^TMP")!($E(HTTPRSP,1,6)="^||TMP")) D UPDCACHE
+ . D W($S('$D(^VPRCONFIG("store",$G(HTTPREQ("store")),"global")):"]}}",+HASDATA:"]}",1:"}"))
+ . K @HTTPRSP@($J)
+ D FLUSH; flush buffer
+ I RSPTYPE=3,($E(HTTPRSP,1,4)="^TMP") D UPDCACHE
  QUIT
+ ;
+W(DATA) ; EP to write data
+ ; ZEXCEPT: %WBUFF - Buffer in Symbol Table
+ S %WBUFF=%WBUFF_DATA
+ I $L(%WBUFF)>32000 D FLUSH
+ QUIT
+ ;
+FLUSH ; EP to flush written data
+ ; ZEXCEPT: %WBUFF - Buffer in Symbol Table
+ W %WBUFF,!
+ S %WBUFF=""
+ QUIT
+ ;
  ;
 UPDCACHE ; update the cache for this query
  I HTTPREQ("store")="data" G UPD4DATA
@@ -141,8 +153,8 @@ UPDCACHE ; update the cache for this query
  ; otherwise drop into VPR cache update
 UPD4VPR ;
  N PID,INDEX,HASH,HASHTS,MTHD,JPID
- S PID=$G(^||TMP($J,"pid")),INDEX=$G(^||TMP($J,"index"))
- S HASH=$G(^||TMP($J,"hash")),HASHTS=$G(^||TMP($J,"timestamp"))
+ S PID=$G(^TMP($J,"pid")),INDEX=$G(^TMP($J,"index"))
+ S HASH=$G(^TMP($J,"hash")),HASHTS=$G(^TMP($J,"timestamp"))
  Q:'$L(PID)  Q:'$L(INDEX)  Q:'$L(HASH)  Q:PID[","
  ;
  S JPID=$$JPID4PID^VPRJPR(PID)
@@ -150,29 +162,29 @@ UPD4VPR ;
  S MTHD=$G(^VPRMETA("index",INDEX,"common","method"))
  L +^VPRTMP(HASH):$G(^VPRCONFIG("timeout","odhash"),1)  E  Q
  I $G(^VPRPTI(JPID,PID,MTHD,INDEX))=HASHTS D
- . K:$D(^VPRTMP(HASH)) ^VPRTMP(HASH)
- . M ^VPRTMP(HASH)=^||TMP($J)
+ . K ^VPRTMP(HASH)
+ . M ^VPRTMP(HASH)=^TMP($J)
  . S ^VPRTMP(HASH,"created")=$H
  . S ^VPRTMP("PID",PID,HASH)=""
  L -^VPRTMP(HASH)
  Q
 UPD4DATA ;
  N INDEX,HASH,HASHTS,MTHD
- S INDEX=$G(^||TMP($J,"index"))
- S HASH=$G(^||TMP($J,"hash")),HASHTS=$G(^||TMP($J,"timestamp"))
+ S INDEX=$G(^TMP($J,"index"))
+ S HASH=$G(^TMP($J,"hash")),HASHTS=$G(^TMP($J,"timestamp"))
  Q:'$L(INDEX)  Q:'$L(HASH)
  ;
  S MTHD=$G(^VPRMETA("index",INDEX,"common","method"))
  L +^VPRTMP(HASH):$G(^VPRCONFIG("timeout","pthash"),1)  E  Q
  I $G(^VPRJDX(MTHD,INDEX))=HASHTS D
- . K:$D(^VPRTMP(HASH)) ^VPRTMP(HASH)
- . M ^VPRTMP(HASH)=^||TMP($J)
+ . K ^VPRTMP(HASH)
+ . M ^VPRTMP(HASH)=^TMP($J)
  . S ^VPRTMP(HASH,"created")=$H
  L -^VPRTMP(HASH)
  Q
 RSPERROR ; set response to be an error response
- D ENCODE^VPRJSON("^||TMP(""HTTPERR"",$J,1)","^||TMP(""HTTPERR"",$J,""JSON"")")
- S HTTPRSP="^||TMP(""HTTPERR"",$J,""JSON"")"
+ D ENCODE^VPRJSON("^TMP(""HTTPERR"",$J,1)","^TMP(""HTTPERR"",$J,""JSON"")")
+ S HTTPRSP="^TMP(""HTTPERR"",$J,""JSON"")"
  K HTTPRSP("pageable")
  Q
 RSPLINE() ; writes out a response line based on HTTPERR
