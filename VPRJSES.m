@@ -10,7 +10,7 @@ SET(ARGS,BODY) ; Store or update a session based on the passed in session id (si
  I $G(DEMOG("_id"))="" D SETERROR^VPRJRER(220) Q ""
  S SID=DEMOG("_id")
  L +^VPRJSES(SID):$G(^VPRCONFIG("timeout","gds"),5) E  D SETERROR^VPRJRER(502) Q ""
- TSTART (*)
+ TSTART *
  I $O(^VPRJSES(SID,""))']"" S INCR=$I(^VPRJSES(0))
  K:$D(^VPRJSES(SID)) ^VPRJSES(SID)
  M ^VPRJSES(SID)=DEMOG
@@ -23,7 +23,7 @@ CLR(RESULT,ARGS) ; Clear ALL sessions!!!
  N VPRJA
  L +^VPRJSES:$G(^VPRCONFIG("timeout","gds"),5) E  D SETERROR^VPRJRER(502) Q
  S VPRJA=0
- TSTART (*)
+ TSTART *
  F  S VPRJA=$O(^VPRJSES(VPRJA)) Q:VPRJA']""  K:$D(^VPRJSES(VPRJA)) ^VPRJSES(VPRJA)
  S ^VPRJSES(0)=0
  TCOMMIT
@@ -36,7 +36,7 @@ DEL(RESULT,ARGS) ; Delete a given session
  I $G(ARGS("_id"))="" D SETERROR^VPRJRER(111,"_id is blank") Q
  I $D(^VPRJSES(ARGS("_id"))) D
  .L +^VPRJSES(ARGS("_id")):$G(^VPRCONFIG("timeout","gds"),5)
- .TSTART
+ .TSTART *
  .K:$D(^VPRJSES(ARGS("_id"))) ^VPRJSES(ARGS("_id"))
  .TCOMMIT
  .L -^VPRJSES(ARGS("_id"))

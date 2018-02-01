@@ -30,7 +30,7 @@ SYNCSTS ; Entry point for sync status metastamp conversion
  F  S SITE=$O(^VPRSTATUSOD(SITE)) Q:SITE=""  D
  . S (SOURCESTAMP,DOMAIN)=""
  . W "Converting Site: "_SITE,!
- . TS
+ . TS *
  . ;
  . S SOURCESTAMP=$O(^VPRSTATUSOD(SITE,SOURCESTAMP),-1) ; Get the newest source stamp
  . ; Check to make sure the source stamp is a 14 digit integer, otherwise quit this iteration
@@ -70,7 +70,7 @@ SYNCSTS ; Entry point for sync status metastamp conversion
  . S SITE=$P(PID,";")
  . S (SOURCESTAMP,DOMAIN)=""
  . ;
- . TS
+ . TS *
  . ;
  . S SOURCESTAMP=$O(^VPRSTATUS(PID,SITE,SOURCESTAMP),-1) ; Get the newest source stamp
  . I SOURCESTAMP?14N S J=J+1
@@ -168,7 +168,7 @@ JPIDSHRD(SAVE) ; Entry point for JPID restructure for sharding conversion
  . ;
  . W "Converting patient data array for PID: "_PID,!
  . ;
- . TS
+ . TS *
  . S JPID=$$JPID4PID^VPRJPR(PID)
  . ;
  . I $$ISJPID^VPRJPR(JPID) S I=I+1
@@ -210,7 +210,7 @@ JPIDSHRD(SAVE) ; Entry point for JPID restructure for sharding conversion
  . ;
  . W "Converting patient data JSON for PID: "_PID,!
  . ;
- . TS
+ . TS *
  . S JPID=$$JPID4PID^VPRJPR(PID)
  . ;
  . I $$ISJPID^VPRJPR(JPID) S J=J+1
@@ -252,7 +252,7 @@ JPIDSHRD(SAVE) ; Entry point for JPID restructure for sharding conversion
  . ;
  . W "Converting patient data index for PID: "_PID,!
  . ;
- . TS
+ . TS *
  . S JPID=$$JPID4PID^VPRJPR(PID)
  . ;
  . I $$ISJPID^VPRJPR(JPID) S K=K+1
@@ -294,7 +294,7 @@ JPIDSHRD(SAVE) ; Entry point for JPID restructure for sharding conversion
  . ;
  . W "Converting patient data template for PID: "_PID,!
  . ;
- . TS
+ . TS *
  . S JPID=$$JPID4PID^VPRJPR(PID)
  . ;
  . I $$ISJPID^VPRJPR(JPID) S L=L+1
@@ -338,7 +338,7 @@ JPIDSHRD(SAVE) ; Entry point for JPID restructure for sharding conversion
  . ;
  . W "Converting patient sync status for PID: "_PID,!
  . ;
- . TS
+ . TS *
  . S JPID=$$JPID4PID^VPRJPR(PID)
  . ;
  . I $$ISJPID^VPRJPR(JPID) S M=M+1
