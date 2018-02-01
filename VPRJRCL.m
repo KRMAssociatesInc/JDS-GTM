@@ -35,7 +35,7 @@ STOPW ; tell the listeners to stop running and wait until they stop
  . . W " ."
  . . F I=1:1:30 S STATUS=$D(^VPRHTTP(0,"child"))  S:STATUS=0 CHILD=0 Q:STATUS=0  D
  . . . S CHILD=1
- . . . S JOB=0 F  S JOB=$O(^VPRHTTP(0,"child",JOB)) Q:JOB=""  I $D(^$J(JOB))=0 K:$D(^VPRHTTP(0,"child",JOB)) ^VPRHTTP(0,"child",JOB)
+ . . . S JOB=0 F  S JOB=$O(^VPRHTTP(0,"child",JOB)) Q:JOB=""  I $zgetjpi(JOB,"isprocalive")=0 K:$D(^VPRHTTP(0,"child",JOB)) ^VPRHTTP(0,"child",JOB)
  . . . W "."
  . . . H 1
  . W "."
