@@ -3,7 +3,7 @@ VPRJPSTATUS ;KRM/CJE,V4W/DLW -- Handle Patient Sync Status operations
  ;
 SET(ARGS,BODY) ; Store patient metastamps from a source
  N OBJECT,ERR,JID,JPID,JPID2,ICN,PID,SOURCE,SSOURCE,DOMAIN,DOMAINSTAMP,EVENT,EVENTSTAMP,I,J,K,PREVSTAMP
- S OBJECT=$NA(^||TMP($J,"metastamp"))
+ S OBJECT=$NA(^TMP($J,"metastamp"))
  K:$D(@OBJECT) @OBJECT
  D DECODE^VPRJSON("BODY",OBJECT,"ERR") ; Decode JSON to OBJECT array
  ; Get the source site hash (only one allowed per post)
@@ -110,7 +110,7 @@ SET(ARGS,BODY) ; Store patient metastamps from a source
  ;
 GET(RETURN,ARGS) ; Return patient sync status based on metastamps
  N RESULT,DETAILED,JPID,PIDS,ID,RESULT,ERR,FILTER,CLAUSES
- S RESULT=$NA(^||TMP($J,"RESULT"))
+ S RESULT=$NA(^TMP($J,"RESULT"))
  K:$D(@RESULT) @RESULT
  ; Ensure we don't have any unknown arguments
  I $$UNKARGS^VPRJCU(.ARGS,"id,detailed,filter") Q
@@ -132,7 +132,7 @@ GET(RETURN,ARGS) ; Return patient sync status based on metastamps
  F  S ID=$O(PIDS(ID)) Q:ID=""  D
  . D PATIENT(RESULT,PIDS(ID),DETAILED,.CLAUSES)
  ;
- S RETURN=$NA(^||TMP($J,"RETURN"))
+ S RETURN=$NA(^TMP($J,"RETURN"))
  K:$D(@RETURN) @RETURN ; Clear the output global array, avoid subtle bugs
  D ENCODE^VPRJSON(RESULT,RETURN,"ERR") ; From an array to JSON
  K:$D(@RESULT) @RESULT
@@ -178,7 +178,7 @@ PATIENT(RESULT,PID,DETAILED,CLAUSES,MINIMAL) ; GET Patient Sync Status algorithm
  ; Check to see if we have a metastamp for this source
  I '$G(^VPRSTATUS(JPID,PID,SOURCE,"stampTime")) Q
  ; Set BUILD up to use as a target for indirection
- S BUILD=$NA(^||TMP($J,"RESULT","BUILD"))
+ S BUILD=$NA(^TMP($J,"RESULT","BUILD"))
  K:$D(@BUILD) @BUILD
  ;
  ; This may be blank if no ICN is on file, if it is blank only primary site data is on file
@@ -397,8 +397,8 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  ; NOTE: if only id associations are stored the the timestamp and stampTimes are empty strings instead
  ; of numeric
  N RESULT,DETAILED,JPID,PIDS,ID,RESULT,ERR,FILTER,CLAUSES,ALLCOMPLETE,SITES,SITELIST,DEBUG
- S RESULT=$NA(^||TMP($J,"RESULT","syncStatus"))
- K:$D(^||TMP($J,"RESULT")) ^||TMP($J,"RESULT")
+ S RESULT=$NA(^TMP($J,"RESULT","syncStatus"))
+ K:$D(^TMP($J,"RESULT")) ^TMP($J,"RESULT")
  ; Ensure we don't have any unknown arguments
  I $$UNKARGS^VPRJCU(.ARGS,"icnpidjpid,sites,debug") Q
  ; Set sites list
@@ -407,9 +407,9 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  S DEBUG=$G(ARGS("debug"))
  I $L(SITES) S SITELIST=1
  ; If we don't have a site list set the global syncStatus to true
- S:'SITELIST ^||TMP($J,"RESULT","return","syncCompleted")="true"
+ S:'SITELIST ^TMP($J,"RESULT","return","syncCompleted")="true"
  ; If solr status is enabled and we don't have a site list set the global solrSyncStatus to true
- S:$G(^VPRCONFIG("sync","status","solr"))&('SITELIST) ^||TMP($J,"RESULT","return","solrSyncCompleted")="true"
+ S:$G(^VPRCONFIG("sync","status","solr"))&('SITELIST) ^TMP($J,"RESULT","return","solrSyncCompleted")="true"
  ;
  ; Get the JPID based on passed patient identifier
  S JPID=""
@@ -423,11 +423,11 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  S ESR=$$GETJOBBYINDEX(.ESRJOB,JPID,"enterprise-sync-request")
  ;
  ; Job debugging
- M:DEBUG ^||TMP($J,"RESULT","debug","JOBS","ESR")=ESRJOB
- M:DEBUG ^||TMP($J,"RESULT","debug","PIDS")=PIDS
+ M:DEBUG ^TMP($J,"RESULT","debug","JOBS","ESR")=ESRJOB
+ M:DEBUG ^TMP($J,"RESULT","debug","PIDS")=PIDS
  ;
  ; We always want to report the last time an enterprise-sync-request was created for the patient
- S ^||TMP($J,"RESULT","return","latestEnterpriseSyncRequestTimestamp")=$G(ESRJOB("timestamp"))
+ S ^TMP($J,"RESULT","return","latestEnterpriseSyncRequestTimestamp")=$G(ESRJOB("timestamp"))
  ;
  ; Global enterprise-sync-request rules
  ; If enterprise-sync-request is in error the site can never be complete
@@ -446,7 +446,7 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  . ;
  . ; Always get the patient meta-stamp
  . D PATIENT(RESULT,PIDS(ID),"",.CLAUSES,1)
- . M:DEBUG ^||TMP($J,"RESULT","return","debug","syncStatus")=^||TMP($J,"RESULT","syncStatus")
+ . M:DEBUG ^TMP($J,"RESULT","return","debug","syncStatus")=^TMP($J,"RESULT","syncStatus")
  . ;
  . ; VistA Primary Site and VistA/HDR Pub/Sub Checks
  . ; These checks are combined as there is no way to tell via PID which is which
@@ -477,14 +477,14 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  . . I $G(VHDJOBS("hasError")) D BLDRESULT(PIDS(ID),"false",VHDJOBS("latestTimestamp"),"job") Q
  . . ;
  . . ; Save jobs off to global for debugging
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"ESR")=ESRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VSR")=VSRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VDJOBS")=VDJOBS
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VHSR")=VHSRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VHDJOBS")=VHDJOBS
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"ESR")=ESRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VSR")=VSRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VDJOBS")=VDJOBS
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VHSR")=VHSRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VHDJOBS")=VHDJOBS
  . . ;
  . . ; 1. If vista-{SiteHash}-subscribe-request OR vista-{SiteHash}-data-{domain}-poller jobs are OPEN or ERROR: syncComplete = false
- . . I (($G(VSRJOB("status"))'="completed")!('VDJOBS("allJobsComplete")))&(('VHSR)&('VHDJOBS("numberOfJobs"))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VISTA RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",VDJOBS("latestTimestamp")) Q
+ . . I (($G(VSRJOB("status"))'="completed")!('VDJOBS("allJobsComplete")))&(('VHSR)&('VHDJOBS("numberOfJobs"))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VISTA RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",VDJOBS("latestTimestamp")) Q
  . . ;
  . . ; 2. If vista-{SiteHash}-subscribe-request AND vista-{SiteHash}-data-{domain}-poller are COMPLETED syncComplete = meta-stamp status
  . . ; NOTE: This works because we never complete jobs until we open the next job in the chain. This is enforced by VX-Sync.
@@ -492,16 +492,16 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  . . . ; setup SSITE to deal with fully numeric site hashes
  . . . I SITE=+SITE S SSITE=""""_SITE_""
  . . . E  S SSITE=SITE
- . . . I $D(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SSITE)) S:DEBUG ^||TMP($J,"RESULT","return","RULES")="VISTA RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",VDJOBS("latestTimestamp"))
- . . . E  I $D(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SSITE)) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VISTA RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",VDJOBS("latestTimestamp"))
- . . . E  I '$D(^||TMP($J,"RESULT","syncStatus")) S ALLCOMPLETE=0
+ . . . I $D(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SSITE)) S:DEBUG ^TMP($J,"RESULT","return","RULES")="VISTA RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",VDJOBS("latestTimestamp"))
+ . . . E  I $D(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SSITE)) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VISTA RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",VDJOBS("latestTimestamp"))
+ . . . E  I '$D(^TMP($J,"RESULT","syncStatus")) S ALLCOMPLETE=0
  . . ;
  . . ; 3. If vista-{SiteHash}-subscribe-request OR vista-{SiteHash}-data-{domain}-poller don't exist AND enterprise-sync-request is OPEN or ERROR: syncComplete = false
- . . I (('VSR)!('VDJOBS("numberOfJobs")))&('VHSR)&('VHDJOBS("numberOfJobs"))&(($G(ESRJOB("status"))'="completed")) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VISTA RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",VDJOBS("latestTimestamp")) Q
+ . . I (('VSR)!('VDJOBS("numberOfJobs")))&('VHSR)&('VHDJOBS("numberOfJobs"))&(($G(ESRJOB("status"))'="completed")) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VISTA RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",VDJOBS("latestTimestamp")) Q
  . . ;
  . . ; VistA HDR Pub/Sub
  . . ; 1. If vistahdr-{SiteHash}-subscribe-request OR vistahdr-{SiteHash}-data-{domain}-poller jobs are OPEN or ERROR: syncComplete = false
- . . I (($G(VHSRJOB("status"))'="completed")!('VHDJOBS("allJobsComplete"))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VISTAHDR RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",VHDJOBS("latestTimestamp")) Q
+ . . I (($G(VHSRJOB("status"))'="completed")!('VHDJOBS("allJobsComplete"))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VISTAHDR RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",VHDJOBS("latestTimestamp")) Q
  . . ;
  . . ; 2. If vistahdr-{SiteHash}-subscribe-request OR vistahdr-{SiteHash}-data-{domain}-poller are COMPLETE: syncComplete = meta-stamp status
  . . ; NOTE: This works because we never complete jobs until we open the next job in the chain. This is enforced by VX-Sync.
@@ -509,11 +509,11 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  . . . ; setup SSITE to deal with fully numeric site hashes
  . . . I SITE=+SITE S SSITE=""""_SITE_""
  . . . E  S SSITE=SITE
- . . . I $D(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SSITE)) S:DEBUG ^||TMP($J,"RESULT","return","RULES")="VISTAHDR RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",VHDJOBS("latestTimestamp"))
- . . . E  I $D(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SSITE)) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VISTAHDR RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",VHDJOBS("latestTimestamp"))
+ . . . I $D(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SSITE)) S:DEBUG ^TMP($J,"RESULT","return","RULES")="VISTAHDR RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",VHDJOBS("latestTimestamp"))
+ . . . E  I $D(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SSITE)) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VISTAHDR RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",VHDJOBS("latestTimestamp"))
  . . ;
  . . ; 3. If vistahdr-{SiteHash}-subscribe-request OR vistahdr-{SiteHash}-data-{domain}-poller don't exist AND enterprise-sync-request is OPEN or ERROR: syncComplete = false
- . . I (('VHSR)!('VHDJOBS("numberOfJobs")))&('VSR)&('VDJOBS("numberOfJobs"))&(($G(ESRJOB("status"))'="completed")) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VISTAHDR RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",VHDJOBS("latestTimestamp")) Q
+ . . I (('VHSR)!('VHDJOBS("numberOfJobs")))&('VSR)&('VDJOBS("numberOfJobs"))&(($G(ESRJOB("status"))'="completed")) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VISTAHDR RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",VHDJOBS("latestTimestamp")) Q
  . ;
  . E  I SITE="HDR" D
  . . ; HDR Req/Res
@@ -534,22 +534,22 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  . . I $G(HDJOBS("hasError")) D BLDRESULT(PIDS(ID),"false",HDJOBS("latestTimestamp"),"job") Q
  . . ;
  . . ; Save jobs off to global for debugging
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"ESR")=ESRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"HSR")=HSRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"HSDR")=HDJOBS
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"HX")=HXJOBS
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"ESR")=ESRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"HSR")=HSRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"HSDR")=HDJOBS
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"HX")=HXJOBS
  . . ;
  . . ; 1. If hdr-subscribe-request OR hdr-sync-{domain}-request OR hdr-xform-{domain}-vpr jobs are OPEN or ERROR: syncComplete = false
- . . I ($G(HSRJOB("status"))'="completed")!('HDJOBS("allJobsComplete"))!((HXJOBS("numberOfJobs"))&('HXJOBS("allJobsComplete"))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="HDR RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",HDJOBS("latestTimestamp")) Q
+ . . I ($G(HSRJOB("status"))'="completed")!('HDJOBS("allJobsComplete"))!((HXJOBS("numberOfJobs"))&('HXJOBS("allJobsComplete"))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="HDR RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",HDJOBS("latestTimestamp")) Q
  . . ;
  . . ; 2. If hdr-subscribe-request AND hdr-sync-{domain}-request AND hdr-xform-{domain}-vpr are COMPLETE: syncComplete = meta-stamp status
  . . ; NOTE: This works because we never complete jobs until we open the next job in the chain. This is enforced by VX-Sync.
  . . I ($G(HSRJOB("status"))="completed")&(HDJOBS("allJobsComplete"))&(('HXJOBS("numberOfJobs"))!(HXJOBS("allJobsComplete"))) D  Q
- . . . I $D(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="HDR RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",HDJOBS("latestTimestamp"))
- . . . E  I $D(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="HDR RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",HDJOBS("latestTimestamp"))
+ . . . I $D(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="HDR RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",HDJOBS("latestTimestamp"))
+ . . . E  I $D(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="HDR RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",HDJOBS("latestTimestamp"))
  . . ;
  . . ; 3. If hdr-subscribe-request AND hdr-sync-{domain}-request AND hdr-xform-{domain}-vpr don't exist AND enterprise-sync-request is OPEN or ERROR: syncComplete = false
- . . I ('HSR)&('HDJOBS("numberOfJobs"))&('HXJOBS("numberOfJobs"))&(($G(ESRJOB("status"))'="completed")) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="HDR RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",HDJOBS("latestTimestamp")) Q
+ . . I ('HSR)&('HDJOBS("numberOfJobs"))&('HXJOBS("numberOfJobs"))&(($G(ESRJOB("status"))'="completed")) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="HDR RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",HDJOBS("latestTimestamp")) Q
  . ;
  . E  I SITE="DOD" D
  . . ; DOD Req/Res
@@ -579,28 +579,28 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  . . I $G(JJOBS("hasError")) D BLDRESULT(PIDS(ID),"false",JJOBS("latestTimestamp"),"job") Q
  . . ;
  . . ; Save jobs off to global for debugging
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"ESR")=ESRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"JSR")=JSRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"JJOBS")=JJOBS
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"JDR")=JDRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"JPDT")=JPDTJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"JX")=JXJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"JCDC")=JCDCJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"ESR")=ESRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"JSR")=JSRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"JJOBS")=JJOBS
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"JDR")=JDRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"JPDT")=JPDTJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"JX")=JXJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"JCDC")=JCDCJOB
  . . ;
  . . ; 1. If jmeadows-sync-request OR jmeadows-sync-{domain}-request OR jmeadows-document-retrieval OR jmeadows-pdf-document-transform OR jmeadows-xform-{domain}-vpr
  . . ;    OR jmeadows-cda-document-conversion jobs are OPEN or ERROR: syncComplete = false
- . . I ($G(JSRJOB("status"))'="completed")!('JJOBS("allJobsComplete"))!((JDR)&($G(JDRJOB("status"))'="completed"))!((JPDT)&($G(JPDTJOB("status"))'="completed"))!((JXJOBS("numberOfJobs"))&('JXJOBS("allJobsComplete")))!((JCDC)&($G(JCDCJOB("status"))'="completed")) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="DOD RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",JJOBS("latestTimestamp")) Q
+ . . I ($G(JSRJOB("status"))'="completed")!('JJOBS("allJobsComplete"))!((JDR)&($G(JDRJOB("status"))'="completed"))!((JPDT)&($G(JPDTJOB("status"))'="completed"))!((JXJOBS("numberOfJobs"))&('JXJOBS("allJobsComplete")))!((JCDC)&($G(JCDCJOB("status"))'="completed")) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="DOD RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",JJOBS("latestTimestamp")) Q
  . . ;
  . . ; 2. If jmeadows-sync-request AND jmeadows-sync-{domain}-request AND jmeadows-document-retrieval AND jmeadows-pdf-document-transform
  . . ;    AND jmeadows-xform-{domain}-vpr AND jmeadows-cda-document-conversion are COMPLETE: syncComplete = meta-stamp status
  . . ; NOTE: This works because we never complete jobs until we open the next job in the chain. This is enforced by VX-Sync.
  . . I ($G(JSRJOB("status"))="completed")&(JJOBS("allJobsComplete"))&(('JDR)!($G(JDRJOB("status"))="completed"))&(('JPDT)!($G(JPDTJOB("status"))="completed"))&(('JXJOBS("numberOfJobs"))!(JXJOBS("allJobsComplete")))&(('JCDC)!($G(JCDCJOB("status"))="completed")) D  Q
- . . . I $D(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="DOD RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",JJOBS("latestTimestamp"))
- . . . E  I $D(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="DOD RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",JJOBS("latestTimestamp"))
+ . . . I $D(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="DOD RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",JJOBS("latestTimestamp"))
+ . . . E  I $D(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="DOD RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",JJOBS("latestTimestamp"))
  . . ;
  . . ; 3. If jmeadows-sync-request AND jmeadows-sync-{domain}-request AND jmeadows-document-retrieval AND jmeadows-pdf-document-transform
  . . ;    AND jmeadows-xform-{domain}-vpr AND jmeadows-cda-document-conversion don't exist AND enterprise-sync-request is OPEN or ERROR: syncComplete = false
- . . I ('JSR)&('JJOBS("numberOfJobs"))&('JXJOBS("numberOfJobs"))&('JDR)&('JPDT)&('JCDC)&(($G(ESRJOB("status"))'="completed")) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="DOD RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",JJOBS("latestTimestamp")) Q
+ . . I ('JSR)&('JJOBS("numberOfJobs"))&('JXJOBS("numberOfJobs"))&('JDR)&('JPDT)&('JCDC)&(($G(ESRJOB("status"))'="completed")) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="DOD RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",JJOBS("latestTimestamp")) Q
  . ;
  . E  I SITE="VLER" D
  . . ; VLER Req/Res, DAS/FHIR
@@ -635,70 +635,70 @@ COMBINED(RETURN,ARGS) ; Return patient sync status with job status
  . . I $G(VJOBS("hasError")) D BLDRESULT(PIDS(ID),"false",VJOBS("latestTimestamp"),"job") Q
  . . ;
  . . ; Save jobs off to global for debugging
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"ESR")=ESRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VSR")=VSRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VXV")=VXVJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VDSR")=VDSRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VDSUR")=VDSURJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VDDR")=VDDRJOB
- . . M:DEBUG ^||TMP($J,"RESULT","return","debug","jobs",SITE,"VDXV")=VDXVJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"ESR")=ESRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VSR")=VSRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VXV")=VXVJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VDSR")=VDSRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VDSUR")=VDSURJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VDDR")=VDDRJOB
+ . . M:DEBUG ^TMP($J,"RESULT","return","debug","jobs",SITE,"VDXV")=VDXVJOB
  . . ;
  . . ; 1. If vler-sync-request OR vler-xform-vpr jobs are OPEN or ERROR (aka not completed): syncComplete = false
- . . I (((VSR)&($G(VSRJOB("status"))'="completed"))!((VXV)&($G(VXVJOB("status"))'="completed"))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VLER RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",$G(VJOBS("latestTimestamp"))) Q
+ . . I (((VSR)&($G(VSRJOB("status"))'="completed"))!((VXV)&($G(VXVJOB("status"))'="completed"))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VLER RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",$G(VJOBS("latestTimestamp"))) Q
  . . ;
  . . ; 2. If ((vler-sync-request AND vler-xform-vpr) are COMPLETE: syncComplete = meta-stamp status
  . . ; NOTE: This works because we never complete jobs until we open the next job in the chain. This is enforced by VX-Sync.
  . . I ((($G(VSRJOB("status"))="completed")&(('VXV)!($G(VXVJOB("status"))="completed")))) D  Q
- . . . I $D(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VLER RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",VJOBS("latestTimestamp"))
- . . . E  I $D(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VLER RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",VJOBS("latestTimestamp"))
+ . . . I $D(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VLER RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",VJOBS("latestTimestamp"))
+ . . . E  I $D(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VLER RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",VJOBS("latestTimestamp"))
  . . ;
  . . ; 3. If (vler-sync-request AND vler-xform-vpr) don't exist AND enterprise-sync-request is OPEN or ERROR: syncComplete = false
  . . ; NOTE: If ESR is in error this rule should never be executed. ESR errors are dealt with early and meant to fail fast.
  . . ; NOTE: This covers both VLER and VLER DAS in some cases
- . . I ('VSR)&('VXV)&('VDSR)&('VDSUR)&('VDDR)&('VDXV)&($G(ESRJOB("status"))'="completed") S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VLER RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",VJOBS("latestTimestamp")) Q
+ . . I ('VSR)&('VXV)&('VDSR)&('VDSUR)&('VDDR)&('VDXV)&($G(ESRJOB("status"))'="completed") S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VLER RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",VJOBS("latestTimestamp")) Q
  . . ;
  . . ; VLER DAS
  . . ; 1. If vler-das-sync-request OR vler-das-subscribe-request OR vler-das-doc-retrieve jobs are OPEN or ERROR (aka not completed): syncComplete = false
- . . I ((('VSR)&($G(VDSRJOB("status"))'="completed"))!(($G(VDSURJOB("status"))'="completed"))!(($G(VDDRJOB("status"))'="completed"))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VLER DAS RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",$G(VJOBS("latestTimestamp"))) Q
+ . . I ((('VSR)&($G(VDSRJOB("status"))'="completed"))!(($G(VDSURJOB("status"))'="completed"))!(($G(VDDRJOB("status"))'="completed"))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VLER DAS RULE 1 FALSE" D BLDRESULT(PIDS(ID),"false",$G(VJOBS("latestTimestamp"))) Q
  . . ;
  . . ; 2. If (vler-das-sync-request AND vler-das-subscribe-request AND vler-das-doc-retrieve)) are COMPLETE: syncComplete = meta-stamp status
  . . ; NOTE: This works because we never complete jobs until we open the next job in the chain. This is enforced by VX-Sync.
  . . I (($G(VDSRJOB("status"))="completed"))&(($G(VDSURJOB("status"))="completed"))&(($G(VDDRJOB("status"))="completed")) D  Q
- . . . I $D(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VLER DAS RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",VJOBS("latestTimestamp"))
- . . . E  I $D(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VLER DAS RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",VJOBS("latestTimestamp"))
+ . . . I $D(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VLER DAS RULE 2 FALSE" D BLDRESULT(PIDS(ID),"false",VJOBS("latestTimestamp"))
+ . . . E  I $D(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",$P(PIDS(ID),";",1))) S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VLER DAS RULE 2 TRUE" D BLDRESULT(PIDS(ID),"true",VJOBS("latestTimestamp"))
  . . ;
  . . ; 3. If (vler-das-sync-request OR vler-das-subscribe-request OR vler-das-doc-retrive) don't exist AND enterprise-sync-request is OPEN or ERROR: syncComplete = false
  . . ; NOTE: If ESR is in error this rule should never be executed. ESR errors are dealt with early and meant to fail fast.
- . . I (('VDSR)!('VDSUR)!('VDDR))&($G(ESRJOB("status"))'="completed") S:DEBUG ^||TMP($J,"RESULT","return","RULES",SITE)="VLER DAS RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",VJOBS("latestTimestamp")) Q
+ . . I (('VDSR)!('VDSUR)!('VDDR))&($G(ESRJOB("status"))'="completed") S:DEBUG ^TMP($J,"RESULT","return","RULES",SITE)="VLER DAS RULE 3 FALSE" D BLDRESULT(PIDS(ID),"false",VJOBS("latestTimestamp")) Q
  . ;
  . ; Check for sync or solr errors regardless of whether the sync is in progress or completed
- . I $D(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE)) D
+ . I $D(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE)) D
  . . ; Determine if there are any sync errors
- . . I $G(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE,"hasSyncError"),"false")="true" D
- . . . D BLDRESULT(PIDS(ID),"false",$G(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE,"stampTime")),"sync")
+ . . I $G(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE,"hasSyncError"),"false")="true" D
+ . . . D BLDRESULT(PIDS(ID),"false",$G(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE,"stampTime")),"sync")
  . . ;
  . . ; Determine if there are any solr errors
- . . I $G(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE,"hasSolrError"),"false")="true" D
- . . . D BLDRESULT(PIDS(ID),"",$G(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE,"stampTime")),"solr")
- . E  I $D(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE)) D
+ . . I $G(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE,"hasSolrError"),"false")="true" D
+ . . . D BLDRESULT(PIDS(ID),"",$G(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SITE,"stampTime")),"solr")
+ . E  I $D(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE)) D
  . . ; Determine if there are any sync errors
- . . I $G(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE,"hasSyncError"),"false")="true" D
- . . . D BLDRESULT(PIDS(ID),"false",$G(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE,"stampTime")),"sync")
+ . . I $G(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE,"hasSyncError"),"false")="true" D
+ . . . D BLDRESULT(PIDS(ID),"false",$G(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE,"stampTime")),"sync")
  . . ;
  . . ; Determine if there are any solr errors
- . . I $G(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE,"hasSolrError"),"false")="true" D
- . . . D BLDRESULT(PIDS(ID),"",$G(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE,"stampTime")),"solr")
+ . . I $G(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE,"hasSolrError"),"false")="true" D
+ . . . D BLDRESULT(PIDS(ID),"",$G(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SITE,"stampTime")),"solr")
  ;
 BLDRETURN
  ; Build Return
- S ^||TMP($J,"RESULT","return","icn")=$$ICN4JPID^VPRJPR(JPID)
+ S ^TMP($J,"RESULT","return","icn")=$$ICN4JPID^VPRJPR(JPID)
  ;
  ; Check to make sure we have a site to return. If we don't return a sync status that is false
- I $D(^||TMP($J,"RESULT","return","sites"))=0 D BLDRESULT($G(PIDS(1)),"false",$G(ESRJOB("timestamp")))
+ I $D(^TMP($J,"RESULT","return","sites"))=0 D BLDRESULT($G(PIDS(1)),"false",$G(ESRJOB("timestamp")))
  ;
- S RETURN=$NA(^||TMP($J,"RETURN"))
+ S RETURN=$NA(^TMP($J,"RETURN"))
  K:$D(@RETURN) @RETURN ; Clear the output global array, avoid subtle bugs
- D ENCODE^VPRJSON($NA(^||TMP($J,"RESULT","return")),RETURN,"ERR") ; From an array to JSON
+ D ENCODE^VPRJSON($NA(^TMP($J,"RESULT","return")),RETURN,"ERR") ; From an array to JSON
  K:$D(@RESULT) @RESULT
  I $D(ERR) D SETERROR^VPRJRER(202) Q
  Q
@@ -717,45 +717,45 @@ BLDRESULT(PID,STATUS,TIMESTAMP,ERROR)
  ;
  ; Set Site & Global hasError and hasSolrError flags for jobs, sync, and solr errors
  I $G(ERROR)="job"!($G(ERROR)="sync") D
- . I $$ISPID^VPRJPR(PID) S ^||TMP($J,"RESULT","return","sites",SOURCE,"hasError")="true"
- . S ^||TMP($J,"RESULT","return","hasError")="true"
+ . I $$ISPID^VPRJPR(PID) S ^TMP($J,"RESULT","return","sites",SOURCE,"hasError")="true"
+ . S ^TMP($J,"RESULT","return","hasError")="true"
  E  I $G(ERROR)="solr" D
- . I $$ISPID^VPRJPR(PID) S ^||TMP($J,"RESULT","return","sites",SOURCE,"hasSolrError")="true"
- . S ^||TMP($J,"RESULT","return","hasSolrError")="true"
+ . I $$ISPID^VPRJPR(PID) S ^TMP($J,"RESULT","return","sites",SOURCE,"hasSolrError")="true"
+ . S ^TMP($J,"RESULT","return","hasSolrError")="true"
  . ; Also need to set solrSyncCompleted to false
- . I $G(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"stampTime")) D
- . . S ^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"solrSyncCompleted")="false"
- . E  I $G(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SOURCE,"stampTime")) D
- . . S ^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SOURCE,"solrSyncCompleted")="false"
+ . I $G(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"stampTime")) D
+ . . S ^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"solrSyncCompleted")="false"
+ . E  I $G(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SOURCE,"stampTime")) D
+ . . S ^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SOURCE,"solrSyncCompleted")="false"
  ;
  I $$ISPID^VPRJPR(PID) D
- . S ^||TMP($J,"RESULT","return","sites",SOURCE,"pid")=PID
- . S:$G(STATUS)'="" ^||TMP($J,"RESULT","return","sites",SOURCE,"syncCompleted")=STATUS
+ . S ^TMP($J,"RESULT","return","sites",SOURCE,"pid")=PID
+ . S:$G(STATUS)'="" ^TMP($J,"RESULT","return","sites",SOURCE,"syncCompleted")=STATUS
  . ;
  . ; Set Site sourceStampTime (either from inProgress or completedStamp) and solr sync status
- . I $G(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"stampTime")) D
- . . S ^||TMP($J,"RESULT","return","sites",SOURCE,"sourceStampTime")=$G(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"stampTime"))
+ . I $G(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"stampTime")) D
+ . . S ^TMP($J,"RESULT","return","sites",SOURCE,"sourceStampTime")=$G(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"stampTime"))
  . . ; if solrSyncComplted doesn't exist the answer is false (implemented as the $G default)
- . . S:$G(^VPRCONFIG("sync","status","solr")) (SOLRSTATUS,^||TMP($J,"RESULT","return","sites",SOURCE,"solrSyncCompleted"))=$G(^||TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"solrSyncCompleted"),"false")
+ . . S:$G(^VPRCONFIG("sync","status","solr")) (SOLRSTATUS,^TMP($J,"RESULT","return","sites",SOURCE,"solrSyncCompleted"))=$G(^TMP($J,"RESULT","syncStatus","completedStamp","sourceMetaStamp",SOURCE,"solrSyncCompleted"),"false")
  . E  D
- . . S ^||TMP($J,"RESULT","return","sites",SOURCE,"sourceStampTime")=$G(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SOURCE,"stampTime"))
+ . . S ^TMP($J,"RESULT","return","sites",SOURCE,"sourceStampTime")=$G(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SOURCE,"stampTime"))
  . . ; if solrSyncComplted doesn't exist the answer is false (implemented as the $G default)
- . . S:$G(^VPRCONFIG("sync","status","solr")) (SOLRSTATUS,^||TMP($J,"RESULT","return","sites",SOURCE,"solrSyncCompleted"))=$G(^||TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SOURCE,"solrSyncCompleted"),"false")
+ . . S:$G(^VPRCONFIG("sync","status","solr")) (SOLRSTATUS,^TMP($J,"RESULT","return","sites",SOURCE,"solrSyncCompleted"))=$G(^TMP($J,"RESULT","syncStatus","inProgress","sourceMetaStamp",SOURCE,"solrSyncCompleted"),"false")
  . ;
  . ; Set Site latestJobTimestamp
- . S ^||TMP($J,"RESULT","return","sites",SOURCE,"latestJobTimestamp")=TIMESTAMP
+ . S ^TMP($J,"RESULT","return","sites",SOURCE,"latestJobTimestamp")=TIMESTAMP
  ;
  ; Set Global syncStatus
- I 'SITELIST&(STATUS="false") S ^||TMP($J,"RESULT","return","syncCompleted")="false"
+ I 'SITELIST&(STATUS="false") S ^TMP($J,"RESULT","return","syncCompleted")="false"
  ; Set Global solrSyncStatus
- I ($G(^VPRCONFIG("sync","status","solr")))&('SITELIST)&($G(SOLRSTATUS,"false")="false") S ^||TMP($J,"RESULT","return","solrSyncCompleted")="false"
+ I ($G(^VPRCONFIG("sync","status","solr")))&('SITELIST)&($G(SOLRSTATUS,"false")="false") S ^TMP($J,"RESULT","return","solrSyncCompleted")="false"
  ;
  ; Set Global latestSourceStampTime
- I 'SITELIST&($G(^||TMP($J,"RESULT","return","latestSourceStampTime"))<$G(^||TMP($J,"RESULT","return","sites",SOURCE,"sourceStampTime"))) D
- . S ^||TMP($J,"RESULT","return","latestSourceStampTime")=$G(^||TMP($J,"RESULT","return","sites",SOURCE,"sourceStampTime"))
+ I 'SITELIST&($G(^TMP($J,"RESULT","return","latestSourceStampTime"))<$G(^TMP($J,"RESULT","return","sites",SOURCE,"sourceStampTime"))) D
+ . S ^TMP($J,"RESULT","return","latestSourceStampTime")=$G(^TMP($J,"RESULT","return","sites",SOURCE,"sourceStampTime"))
  ;
  ; Set Global latestJobTimestamp
- I 'SITELIST&($G(^||TMP($J,"RESULT","return","latestJobTimestamp"))<TIMESTAMP) S ^||TMP($J,"RESULT","return","latestJobTimestamp")=TIMESTAMP
+ I 'SITELIST&($G(^TMP($J,"RESULT","return","latestJobTimestamp"))<TIMESTAMP) S ^TMP($J,"RESULT","return","latestJobTimestamp")=TIMESTAMP
  Q
  ;
 GETJOBBYINDEX(RJOB,JPID,JOBNAME,SITE)

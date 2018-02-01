@@ -9,11 +9,11 @@ SHUTDOWN ; Run once after all tests
  QUIT
  ;
 SETUP    ; Run before each test
- K ^||TMP
+ K ^TMP
  QUIT
  ;
 TEARDOWN ; Run after each test
- K ^||TMP
+ K ^TMP
  K ^TMP
  QUIT
  ;

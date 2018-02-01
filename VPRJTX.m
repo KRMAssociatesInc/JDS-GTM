@@ -76,7 +76,7 @@ CLRPT ; Clear test patients
  . D CLEARPT^VPRJPS(ICN)
  K VPRJTPID
  K HTTPREQ,HTTPERR,HTTPRSP
- K ^||TMP($J),^||TMP("HTTPERR",$J)
+ K ^TMP($J),^TMP("HTTPERR",$J)
  Q
 ODSBLD(TAGS) ; Build sample data in non-patient data store
  ; TAGS(n)=TAG^RTN  ; entry point for each JSON object, zzzzz terminated
@@ -92,7 +92,7 @@ ODSCLR ; Clear sample data from non-patient data store
  D DELCTN^VPRJDS("test")
  D DELCTN^VPRJDS("testb")
  D DELCTN^VPRJDS("utestods")
- K ^||TMP($J),^||TMP("HTTPERR",$J)
+ K ^TMP($J),^TMP("HTTPERR",$J)
  Q
 GETDATA(TAG,RTN,DATA) ; load data from TAG^RTN into .DATA until zzzzz
  N I,L,X,OBJ

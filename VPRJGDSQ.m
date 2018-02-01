@@ -10,10 +10,10 @@ QKEY(KEY,TEMPLATE) ; Return an object given the key (i.e., urn:va:fresh:93EF:100
  S GLOBALJ="^"_$G(^VPRCONFIG("store",$G(HTTPREQ("store")),"global"))_"J"
  ;
  I '$D(@GLOBALJ("JSON",KEY)) D SETERROR^VPRJRER(104,"UID:"_KEY) Q
- K:$D(^||TMP("VPRDATA",$J)) ^||TMP("VPRDATA",$J)
- S ^||TMP("VPRDATA",$J,KEY,0)="",VPRDATA=1,ORDER(0)=0
+ K:$D(^TMP("VPRDATA",$J)) ^TMP("VPRDATA",$J)
+ S ^TMP("VPRDATA",$J,KEY,0)="",VPRDATA=1,ORDER(0)=0
  D BUILD^VPRJCB
- K:$D(^||TMP("VPRDATA",$J)) ^||TMP("VPRDATA",$J)
+ K:$D(^TMP("VPRDATA",$J)) ^TMP("VPRDATA",$J)
  Q
  ;
 QCOUNT(CNTNM) ; Return a set of counts across patients
@@ -25,7 +25,7 @@ QCOUNT(CNTNM) ; Return a set of counts across patients
  ; Index
  S GLOBALX="^"_$G(^VPRCONFIG("store",$G(HTTPREQ("store")),"global"))_"X"
  ;
- K:$D(^||TMP($J)) ^||TMP($J)
+ K:$D(^TMP($J)) ^TMP($J)
  ;
  N TOPIC,DATA,COUNT,X
  S DATA=0,TOPIC=""
@@ -77,10 +77,10 @@ QINDEX(INDEX,RANGE,ORDER,BAIL,TEMPLATE,FILTER,SKIPLOCK) ; query based on index
  S METHOD=$G(INDEX("method")) I '$L(METHOD) D SETERROR^VPRJRER(102,INDEX) Q
  I $L(FILTER) D PARSE^VPRJCF(FILTER,.CLAUSES) Q:$G(HTTPERR)
  D SETORDER^VPRJCO(.ORDER) Q:$G(HTTPERR)
- K:$D(^||TMP("VPRDATA",$J)) ^||TMP("VPRDATA",$J)
+ K:$D(^TMP("VPRDATA",$J)) ^TMP("VPRDATA",$J)
  I METHOD="attr" D QATTR^VPRJGDSQA
  D BUILD^VPRJCB
- K:$D(^||TMP("VPRDATA",$J)) ^||TMP("VPRDATA",$J)
+ K:$D(^TMP("VPRDATA",$J)) ^TMP("VPRDATA",$J)
  Q
 QLAST(INDEX,RANGE,ORDER,BAIL,TEMPLATE,FILTER) ; return most recent item in the list
  Q ; NOT IMPLEMENTED
@@ -94,9 +94,9 @@ QFIND(COLL,ORDER,BAIL,TEMPLATE,FILTER) ; return items from collection without in
  S VPRDATA=0 S:'BAIL BAIL=999999
  I $L(FILTER) D PARSE^VPRJCF(FILTER,.CLAUSES) Q:$G(HTTPERR)
  D SETORDER^VPRJCO(.ORDER) Q:$G(HTTPERR)
- K:$D(^||TMP("VPRDATA",$J)) ^||TMP("VPRDATA",$J)
+ K:$D(^TMP("VPRDATA",$J)) ^TMP("VPRDATA",$J)
  S PREFIX="urn:va:"_COLL_":",KEY=PREFIX
  F  S KEY=$O(^VPRJD(KEY)) Q:$E(KEY,1,$L(PREFIX))'=PREFIX  D ADDONE^VPRJGDSQA(KEY,0)
  D BUILD^VPRJCB
- K:$D(^||TMP("VPRDATA",$J)) ^||TMP("VPRDATA",$J)
+ K:$D(^TMP("VPRDATA",$J)) ^TMP("VPRDATA",$J)
  Q

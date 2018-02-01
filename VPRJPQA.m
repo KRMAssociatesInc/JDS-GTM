@@ -20,7 +20,7 @@ QEVERY ; return all items (filter may be applied and order used)
  S KEY="" F  S KEY=$O(^VPRPT(JPID,PID,KEY)) Q:KEY=""  Q:VPRDATA'<BAIL  D ADDONE(KEY,0)
  Q
 QTIME ; intersect START and STOP
- ; Build ^||TMP("VPRDATA",$J,time,key) with keys of objects to return
+ ; Build ^TMP("VPRDATA",$J,time,key) with keys of objects to return
  ; When ADDONE is called, SUB(1) is start date and SUB(2) is stop date
  N START,STOP,DIR,SUB,KEY,INST,FOUND,JPID
  D PARSERNG^VPRJCR
@@ -41,7 +41,7 @@ QTIME ; intersect START and STOP
  . . . D ADDONE(KEY,INST,.SUB)
  Q
 QATTR ; return items where attribute value is in range
- ; Build ^||TMP("VPRDATA",$J,sortkey,sortkey,...,key,instances) with keys of objects to return
+ ; Build ^TMP("VPRDATA",$J,sortkey,sortkey,...,key,instances) with keys of objects to return
  ; Expects:  VPRDATA,PID,METHOD,RANGE,INDEX,ORDER,CLAUSES,BAIL
  N START,STOP,DIR,SUB,KEY,INST
  D PARSERNG^VPRJCR
@@ -152,44 +152,44 @@ ADDONE(KEY,INST,SUB) ; add uid, calculating new sort key if necessary
  ; case
  I ORDER(0)=0 D  Q
  . ; Don't overwrite a previous PID associated with this UID/KEY
- . S VAL=$O(^||TMP("VPRDATA",$J,KEY,""),-1)
+ . S VAL=$O(^TMP("VPRDATA",$J,KEY,""),-1)
  . I VAL'="" S INST=VAL+1
- . S ^||TMP("VPRDATA",$J,KEY,INST)=PID
+ . S ^TMP("VPRDATA",$J,KEY,INST)=PID
  I ORDER(0)=1 D  Q
  . ; Don't overwrite a previous PID associated with this UID/KEY
- . S VAL=$O(^||TMP("VPRDATA",$J,SORT(1),KEY,""),-1)
+ . S VAL=$O(^TMP("VPRDATA",$J,SORT(1),KEY,""),-1)
  . I VAL'="" S INST=VAL+1
- . S ^||TMP("VPRDATA",$J,SORT(1),KEY,INST)=PID
+ . S ^TMP("VPRDATA",$J,SORT(1),KEY,INST)=PID
  I ORDER(0)=2 D  Q
  . ; Don't overwrite a previous PID associated with this UID/KEY
- . S VAL=$O(^||TMP("VPRDATA",$J,SORT(1),SORT(2),KEY,""),-1)
+ . S VAL=$O(^TMP("VPRDATA",$J,SORT(1),SORT(2),KEY,""),-1)
  . I VAL'="" S INST=VAL+1
- . S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),KEY,INST)=PID
+ . S ^TMP("VPRDATA",$J,SORT(1),SORT(2),KEY,INST)=PID
  I ORDER(0)=3 D  Q
  . ; Don't overwrite a previous PID associated with this UID/KEY
- . S VAL=$O(^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),KEY,""),-1)
+ . S VAL=$O(^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),KEY,""),-1)
  . I VAL'="" S INST=VAL+1
- . S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),KEY,INST)=PID
+ . S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),KEY,INST)=PID
  I ORDER(0)=4 D  Q
  . ; Don't overwrite a previous PID associated with this UID/KEY
- . S VAL=$O(^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),KEY,""),-1)
+ . S VAL=$O(^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),KEY,""),-1)
  . I VAL'="" S INST=VAL+1
- . S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),KEY,INST)=PID
+ . S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),KEY,INST)=PID
  I ORDER(0)=5 D  Q
  . ; Don't overwrite a previous PID associated with this UID/KEY
- . S VAL=$O(^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),KEY,""),-1)
+ . S VAL=$O(^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),KEY,""),-1)
  . I VAL'="" S INST=VAL+1
- . S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),KEY,INST)=PID
+ . S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),KEY,INST)=PID
  I ORDER(0)=6 D  Q
  . ; Don't overwrite a previous PID associated with this UID/KEY
- . S VAL=$O(^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),KEY,""),-1)
+ . S VAL=$O(^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),KEY,""),-1)
  . I VAL'="" S INST=VAL+1
- . S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),KEY,INST)=PID
+ . S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),KEY,INST)=PID
  I ORDER(0)=7 D  Q
  . ; Don't overwrite a previous PID associated with this UID/KEY
- . S VAL=$O(^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),SORT(7),KEY,""),-1)
+ . S VAL=$O(^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),SORT(7),KEY,""),-1)
  . I VAL'="" S INST=VAL+1
- . S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),SORT(7),KEY,INST)=PID
+ . S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),SORT(7),KEY,INST)=PID
  ; end case
  Q
  ;

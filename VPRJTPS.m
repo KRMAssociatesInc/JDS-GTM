@@ -35,11 +35,11 @@ ADDPTUNKJPID ;; @TEST Error condition when JPID is unknown adding a patient
  D ASSERT(0,$D(^VPRPT("52833885-af7c-4899-90be-b3a6630b2369",VPRJTPID,"urn:va:patient:93EF:-7:-7")))
  D ASSERT("",$G(^VPRPTJ("JPID",VPRJTPID)))
  D ASSERT(0,$D(^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")))
- D ASSERT(10,$D(^||TMP("HTTPERR",$J)),"An HTTP Error did not occur while filing data")
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"A 404 error code should have occurred")
- D ASSERT(224,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should have occurred")
- K ^||TMP("HTTPERR")
- K ^||TMP("VPRJERR")
+ D ASSERT(10,$D(^TMP("HTTPERR",$J)),"An HTTP Error did not occur while filing data")
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"A 404 error code should have occurred")
+ D ASSERT(224,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should have occurred")
+ K ^TMP("HTTPERR")
+ K ^TMP("VPRJERR")
  Q
 ADDOBJUNKJPID ;; @TEST Error condition when JPID is unknown adding an object
  N DATA,LOC,METASTAMP,VPRJTPID,HTTPERR,VPRJPID
@@ -55,10 +55,10 @@ ADDOBJUNKJPID ;; @TEST Error condition when JPID is unknown adding an object
  D ASSERT(0,$D(^VPRPTJ("JSON")))
  D ASSERT(0,$D(^VPRPTJ("TEMPLATE")))
  D ASSERT("",$G(^VPRPTI))
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"A 404 error code should have occurred")
- D ASSERT(224,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should have occurred")
- K ^||TMP("HTTPERR")
- K ^||TMP("VPRJERR")
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"A 404 error code should have occurred")
+ D ASSERT(224,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should have occurred")
+ K ^TMP("HTTPERR")
+ K ^TMP("VPRJERR")
  Q
 ADDPT ;; @TEST adding a patient
  N DATA,METASTAMP,VPRJTPID,HTTPERR,PTIME,TIME,VPRJPID
@@ -125,7 +125,7 @@ ADDLNK ;; @TEST adding object with links defined
  S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
  F I=1:1:5 S TAGS(I)="DATA"_I_"^VPRJTP03"
  D ADDDATA^VPRJTX(.TAGS,VPRJTPID)
- D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"An HTTP Error occured filing data")
+ D ASSERT(0,$D(^TMP("HTTPERR",$J)),"An HTTP Error occured filing data")
  D ASSERT(1,$D(^VPRPTI(VPRJPID,VPRJTPID,"rev","urn:va:utesta:93EF:-7:1","utest-multiple","urn:va:utestc:93EF:-7:23","items#1")))
  D ASSERT(1,$D(^VPRPTI(VPRJPID,VPRJTPID,"rev","urn:va:utestb:93EF:-7:3","utest-multiple","urn:va:utestc:93EF:-7:23","items#2")))
  D ASSERT(1,$D(^VPRPTI(VPRJPID,VPRJTPID,"rev","urn:va:utesta:93EF:-7:2","utest-single","urn:va:utestc:93EF:-7:23",1)))
@@ -237,7 +237,7 @@ DELCSRV ;; @TEST delete a collection for a specific server
  I $G(VPRJPID)="" QUIT
  F I=6:1:7 S TAGS(I)="SRV"_I_"^VPRJTP03"
  D ADDDATA^VPRJTX(.TAGS,VPRJTPID)
- D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"An HTTP Error occured filing data")
+ D ASSERT(0,$D(^TMP("HTTPERR",$J)),"An HTTP Error occured filing data")
  D ASSERT(10,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:utesta:PORT:-7:6")))
  D ASSERT(10,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:utesta:93EF:-7:7")))
  D DELCLTN^VPRJPS(VPRJTPID,"utesta","PORT")
@@ -268,7 +268,7 @@ DELPT ;; @TEST deleting a patient and all places data exists
  ; Add sync status
  N RETURN,BODY,ARG
  K ^VPRSTATUS(JPID,VPRJTPID)
- K ^||TMP("HTTPERR",$J)
+ K ^TMP("HTTPERR",$J)
  D SYNCSTAT^VPRJTSYSS(.BODY,"93EF;-7","-777V123777")
  S ARG("id")="93EF;-7"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)

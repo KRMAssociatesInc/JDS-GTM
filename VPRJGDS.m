@@ -252,8 +252,8 @@ GET(RESULT,ARGS) ; Returns object in generic data store
  S UID=0
  F  S UID=$O(@GLOBAL@(UID)) Q:UID=""  D ADDONE^VPRJGDSQA(UID,0,,SKIPLOCK)
  D BUILD^VPRJCB
- K:$D(^||TMP("VPRDATA",$J)) ^||TMP("VPRDATA",$J)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")="gds",RESULT("startid")=$G(STARTID)
+ K:$D(^TMP("VPRDATA",$J)) ^TMP("VPRDATA",$J)
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")="gds",RESULT("startid")=$G(STARTID)
  QUIT
  ;
 CINDEX(ARGS,BODY)
@@ -326,7 +326,7 @@ INDEX(RESULT,ARGS) ; GET objects by index
  ; Do the query
  D QINDEX^VPRJGDSQ(INDEX,RANGE,ORDER,BAIL,TEMPLATE,FILTER,SKIPLOCK)
  I $G(ARGS("startid"))'="" S STARTID=$O(@GLOBAL@(ARGS("startid")),-1),STARTID=$O(@GLOBAL@(STARTID))
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")="gds",RESULT("startid")=$G(STARTID)
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")="gds",RESULT("startid")=$G(STARTID)
  QUIT
  ;
  ; Create a template definition for a generic data store
@@ -397,8 +397,8 @@ GETLOCK(RESULT,ARGS)
  ; Get any filters and parse them into CLAUSES
  S FILTER=$G(ARGS("filter"))
  I $L(FILTER) D PARSE^VPRJCF(FILTER,.CLAUSES) QUIT:$G(HTTPERR)
- ; Set OBJECT into ^||TMP($J)
- S OBJECT=$NA(^||TMP($J,"OBJECT"))
+ ; Set OBJECT into ^TMP($J)
+ S OBJECT=$NA(^TMP($J,"OBJECT"))
  ; Ensure variables are cleaned out
  K:$D(@OBJECT) @OBJECT
  ; Get single object
@@ -439,7 +439,7 @@ GETLOCK(RESULT,ARGS)
  . . L -@GLOBALL@(UID)
  I $G(HTTPERR) QUIT
  ; Set Result variable to global
- S RESULT=$NA(^||TMP($J,"RESULT"))
+ S RESULT=$NA(^TMP($J,"RESULT"))
  K:$D(@RESULT) @RESULT
  ; Encode object into JSON return
  D ENCODE^VPRJSON(OBJECT,RESULT,"ERR") ; From an array to JSON

@@ -20,8 +20,8 @@ SETUP    ; Run before each test
 TEARDOWN ; Run after each test
  K HTTPREQ,HTTPERR,HTTPRSP
  K ^VPRJOB,^VPRSTATUS
- K ^||TMP("HTTPERR",$J)
- K ^||TMP($J)
+ K ^TMP("HTTPERR",$J)
+ K ^TMP($J)
  Q
 ASSERT(EXPECT,ACTUAL,MSG) ; for convenience
  D EQ^VPRJT(EXPECT,ACTUAL,$G(MSG))
@@ -1705,8 +1705,8 @@ STORERECORDUNKJPID ;; @TEST Manual Store flag ERROR if UNKNOWN JPID
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
  D ASSERT(404,$G(HTTPERR),"An HTTP 404 should have occured")
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should have occured")
- D ASSERT(224,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 224 reason code should have occured")
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should have occured")
+ D ASSERT(224,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 224 reason code should have occured")
  D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","1234;6","1234","vitals","urn:va:vitals:1234:6:1234",20141031094920,"stored")),"JDS Stored flag doesn't exist")
  D ASSERT("",$G(RETURN),"Returned a 201 instead of no data")
  Q
@@ -1730,8 +1730,8 @@ STORERECORDND ;; @TEST Manual Store flag ERROR if UID invalid - no domain
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
  D ASSERT(400,$G(HTTPERR),"An HTTP 400 should have occured")
- D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
- D ASSERT(210,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
+ D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
+ D ASSERT(210,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
  D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
  D ASSERT("",$G(RETURN),"Returned a 201 instead of no data")
  Q
@@ -1744,8 +1744,8 @@ STORERECORDNI ;; @TEST Manual Store flag ERROR if UID invalid - no ien
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
  D ASSERT(400,$G(HTTPERR),"An HTTP 400 should have occured")
- D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
- D ASSERT(210,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
+ D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
+ D ASSERT(210,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
  D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
  D ASSERT("",$G(RETURN),"Returned a 201 instead of no data")
  Q
@@ -1757,8 +1757,8 @@ STORERECORDUES ;; @TEST Manual Store flag ERROR if no eventStamp
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
  D ASSERT(400,$G(HTTPERR),"An HTTP 400 should have occured")
- D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
- D ASSERT(210,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
+ D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
+ D ASSERT(210,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
  D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
  D ASSERT("",$G(RETURN),"Returned a 201 instead of no data")
  Q
@@ -1771,8 +1771,8 @@ STORERECORDNES ;; @TEST Manual Store flag ERROR if eventStamp=""
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
  D ASSERT(400,$G(HTTPERR),"An HTTP 400 should have occured")
- D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
- D ASSERT(210,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
+ D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
+ D ASSERT(210,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
  D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
  D ASSERT("",$G(RETURN),"Returned a 201 instead of no data")
  Q
@@ -2263,7 +2263,7 @@ ASSERTJOBS(JOBS,PID,SYNCCOMPLETE,SYNCERROR,DEBUG)
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  I DEBUG W !,"OBJECT",! ZWRITE OBJECT W !
- I DEBUG W !,"RULES",! ZWRITE ^||TMP($J) W !
+ I DEBUG W !,"RULES",! ZWRITE ^TMP($J) W !
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
@@ -2287,7 +2287,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(1,"TIMESTAMP")=20160420110400
  W !,"VDSR error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR not complete (started)
  D TEARDOWN
@@ -2298,7 +2298,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(1,"TIMESTAMP")=20160420110400
  W !,"VDSR started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSUR not complete (error)
  D TEARDOWN
@@ -2309,7 +2309,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(1,"TIMESTAMP")=20160420110400
  W !,"VDSUR error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSUR not complete (started)
  D TEARDOWN
@@ -2320,7 +2320,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(1,"TIMESTAMP")=20160420110400
  W !,"VDSUR started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDDR not complete (error)
  D TEARDOWN
@@ -2331,7 +2331,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(1,"TIMESTAMP")=20160420110400
  W !,"VDDR error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDDR not complete (started)
  D TEARDOWN
@@ -2342,7 +2342,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(1,"TIMESTAMP")=20160420110400
  W !,"VDDR started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDXV not complete (error)
  D TEARDOWN
@@ -2353,7 +2353,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(1,"TIMESTAMP")=20160420110400
  W !,"VDXV error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDSUR not complete (error)
  D TEARDOWN
@@ -2368,7 +2368,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDSUR error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDSUR not complete (started)
  D TEARDOWN
@@ -2383,7 +2383,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDSUR started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDDR not complete (error)
  D TEARDOWN
@@ -2398,7 +2398,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDDR error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDDR not complete (started)
  D TEARDOWN
@@ -2413,7 +2413,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDDR started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDXV not complete (error)
  D TEARDOWN
@@ -2428,7 +2428,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDXV error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDXV not complete (started)
  D TEARDOWN
@@ -2443,7 +2443,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDXV started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSUR & VDDR not complete (error)
  D TEARDOWN
@@ -2458,7 +2458,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSUR & VDDR error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSUR & VDDR not complete (started)
  D TEARDOWN
@@ -2473,7 +2473,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDSUR started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSUR & VDXV not complete (error)
  D TEARDOWN
@@ -2488,7 +2488,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSUR & VDXV error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSUR & VDXV not complete (started)
  D TEARDOWN
@@ -2503,7 +2503,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDSUR & VDXV started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDDR & VDXV not complete (error)
  D TEARDOWN
@@ -2518,7 +2518,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDDR & VDXV error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDDR & VDXV not complete (started)
  D TEARDOWN
@@ -2533,7 +2533,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"VDDR & VDXV started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDSUR & VDDR not complete (error)
  D TEARDOWN
@@ -2552,7 +2552,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDSUR & VDDR error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDSUR & VDDR not complete (started)
  D TEARDOWN
@@ -2571,7 +2571,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDSUR & VDDR started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDSUR & VDXV not complete (error)
  D TEARDOWN
@@ -2590,7 +2590,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDSUR & VDXV error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDSUR & VDXV not complete (started)
  D TEARDOWN
@@ -2609,7 +2609,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDSUR & VDXV started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSUR & VDDR & VDXV not complete (error)
  D TEARDOWN
@@ -2628,7 +2628,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"VDSUR & VDDR & VDXV error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSUR & VDDR & VDXV not complete (started)
  D TEARDOWN
@@ -2647,7 +2647,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"VDSUR & VDDR & VDXV started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; VDSR & VDSUR & VDDR & VDXV not complete (error)
  D TEARDOWN
@@ -2670,7 +2670,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(4,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDSUR & VDDR & VDXV error"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",1)
- D ASSERT("",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  QUIT
  ;
  ; VDSR & VDSUR & VDDR & VDXV not complete (started)
@@ -2694,7 +2694,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(4,"TIMESTAMP")=20160420110400
  W !,"VDSR & VDSUR & VDDR & VDXV started"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; ESR complete & VDSR complete
  D TEARDOWN
@@ -2709,7 +2709,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"ESR & VDSR complete"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  ;
  ; ESR complete & VDSUR complete
  D TEARDOWN
@@ -2724,7 +2724,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"ESR & VDSUR complete"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; ESR complete & VDDR complete
  D TEARDOWN
@@ -2739,7 +2739,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"ESR complete & VDDR complete"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; ESR complete & VDSR & VDSUR complete
  D TEARDOWN
@@ -2758,7 +2758,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"ESR & VDSR & VDSUR complete"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  ;
  ; ESR complete & VDSR & VDDR complete
  D TEARDOWN
@@ -2777,7 +2777,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"ESR complete & VDSR & VDDR complete"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; ESR complete & VDSUR & VDDR complete
  D TEARDOWN
@@ -2796,7 +2796,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"ESR complete & VDSUR & VDDR complete"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't false")
  ;
  ; ESR Started & VDSR doesn't exist rest exist
  D TEARDOWN
@@ -2815,7 +2815,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"ESR Started & VDSR doesn't exist rest exist"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  ;
  ; ESR Started & VDSUR doesn't exist rest exist
  D TEARDOWN
@@ -2834,7 +2834,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"ESR Started & VDSUR doesn't exist rest exist"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  ;
  ; ESR Started & VDDR doesn't exist rest exist
  D TEARDOWN
@@ -2853,7 +2853,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(3,"TIMESTAMP")=20160420110400
  W !,"ESR Started & VDDR doesn't exist rest exist"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  ;
  ; ESR Started & VDSR & VDSUR doesn't exist rest exist
  D TEARDOWN
@@ -2868,7 +2868,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"ESR Started & VDSR & VDSUR doesn't exist rest exist"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  ;
  ; ESR Started & VDSR & VDDR doesn't exist rest exist
  D TEARDOWN
@@ -2883,7 +2883,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"ESR Started & VDSR & VDDR doesn't exist rest exist"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  ;
  ; ESR Started & VDSUR & VDDR doesn't exist rest exist
  D TEARDOWN
@@ -2898,7 +2898,7 @@ VDR1 ;; @TEST VLER-DAS Rule 1
  S JOBS(2,"TIMESTAMP")=20160420110400
  W !,"ESR Started & VDSUR & VDDR doesn't exist rest exist"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 1 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 1 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  QUIT
 VDR2 ;; @TEST VLER-DAS Rule 2
  ; This rule requires enterprise-sync-request to be completed in all cases and at least one vler-das job to exist to run
@@ -2924,7 +2924,7 @@ VDR2 ;; @TEST VLER-DAS Rule 2
  S JOBS(4,"TIMESTAMP")=20160420110400
  W !,"ESR complete & VDSR & VDSUR & VDDR complete"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","true",0)
- D ASSERT("VLER DAS RULE 2 TRUE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 2 TRUE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  ;
  ; ESR & VDSR & VDSUR & VDDR complete, metastamp incomplete
  D TEARDOWN
@@ -2947,7 +2947,7 @@ VDR2 ;; @TEST VLER-DAS Rule 2
  S JOBS(4,"TIMESTAMP")=20160420110400
  W !,"ESR & VDSR & VDSUR & VDDR & VDXV completed, metastamp incomplete"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER DAS RULE 2 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER DAS RULE 2 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  QUIT
 VDR3 ;; @TEST VLER-DAS Rule 3
  N JOBS
@@ -2963,7 +2963,7 @@ VDR3 ;; @TEST VLER-DAS Rule 3
  S JOBS(1,"TIMESTAMP")=20160420110400
  W !,"ESR Started & VDSR & VDSUR & VDDR doesn't exist rest exist"
  D ASSERTJOBS(.JOBS,"VLER;1234V4321","false",0)
- D ASSERT("VLER RULE 3 FALSE",$G(^||TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
+ D ASSERT("VLER RULE 3 FALSE",$G(^TMP($J,"RESULT","return","RULES","VLER")),"Expected rule isn't true")
  QUIT
  ;
 GETDOMAINJOBSNOTIMESTAMP ;; @TEST GETDOMAINJOBS works when no JOB TIMESTAMP exists

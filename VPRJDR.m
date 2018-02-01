@@ -23,7 +23,7 @@ BLDUID(CTN) ; build the uid for a new item in a collection
 GETOBJ(RESULT,ARGS) ; gets an object given a UID
  I $$UNKARGS^VPRJCU(.ARGS,"uid,template") Q
  D QKEY^VPRJDQ($G(ARGS("uid")),$G(ARGS("template")))
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 INDEX(RESULT,ARGS) ; GET for objects by index
  I $$UNKARGS^VPRJCU(.ARGS,"indexName,range,order,bail,template,filter,start") Q
@@ -43,10 +43,10 @@ INDEX(RESULT,ARGS) ; GET for objects by index
  . S RESULT=$NA(^VPRTMP(HASH)),RESULT("pageable")=""
  ;
  ; otherwise prepare cache and do the regular query
- S ^||TMP($J,"query")=HASHSTR,^||TMP($J,"timestamp")=HASHTS
- S ^||TMP($J,"index")=INDEX,^||TMP($J,"hash")=HASH
+ S ^TMP($J,"query")=HASHSTR,^TMP($J,"timestamp")=HASHTS
+ S ^TMP($J,"index")=INDEX,^TMP($J,"hash")=HASH
  D QINDEX^VPRJDQ(INDEX,RANGE,ORDER,BAIL,TEMPLATE,FILTER)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 CACHED(INDEX,HASHSTR,HASH,HASHTS) ; return TRUE if query cached and the cache is current
  ; .HASH returns the hashed value of HASHSTR
@@ -77,7 +77,7 @@ LAST(RESULT,ARGS) ; GET for objects by index
  S TEMPLATE=$G(ARGS("template"))
  S FILTER=$G(ARGS("filter"))
  D QLAST^VPRJDQ(INDEX,RANGE,ORDER,BAIL,TEMPLATE,FILTER)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 FIND(RESULT,ARGS) ; GET for objects using 'where' criteria
  I $$UNKARGS^VPRJCU(.ARGS,"collection,order,bail,template,filter") Q
@@ -88,32 +88,32 @@ FIND(RESULT,ARGS) ; GET for objects using 'where' criteria
  S TEMPLATE=$G(ARGS("template"))
  S FILTER=$G(ARGS("filter"))
  D QFIND^VPRJDQ(COLL,ORDER,BAIL,TEMPLATE,FILTER)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 ALLCOUNT(RESULT,ARGS) ; GET for count of objects across patients
  I $$UNKARGS^VPRJCU(.ARGS,"countName") Q
  D QCOUNT^VPRJDQ(ARGS("countName"))
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
 COUNT(RESULT,ARGS) ; GET for count of domain objects
  I $$UNKARGS^VPRJCU(.ARGS,"countName") Q
  D QTALLY^VPRJDQ(ARGS("countName"))
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
 DELUID(RESULT,ARGS) ; DELETE an object
  I $$UNKARGS^VPRJCU(.ARGS,"uid") Q
  D DELETE^VPRJDS(ARGS("uid"))
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
 DELCTN(RESULT,ARGS) ; DELETE an entire collection
  I $$UNKARGS^VPRJCU(.ARGS,"collectionName,system") Q
  D DELCTN^VPRJDS(ARGS("collectionName"),$G(ARGS("system")))
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
 DELSITE(RESULT,ARGS) ; DELETE an entire site
  I $$UNKARGS^VPRJCU(.ARGS,"site") Q
  D DELSITE^VPRJDS(ARGS("site"))
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
 DELALL(RESULT,ARGS) ; DELETE the entire non-patient data store
  I $$UNKARGS^VPRJCU(.ARGS,"confirm") Q

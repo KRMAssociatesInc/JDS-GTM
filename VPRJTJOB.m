@@ -18,7 +18,7 @@ STARTUP  ; Run once before all tests
 SHUTDOWN ; Run once after all tests
  K ^VPRJOB
  K ^VPRPTJ("JPID")
- K ^||TMP
+ K ^TMP
  Q
 ASSERT(EXPECT,ACTUAL,MSG) ; for convenience
  D EQ^VPRJT(EXPECT,ACTUAL,$G(MSG))
@@ -80,9 +80,9 @@ JSONERR ;; @TEST Error code is set if JSON is mangled
  S BODY(1)=BODY(1)_":"
  S RETURN=$$SET^VPRJOB(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJOB),"A Job Status exists and it should not")
- D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
- D ASSERT(202,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 202 reason code should have occurred")
- K ^||TMP
+ D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
+ D ASSERT(202,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 202 reason code should have occurred")
+ K ^TMP
  Q
 JPIDERR ;; @TEST Error code is set if no JPID is resolved
  N RETURN,BODY,ARG,U,TYPE,PID,STAMP,HTTPERR
@@ -94,9 +94,9 @@ JPIDERR ;; @TEST Error code is set if no JPID is resolved
  S BODY(1)=$$JOBSTAT(2,1,"",PID,TYPE,STAMP,"created")
  S RETURN=$$SET^VPRJOB(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJOB),"A Job Status exists and it should not")
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
- D ASSERT(231,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 231 reason code should have occurred")
- K ^||TMP
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
+ D ASSERT(231,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 231 reason code should have occurred")
+ K ^TMP
  Q
 UNKJPIDERR ;; @TEST Error code is set if JPID is unknown
  N RETURN,BODY,ARG,U,TYPE,PID,STAMP,HTTPERR
@@ -108,9 +108,9 @@ UNKJPIDERR ;; @TEST Error code is set if JPID is unknown
  S BODY(1)=$$JOBSTAT(2,1,"pid",PID,TYPE,STAMP,"created")
  S RETURN=$$SET^VPRJOB(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJOB),"A Job Status exists and it should not")
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
- D ASSERT(231,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 231 reason code should have occurred")
- K ^||TMP
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
+ D ASSERT(231,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 231 reason code should have occurred")
+ K ^TMP
  Q
 ROOTERR ;; @TEST Error code is set if no rootJobId
  N RETURN,BODY,ARG,U,TYPE,PID,STAMP,HTTPERR
@@ -122,9 +122,9 @@ ROOTERR ;; @TEST Error code is set if no rootJobId
  S BODY(1)=$$JOBSTAT(2,"","pid",PID,TYPE,STAMP,"created")
  S RETURN=$$SET^VPRJOB(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJOB),"A Job Status exists and it should not")
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
- D ASSERT(232,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 232 reason code should have occurred")
- K ^||TMP
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
+ D ASSERT(232,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 232 reason code should have occurred")
+ K ^TMP
  Q
 JOBERR ;; @TEST Error code is set if no jobId
  N RETURN,BODY,ARG,U,TYPE,PID,STAMP,HTTPERR
@@ -136,9 +136,9 @@ JOBERR ;; @TEST Error code is set if no jobId
  S BODY(1)=$$JOBSTAT("",1,"pid",PID,TYPE,STAMP,"created")
  S RETURN=$$SET^VPRJOB(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJOB),"A Job Status exists and it should not")
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
- D ASSERT(233,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 233 reason code should have occurred")
- K ^||TMP
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
+ D ASSERT(233,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 233 reason code should have occurred")
+ K ^TMP
  Q
 STATUSERR ;; @TEST Error code is set if no status
  N RETURN,BODY,ARG,U,TYPE,PID,STAMP,HTTPERR
@@ -150,9 +150,9 @@ STATUSERR ;; @TEST Error code is set if no status
  S BODY(1)=$$JOBSTAT(2,1,"pid",PID,TYPE,STAMP,"")
  S RETURN=$$SET^VPRJOB(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJOB),"A Job Status exists and it should not")
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
- D ASSERT(234,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 234 reason code should have occurred")
- K ^||TMP
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
+ D ASSERT(234,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 234 reason code should have occurred")
+ K ^TMP
  Q
 STAMPERR ;; @TEST Error code is set if no timestamp
  N RETURN,BODY,ARG,U,TYPE,PID,STAMP,HTTPERR
@@ -164,9 +164,9 @@ STAMPERR ;; @TEST Error code is set if no timestamp
  S BODY(1)=$$JOBSTAT(2,1,"pid",PID,TYPE,STAMP,"created")
  S RETURN=$$SET^VPRJOB(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJOB),"A Job Status exists and it should not")
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
- D ASSERT(235,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 235 reason code should have occurred")
- K ^||TMP
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
+ D ASSERT(235,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 235 reason code should have occurred")
+ K ^TMP
  Q
 VALIDERR ;; @TEST Error code is set if no the jobId and rootJobId pair doesn't match
  N RETURN,BODY,ARG,U,TYPE,PID,STAMP,HTTPERR
@@ -182,9 +182,9 @@ VALIDERR ;; @TEST Error code is set if no the jobId and rootJobId pair doesn't m
  ; Remove collision global to ensure check is valid
  K ^VPRJOB("C",2,1)
  D ASSERT(0,$D(^VPRJOB),"A Job Status does exists and it should not")
- D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
- D ASSERT(236,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 236 reason code should have occurred")
- K ^||TMP
+ D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
+ D ASSERT(236,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 236 reason code should have occurred")
+ K ^TMP
  Q
 SET1 ;; @TEST Storing one Job Status
  N RETURN,BODY,ARG,U,TYPE,PID,JPID,STAMP,HTTPERR

@@ -150,8 +150,8 @@ GETNONE ;; @TEST getting an object that does not exist
  D SETGET^VPRJTX("/data/urn:test:bogus:54321")
  D RESPOND^VPRJRSP
  D ASSERT(1,$G(HTTPERR)>0)
- D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")))
- K ^||TMP("HTTPERR",$J)
+ D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")))
+ K ^TMP("HTTPERR",$J)
  Q
 EVERY ;; TEST retrieving every object in a collection
  N JSON,ERR,HTTPERR
@@ -160,7 +160,7 @@ EVERY ;; TEST retrieving every object in a collection
  D ASSERT(0,$G(HTTPERR))
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(6,JSON("data","totalItems"))
- D ASSERT(0,$D(^||TMP($J,$J)))
+ D ASSERT(0,$D(^TMP($J,$J)))
  D ASSERT(10,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID_"/every////"))))
  D ASSERT(0,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID_"/every////"),$J)))
  K JSON

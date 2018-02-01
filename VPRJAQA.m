@@ -11,7 +11,7 @@ VPRJAQA ;SLC/KCM -- Query across patients using attribute indexes for JSON objec
  ; CLAUSES:  clauses to apply filter to each object
  ;
 QATTR ; return items where attribute value is in range
- ; Build ^||TMP("VPRDATA",$J,sortkey,sortkey,...,key,instances) with keys of objects to return
+ ; Build ^TMP("VPRDATA",$J,sortkey,sortkey,...,key,instances) with keys of objects to return
  ; Expects:  VPRDATA,METHOD,RANGE,INDEX,ORDER,CLAUSES,BAIL
  N START,STOP,DIR,SUB,KEY,INST
  D PARSERNG^VPRJCR
@@ -88,14 +88,14 @@ ADDONE(KEY,INST,SUB) ; add uid, calculating new sort key if necessary
  S I=0 F  S I=$O(ORDER(I)) Q:'I  S SORT(I)=$S(+ORDER(I):SUB(+ORDER(I)),1:$$SORTPID^VPRJPQA(I)) S:ORDER(I,"nocase") SORT(I)=$$LOW^XLFSTR(SORT(I))
  S VPRDATA=VPRDATA+1
  ; case
- I ORDER(0)=0 S ^||TMP("VPRDATA",$J,KEY,INST)="" G X1
- I ORDER(0)=1 S ^||TMP("VPRDATA",$J,SORT(1),KEY,INST)="" G X1
- I ORDER(0)=2 S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),KEY,INST)="" G X1
- I ORDER(0)=3 S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),KEY,INST)="" G X1
- I ORDER(0)=4 S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),KEY,INST)="" G X1
- I ORDER(0)=5 S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),KEY,INST)="" G X1
- I ORDER(0)=6 S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),KEY,INST)="" G X1
- I ORDER(0)=7 S ^||TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),SORT(7),KEY,INST)="" G X1
+ I ORDER(0)=0 S ^TMP("VPRDATA",$J,KEY,INST)="" G X1
+ I ORDER(0)=1 S ^TMP("VPRDATA",$J,SORT(1),KEY,INST)="" G X1
+ I ORDER(0)=2 S ^TMP("VPRDATA",$J,SORT(1),SORT(2),KEY,INST)="" G X1
+ I ORDER(0)=3 S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),KEY,INST)="" G X1
+ I ORDER(0)=4 S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),KEY,INST)="" G X1
+ I ORDER(0)=5 S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),KEY,INST)="" G X1
+ I ORDER(0)=6 S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),KEY,INST)="" G X1
+ I ORDER(0)=7 S ^TMP("VPRDATA",$J,SORT(1),SORT(2),SORT(3),SORT(4),SORT(5),SORT(6),SORT(7),KEY,INST)="" G X1
 X1 ; end case
  Q
  ;

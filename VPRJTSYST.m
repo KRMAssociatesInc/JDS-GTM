@@ -598,7 +598,7 @@ GET2DIFFSOURCE ;; @TEST Get Patient Sync Status - Allergy and Vitals Stored. Tes
  ;
 GETFILTER ;; @TEST Get Patient Sync Status with filters
  N DATA,ARG,ERR,OBJECT,HTTPERR
- K ^||TMP("HTTPERR",$J)
+ K ^TMP("HTTPERR",$J)
  D BLANK
  ;
  S ARG("id")="SITE;3"

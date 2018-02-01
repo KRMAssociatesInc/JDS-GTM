@@ -144,8 +144,8 @@ GETPT(RESULT,ARGS) ; Returns patient demographics
  . I '$D(^VPRPTJ("JSON",JPID,PID)) I '$D(^VPRPT(JPID,PID,UID)) D SETERROR^VPRJRER(225,"Identifier "_PID) Q
  . ; Add demographics to result
  . D QKEY^VPRJPQ(PID,UID)
- I '$D(^||TMP($J,"total")) D SETERROR^VPRJRER(225) Q
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ I '$D(^TMP($J,"total")) D SETERROR^VPRJRER(225) Q
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 PUTOBJ(ARGS,BODY) ; PUTs an object for a patient into the database
  N PID S PID=$$PID(.ARGS) Q:'$L(PID) ""
@@ -169,8 +169,8 @@ GETOBJ(RESULT,ARGS) ; gets an object given a UID
  . . I PIDS(ID)=PID D QKEY^VPRJPQ(PID,$G(ARGS("uid")),TEMPLATE)
  ; If the data isn't set in the loop we know the key won't exist
  ; Return the message clients expect based on prior behavior (Bad Key)
- I '$D(^||TMP($J)) D SETERROR^VPRJRER(104,"Pid:"_ARGS("pid")_" Key:"_ARGS("uid")) Q
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ I '$D(^TMP($J)) D SETERROR^VPRJRER(104,"Pid:"_ARGS("pid")_" Key:"_ARGS("uid")) Q
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
  ;
 GETUID(RESULT,ARGS) ; gets an object given a UID only (no PID)
@@ -182,7 +182,7 @@ GETUID(RESULT,ARGS) ; gets an object given a UID only (no PID)
  N PID S PID=""
  F  S PID=$O(PIDS(PID)) Q:PID=""  D
  . D QKEY^VPRJPQ(PIDS(PID),ARGS("uid"),TEMPLATE)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 INDEX(RESULT,ARGS) ; GET for objects by index
  I $$UNKARGS^VPRJCU(.ARGS,"pid,indexName,range,order,bail,template,filter") Q
@@ -203,16 +203,16 @@ INDEX(RESULT,ARGS) ; GET for objects by index
  . S RESULT=$NA(^VPRTMP(HASH)),RESULT("pageable")=""
  ;
  ; otherwise prepare cache and do the regular query
- ; ^||TMP($J) is killed at the beginning of each request in VPRJREQ
- S ^||TMP($J,"query")=HASHSTR,^||TMP($J,"timestamp")=HASHTS
- S ^||TMP($J,"pid")=PID,^||TMP($J,"index")=INDEX,^||TMP($J,"hash")=HASH
- S ^||TMP($J,"template")=TEMPLATE,^||TMP($J,"total")=0
+ ; ^TMP($J) is killed at the beginning of each request in VPRJREQ
+ S ^TMP($J,"query")=HASHSTR,^TMP($J,"timestamp")=HASHTS
+ S ^TMP($J,"pid")=PID,^TMP($J,"index")=INDEX,^TMP($J,"hash")=HASH
+ S ^TMP($J,"template")=TEMPLATE,^TMP($J,"total")=0
  ; original line
  ;F IDXPID=1:1:$L(PID,",") D QINDEX^VPRJPQ($P(PID,",",IDXPID),INDEX,RANGE,ORDER,BAIL,TEMPLATE,FILTER)
  ; Deal with multiple pid syntax
  F IDXPID=1:1:$L(PID,",") D
  . D QINDEX^VPRJPQ($P(PID,",",IDXPID),INDEX,RANGE,ORDER,BAIL,TEMPLATE,FILTER)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 CACHED(PID,INDEX,HASHSTR,HASH,HASHTS) ; return TRUE if query cached and the cache is current
  ; .HASH returns the hashed value of HASHSTR
@@ -257,7 +257,7 @@ LAST(RESULT,ARGS) ; GET for objects by index
  ; Deal with multiple pid syntax
  F IDXPID=1:1:$L(PID,",") D
  . D QLAST^VPRJPQ($P(PID,",",IDXPID),INDEX,RANGE,ORDER,BAIL,TEMPLATE,FILTER)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 FIND(RESULT,ARGS) ; GET for objects using 'where' criteria
  I $$UNKARGS^VPRJCU(.ARGS,"pid,collection,order,bail,template,filter") Q
@@ -273,25 +273,25 @@ FIND(RESULT,ARGS) ; GET for objects using 'where' criteria
  ; Deal with multiple pid syntax
  F IDXPID=1:1:$L(PID,",") D
  . D QFIND^VPRJPQ($P(PID,",",IDXPID),COLL,ORDER,BAIL,TEMPLATE,FILTER)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 COUNT(RESULT,ARGS) ; GET for count of domain objects
  I $$UNKARGS^VPRJCU(.ARGS,"pid,countName") Q
  N PID S PID=$$PID(.ARGS) Q:'$L(PID)
  D QTALLY^VPRJPQ(PID,ARGS("countName"))
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
 ALLCOUNT(RESULT,ARGS) ; GET for count of objects across patients
  I $$UNKARGS^VPRJCU(.ARGS,"countName") Q
  D QCOUNT^VPRJAQ(ARGS("countName"))
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
 ALLPID(RESULT,ARGS) ; GET all PID's
  I $$UNKARGS^VPRJCU(.ARGS,"indexName,template,filter") Q
  N FILTER
  S FILTER=$G(ARGS("filter"))
  D QPID^VPRJAQ(FILTER)
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
 ALLINDEX(RESULT,ARGS) ; GET for index across patients
  I $$UNKARGS^VPRJCU(.ARGS,"indexName,range,order,bail,template,filter") Q
@@ -303,7 +303,7 @@ ALLINDEX(RESULT,ARGS) ; GET for index across patients
  S TEMPLATE=$G(ARGS("template"))
  S FILTER=$G(ARGS("filter"))
  D QINDEX^VPRJAQ(INDEX,RANGE,ORDER,BAIL,TEMPLATE,FILTER)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 ALLFIND(RESULT,ARGS) ; GET using filter across all patients
  I $$UNKARGS^VPRJCU(.ARGS,"collection,order,bail,template,filter") Q
@@ -315,7 +315,7 @@ ALLFIND(RESULT,ARGS) ; GET using filter across all patients
  S FILTER=$G(ARGS("filter"))
  I '$L(FILTER) D SETERROR^VPRJRER(112) Q
  D QFIND^VPRJAQ(COLL,ORDER,BAIL,TEMPLATE,FILTER)
- S RESULT=$NA(^||TMP($J)),RESULT("pageable")=""
+ S RESULT=$NA(^TMP($J)),RESULT("pageable")=""
  Q
 CHKSUM(RESULT,ARGS) ; Get checksum for a patient
  N PID,SYSTEM
@@ -331,7 +331,7 @@ DELUID(RESULT,ARGS) ; DELETE an object
  N PID S PID=""
  F  S PID=$O(^VPRPTJ("KEY",UID,PID)) Q:PID=""  D
  . D DELETE^VPRJPS(PID,UID)
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
  ;
 DELCLTN(RESULT,ARGS) ; Delete a collection
@@ -473,9 +473,9 @@ PIDS(RESULT,ARGS) ; Return all patient Identifiers for a JPID
  . S BODY("patientIdentifiers",I)=PIDS(PID)
  S BODY("jpid")=JPID
  ; Encode the response
- D ENCODE^VPRJSON("BODY","^||TMP($J)","ERR") I $D(ERR) D SETERROR^VPRJRER(202) Q
+ D ENCODE^VPRJSON("BODY","^TMP($J)","ERR") I $D(ERR) D SETERROR^VPRJRER(202) Q
  ; return results global
- S RESULT=$NA(^||TMP($J))
+ S RESULT=$NA(^TMP($J))
  Q
  ;
 ASSOCIATE(ARGS,BODY) ; Associate a PID/ICN with a JPID
@@ -585,8 +585,8 @@ GETPTS(RESULT,ARGS) ;Return a list of patients
  ; Get any filters and parse them into CLAUSES
  S FILTER=$G(ARGS("filter"))
  I $L(FILTER) D PARSE^VPRJCF(FILTER,.CLAUSES) Q:$G(HTTPERR)
- ; Set OBJECT into ^||TMP($J)
- S OBJECT=$NA(^||TMP($J,"OBJECT"))
+ ; Set OBJECT into ^TMP($J)
+ S OBJECT=$NA(^TMP($J,"OBJECT"))
  ; Ensure variables are cleaned out
  K:$D(@OBJECT) @OBJECT
  ; Get all patients (or run filter)
@@ -607,7 +607,7 @@ GETPTS(RESULT,ARGS) ;Return a list of patients
  . . ; Merge the data (will run only if the filter is true or non-existant)
  . . M @OBJECT@("items",I)=PATIENT
  ; Set Result variable to global
- S RESULT=$NA(^||TMP($J,"RESULT"))
+ S RESULT=$NA(^TMP($J,"RESULT"))
  K:$D(@RESULT) @RESULT
  ; Encode object into JSON return
  D ENCODE^VPRJSON(OBJECT,RESULT,"ERR") ; From an array to JSON

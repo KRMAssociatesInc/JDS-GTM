@@ -10,7 +10,7 @@ SHUTDOWN ; Run once after all tests
  K ^VPRPTJ
  K ^VPRPT
  K ^VPRMETA("JPID")
- K ^||TMP
+ K ^TMP
  Q
 SETUP    ; Run before each test
  K HTTPREQ,HTTPERR,HTTPRSP
@@ -287,7 +287,7 @@ EVERY ;; @TEST retrieving every object for a patient
  D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(6,$G(JSON("data","totalItems")))
- D ASSERT(0,$D(^||TMP($J,$J)))
+ D ASSERT(0,$D(^TMP($J,$J)))
  S VPRJTPID1=$$JPID4PID^VPRJPR(VPRJTPID)
  ; Cache is disable
  ;D ASSERT(10,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID1_"/every////"))))
@@ -692,7 +692,7 @@ DELSITE ;; @TEST REST endpoint to delete a site's patient data
 GETDMOG1 ;; @TEST try to get demographics when none on file ICN
  ; Ensure requried variables are clean
  N HTTPERR
- K ^||TMP("HTTPERR",$J)
+ K ^TMP("HTTPERR",$J)
  ; Setup Patient Asssociations
  S ^VPRPTJ("JPID","8765;-1")="52833885-af7c-4899-90be-b3a6630b2373"
  S ^VPRPTJ("JPID","-222V123222")="52833885-af7c-4899-90be-b3a6630b2373"
@@ -703,12 +703,12 @@ GETDMOG1 ;; @TEST try to get demographics when none on file ICN
  D SETGET^VPRJTX("vpr/mpid/-222V123222")
  D RESPOND^VPRJRSP
  D ASSERT(HTTPERR,400,"HTTPERR isn't set and should be")
- D ASSERT($G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
+ D ASSERT($G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
  Q
 GETDMOG2 ;; @TEST try to get demographics when none on file PID
  ; Ensure requried variables are clean
  N HTTPERR
- K ^||TMP("HTTPERR",$J)
+ K ^TMP("HTTPERR",$J)
  ; Setup Patient Asssociations
  S ^VPRPTJ("JPID","8765;-1")="52833885-af7c-4899-90be-b3a6630b2373"
  S ^VPRPTJ("JPID","-222V123222")="52833885-af7c-4899-90be-b3a6630b2373"
@@ -719,5 +719,5 @@ GETDMOG2 ;; @TEST try to get demographics when none on file PID
  D SETGET^VPRJTX("vpr/mpid/8765;-1")
  D RESPOND^VPRJRSP
  D ASSERT(HTTPERR,400,"HTTPERR isn't set and should be")
- D ASSERT($G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
+ D ASSERT($G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
  Q

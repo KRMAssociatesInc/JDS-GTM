@@ -4,7 +4,7 @@ VPRJDSTATUS ;KRM/CJE -- Handle Operational Data Sync Status operations ; 10/20/2
  ;
 SET(ARGS,BODY) ; Store operational data metastamp from a source
  N OBJECT,ERR,JID,JPID,JPID2,ICN,PID,SOURCE,SSOURCE,DOMAIN,DOMAINSTAMP,ITEM,ITEMSTAMP,I,J,K,PREVSTAMP,OLDOBJ
- S OBJECT=$NA(^||TMP($J,"metastamp"))
+ S OBJECT=$NA(^TMP($J,"metastamp"))
  K:$D(@OBJECT) @OBJECT
  D DECODE^VPRJSON("BODY",OBJECT,"ERR") ; Decode JSON to OBJECT array
  ; Get the source site hash (only one allowed per post)
@@ -86,7 +86,7 @@ SET(ARGS,BODY) ; Store operational data metastamp from a source
 GET(RETURN,ARGS) ; Return operational data sync status based on metastamps
  N RESULT,BUILD,OBJECT,ERR,SOURCE,DOMAIN,DOMAINSTAMP,ITEM,ITEMSTAMP,FILTER,CLAUSES
  N ID,DOMAINCOMPLETE,DOMAINSTORED,ITEMSCOMPLETE,ITEMSTORED,DETAILED
- S RESULT=$NA(^||TMP($J,"RESULT"))
+ S RESULT=$NA(^TMP($J,"RESULT"))
  K:$D(@RESULT) @RESULT
  ; Ensure we don't have any unknown parameters
  I $$UNKARGS^VPRJCU(.ARGS,"id,detailed,filter") Q
@@ -101,7 +101,7 @@ GET(RETURN,ARGS) ; Return operational data sync status based on metastamps
  I $G(ARGS("id"))="" D SETERROR^VPRJRER(241) Q
  ;
  D DATA(RESULT,ARGS("id"),DETAILED,.CLAUSES)
- S RETURN=$NA(^||TMP($J,"RETURN"))
+ S RETURN=$NA(^TMP($J,"RETURN"))
  K:$D(@RETURN) @RETURN ; Clear the output global array, avoid subtle bugs
  D ENCODE^VPRJSON(RESULT,RETURN,"ERR") ; From an array to JSON
  K:$D(@RESULT) @RESULT
@@ -135,7 +135,7 @@ DATA(RESULT,ID,DETAILED,CLAUSES) ; GET Operational Data Sync Status algorithm
  ; Check to see if we have a metastamp for this source
  I '$G(^VPRSTATUSOD(SOURCE,"stampTime")) Q
  ; Set BUILD up to use as a target for indirection
- S BUILD=$NA(^||TMP($J,"RESULT","BUILD"))
+ S BUILD=$NA(^TMP($J,"RESULT","BUILD"))
  K:$D(@BUILD) @BUILD
  ;
  ; sourceMetaStamp object

@@ -18,17 +18,17 @@ ASSERT(EXPECT,ACTUAL,MSG) ; for convenience
  D EQ^VPRJT(EXPECT,ACTUAL,$G(MSG))
  Q
  ;
-TMP2ARY(ARY) ; convert JSON object in ^||TMP($J) to array
+TMP2ARY(ARY) ; convert JSON object in ^TMP($J) to array
  ; ARY must be passed by reference
  N SIZE,PREAMBLE
  S HTTPREQ("store")="vpr" ; normally this gets set in RESPOND^VPRJRSP
- D PAGE^VPRJRUT("^||TMP($J)",0,999,.SIZE,.PREAMBLE)
+ D PAGE^VPRJRUT("^TMP($J)",0,999,.SIZE,.PREAMBLE)
  N SRC,N,I,J
- S N=0,SRC(N)="{""data"":{""totalItems"":"_^||TMP($J,"total")_",""items"":["
- S I="" F  S I=$O(^||TMP($J,$J,I)) Q:I=""  D
+ S N=0,SRC(N)="{""data"":{""totalItems"":"_^TMP($J,"total")_",""items"":["
+ S I="" F  S I=$O(^TMP($J,$J,I)) Q:I=""  D
  . I I S SRC(N)=SRC(N)_","
- . S J=0 F  S J=$O(^||TMP($J,$J,I,J)) Q:'J  D
- . . S N=N+1,SRC(N)=^||TMP($J,$J,I,J)
+ . S J=0 F  S J=$O(^TMP($J,$J,I,J)) Q:'J  D
+ . . S N=N+1,SRC(N)=^TMP($J,$J,I,J)
  S N=N+1,SRC(N)="]}}"
  D DECODE^VPRJSON("SRC","ARY","ERR")
  D ASSERT(0,$G(ERR(0),0),"JSON conversion error")
@@ -55,12 +55,12 @@ EHMPSETIF ;; @TEST unit test setif condition for ehmp-documents index
  ;
 EHMPDOCS ;; @TEST integration test ehmp-documents
  N HTTPERR,ARGS,RET,EHMP,DOCS,MATCH
- K ^||TMP($J)
+ K ^TMP($J)
  S ARGS("pid")="93EF;-7",ARGS("indexName")="docs-view",ARGS("filter")="not(and(in(""kind"",[""Consult"",""Imaging"",""Procedure""]),ne(""statusName"",""COMPLETE"")))"
  D INDEX^VPRJPR(.RET,.ARGS)
  D TMP2ARY(.DOCS)
  K ARGS S ARGS("pid")="93EF;-7",ARGS("indexName")="ehmp-documents"
- K ^||TMP($J) D INDEX^VPRJPR(.RET,.ARGS)
+ K ^TMP($J) D INDEX^VPRJPR(.RET,.ARGS)
  D TMP2ARY(.EHMP)
  D ASSERT($G(DOCS("data","totalItems")),$G(EHMP("data","totalItems")))
  S MATCH=1

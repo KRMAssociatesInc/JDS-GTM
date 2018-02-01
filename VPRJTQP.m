@@ -11,15 +11,15 @@ SHUTDOWN ; Run once after all tests
  K ^VPRPTJ
  K ^VPRPT
  K ^VPRMETA("JPID")
- K ^||TMP
+ K ^TMP
  QUIT
  ;
 SETUP    ; Run before each test
- K HTTPREQ,HTTPERR,HTTPRSP,^||TMP
+ K HTTPREQ,HTTPERR,HTTPRSP,^TMP
  QUIT
  ;
 TEARDOWN ; Run after each test
- K HTTPREQ,HTTPERR,HTTPRSP,^||TMP
+ K HTTPREQ,HTTPERR,HTTPRSP,^TMP
  QUIT
  ;
 ASSERT(EXPECT,ACTUAL,MSG) ; convenience
@@ -161,13 +161,13 @@ POSTQUERY5 ;; @TEST POST query with a massive (3640953 chars) filter on an index
  S LAST=$O(HTTPREQ("body",""),-1)
  S HTTPREQ("body",LAST)=$E(HTTPREQ("body",LAST),1,$L(HTTPREQ("body",LAST))-1)_"""}"
  D RESPOND^VPRJRSP
- D ASSERT(413,^||TMP("HTTPERR",$J,1,"error","code"),"Should be HTTP 413 error, but it is not")
+ D ASSERT(413,^TMP("HTTPERR",$J,1,"error","code"),"Should be HTTP 413 error, but it is not")
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(0,$D(JSON("data")))
- D ASSERT("POST query parameters exceed argument length limit",^||TMP("HTTPERR",$J,1,"error","errors",1,"domain"))
- D ASSERT("Parameter length limit exceeded",^||TMP("HTTPERR",$J,1,"error","errors",1,"message"))
- D ASSERT(114,^||TMP("HTTPERR",$J,1,"error","errors",1,"reason"),"Should be JDS 114 error reason, but it is not")
- D ASSERT("Request entity too large",^||TMP("HTTPERR",$J,1,"error","message"))
+ D ASSERT("POST query parameters exceed argument length limit",^TMP("HTTPERR",$J,1,"error","errors",1,"domain"))
+ D ASSERT("Parameter length limit exceeded",^TMP("HTTPERR",$J,1,"error","errors",1,"message"))
+ D ASSERT(114,^TMP("HTTPERR",$J,1,"error","errors",1,"reason"),"Should be JDS 114 error reason, but it is not")
+ D ASSERT("Request entity too large",^TMP("HTTPERR",$J,1,"error","message"))
  QUIT
  ;
 POSTQUERY6 ;; @TEST POST query with a massive (3640934 chars) filter on an index, with other parameters go over the limit (3641013)
@@ -194,11 +194,11 @@ POSTQUERY6 ;; @TEST POST query with a massive (3640934 chars) filter on an index
  S HTTPREQ("body",LAST)=HTTPREQ("body",LAST)_"""start"":0,""limit"":1000000000000000000000000000000000000000,"
  S HTTPREQ("body",LAST)=HTTPREQ("body",LAST)_"""order"":""sig asc, kind desc, overallStop""}"
  D RESPOND^VPRJRSP
- D ASSERT(413,^||TMP("HTTPERR",$J,1,"error","code"),"Should be HTTP 413 error, but it is not")
+ D ASSERT(413,^TMP("HTTPERR",$J,1,"error","code"),"Should be HTTP 413 error, but it is not")
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(0,$D(JSON("data")))
- D ASSERT("POST query parameters exceed argument length limit",^||TMP("HTTPERR",$J,1,"error","errors",1,"domain"))
- D ASSERT("Parameter length limit exceeded",^||TMP("HTTPERR",$J,1,"error","errors",1,"message"))
- D ASSERT(114,^||TMP("HTTPERR",$J,1,"error","errors",1,"reason"),"Should be JDS 114 error reason, but it is not")
- D ASSERT("Request entity too large",^||TMP("HTTPERR",$J,1,"error","message"))
+ D ASSERT("POST query parameters exceed argument length limit",^TMP("HTTPERR",$J,1,"error","errors",1,"domain"))
+ D ASSERT("Parameter length limit exceeded",^TMP("HTTPERR",$J,1,"error","errors",1,"message"))
+ D ASSERT(114,^TMP("HTTPERR",$J,1,"error","errors",1,"reason"),"Should be JDS 114 error reason, but it is not")
+ D ASSERT("Request entity too large",^TMP("HTTPERR",$J,1,"error","message"))
  QUIT

@@ -2,7 +2,7 @@ VPRJTCF ;SLC/KCM -- Integration tests for query filters
  ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 STARTUP  ; Run once before all tests
- K ^||TMP("HTTPERR",$J)
+ K ^TMP("HTTPERR",$J)
  D BLDPT^VPRJTX
  D MOCK1
  Q
@@ -94,7 +94,7 @@ ASSERT(EXPECT,ACTUAL,MSG) ; for convenience
  Q
 EVAL(LINE) ; return evaluation of statement
  N PID,UID,STMT,CLAUSES,HTTPERR
- K ^||TMP("HTTPERR",$J)
+ K ^TMP("HTTPERR",$J)
  I LINE["+" S STMT=$P($T(@LINE),";;",2,99)
  E  S STMT=LINE
  D PARSE^VPRJCF(STMT,.CLAUSES)

@@ -169,7 +169,7 @@ ASKFRSET ; ask first before deleting all data
  Q
 FULLRBLD ; do a full rebuild of VPR and non-patient data
  D SUSPEND
- K:$D(^||TMP($J)) ^||TMP($J)
+ K:$D(^TMP($J)) ^TMP($J)
  D RBLDALL^VPRJ2P
  D RBLDALL^VPRJ2D
  D RESUME
@@ -177,7 +177,7 @@ FULLRBLD ; do a full rebuild of VPR and non-patient data
 FULLRSET ; reset (delete data and re-init) for VPR and non-patient data
  N NMPORT
  D SUSPEND
- K:$D(^||TMP($J)) ^||TMP($J)
+ K:$D(^TMP($J)) ^TMP($J)
  D KILLDB^VPRJ2P
  D KILLDB^VPRJ2D
  D SETUP^VPRJCONFIG

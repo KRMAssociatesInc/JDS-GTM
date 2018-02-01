@@ -73,7 +73,7 @@ EXP2 ;; @TEST expanding fields in template
  D ASSERT("urn:va:utestc:93EF:-7:23",$G(OBJ("uid")))
  Q
 QUERY ;; @TEST query type template
- K ^||TMP
+ K ^TMP
  N VPRJPID
  S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
  D ASSERT(0,$D(^VPRPTJ("TEMPLATE",VPRJPID,VPRJTPID,"urn:va:utestc:93EF:-7:23","unit-test-query")))

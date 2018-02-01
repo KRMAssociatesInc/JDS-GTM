@@ -10,7 +10,7 @@ SHUTDOWN ; Run once after all tests
  K ^VPRPTJ
  K ^VPRPT
  K ^VPRMETA("JPID")
- K ^||TMP
+ K ^TMP
  Q
 SETUP    ; Run before each test
  K HTTPREQ,HTTPERR,HTTPRSP
@@ -24,7 +24,7 @@ TEARDOWN ; Run after each test
  K ^VPRPTJ
  K ^VPRPT
  K ^VPRMETA("JPID")
- K ^||TMP
+ K ^TMP
  Q
 ASSERT(EXPECT,ACTUAL,MSG) ; convenience
  D EQ^VPRJT(EXPECT,ACTUAL,$G(MSG))
@@ -285,7 +285,7 @@ EVERY ;;  retrieving every object for a patient
  K HTTPERR
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(6,$G(JSON("data","totalItems")))
- D ASSERT(0,$D(^||TMP($J,$J)))
+ D ASSERT(0,$D(^TMP($J,$J)))
  S VPRJTPID1=$$JPID4PID^VPRJPR(VPRJTPID)
  ; Cache is disable
  ;D ASSERT(10,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID1_"/every////"))))

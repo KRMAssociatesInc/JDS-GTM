@@ -29,8 +29,8 @@ SETUP
  ; JDS uses this to flag whether there is an error or not
  S HTTPERR=0
  ; clean any old data
- K:$D(^||TMP($J)) ^||TMP($J)
- K:$D(^||TMP("HTTPERR",$J)) ^||TMP("HTTPERR",$J)
+ K:$D(^TMP($J)) ^TMP($J)
+ K:$D(^TMP("HTTPERR",$J)) ^TMP("HTTPERR",$J)
  ;
  QUIT
  ;
@@ -64,7 +64,7 @@ RETURNDATA(RESULT,UUID,START,LIMIT,STARTID,RETCNTS) ; Return data to jds-cache-a
  . E  S POSTAMBLE="]}}"
  . ; store data so that jds-cache-api can retrieve it
  . ; return a 1 to represent JDS error, 0 for JDS success
- . I $G(HTTPERR) M ^TMP("HTTPERR",UUID,$J)=^||TMP("HTTPERR",$J) S RETURN=1_":"_UUID
+ . I $G(HTTPERR) M ^TMP("HTTPERR",UUID,$J)=^TMP("HTTPERR",$J) S RETURN=1_":"_UUID
  . E  M ^TMP(UUID,$J,"PREAMBLE")=PREAMBLE,^TMP(UUID,$J)=@RESULT@($J) D
  . . S ^TMP(UUID,$J,"POSTAMBLE")=POSTAMBLE
  . . ; set status code for jds-cache-api
@@ -75,7 +75,7 @@ RETURNDATA(RESULT,UUID,START,LIMIT,STARTID,RETCNTS) ; Return data to jds-cache-a
  E  I $E($G(RESULT))="^" D
  . ; store data so that jds-cache-api can retrieve it
  . ; return a 1 to represent JDS error, 0 for JDS success
- . I $G(HTTPERR) M ^TMP("HTTPERR",UUID,$J)=^||TMP("HTTPERR",$J) S RETURN=1_":"_UUID
+ . I $G(HTTPERR) M ^TMP("HTTPERR",UUID,$J)=^TMP("HTTPERR",$J) S RETURN=1_":"_UUID
  . E  M ^TMP(UUID,$J)=@RESULT D
  . . ; set status code for jds-cache-api
  . . I $G(URL)'="" S ^TMP(UUID,$J,"STATUS")=201
@@ -85,7 +85,7 @@ RETURNDATA(RESULT,UUID,START,LIMIT,STARTID,RETCNTS) ; Return data to jds-cache-a
  E  D 
  . ; store data so that jds-cache-api can retrieve it
  . ; return a 1 to represent JDS error, 0 for JDS success
- . I $G(HTTPERR) M ^TMP("HTTPERR",UUID,$J)=^||TMP("HTTPERR",$J) S RETURN=1_":"_UUID
+ . I $G(HTTPERR) M ^TMP("HTTPERR",UUID,$J)=^TMP("HTTPERR",$J) S RETURN=1_":"_UUID
  . E  M ^TMP(UUID,$J)=RESULT D
  . . ; set status code for jds-cache-api
  . . I $G(URL)'="" S ^TMP(UUID,$J,"STATUS")=201
