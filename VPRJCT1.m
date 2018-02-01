@@ -2,11 +2,14 @@ VPRJCT1 ;SLC/KCM -- Apply Rel and Rev Templates
  ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 RELTLTP(ROOT,KEY,TLT,PID) ; apply rel template for VPR and put in ROOT
- N CTN,OBJECT,STAMP
+ N CTN,OBJECT,STAMP,JPID
+ ;
+ S JPID=$$JPID4PID^VPRJPR(PID)
+ I JPID="" D SETERROR^VPRJRER(224,"Identifier "_PID) Q
  ; Get latest object stamp
- S STAMP=$O(^VPRPT(PID,KEY,""),-1)
+ S STAMP=$O(^VPRPT(JPID,PID,KEY,""),-1)
  ; TODO: check to see if PID is defined here for xvpr queries
- S CTN=$P(KEY,":",3) M OBJECT=^VPRPT(PID,KEY,STAMP)
+ S CTN=$P(KEY,":",3) M OBJECT=^VPRPT(JPID,PID,KEY,STAMP)
  G RELTLT
  ;
 RELTLTD(ROOT,KEY,TLT) ; apply rel template for DATA and put in ROOT
@@ -34,11 +37,14 @@ RELTLT ; common entry point for rel template
  Q
  ;
 REVTLTP(ROOT,KEY,TLT,PID) ; add multiple for rev template and put in ROOT
- N OBJECT,REVFLD,REL,UID,CNT
+ N OBJECT,REVFLD,REL,UID,CNT,JPID
  S REVFLD=TLT("common","rev"),REL=TLT("common","rel"),CNT=0
+ ;
+ S JPID=$$JPID4PID^VPRJPR(PID)
+ I JPID="" D SETERROR^VPRJRER(224,"Identifier "_PID) Q
  ; TODO: check to see if PID is defined here for xvpr queries
- M OBJECT=^VPRPT(PID,KEY)
- S UID="" F  S UID=$O(^VPRPTI(PID,"rev",KEY,REL,UID)) Q:UID=""  D REVTLT
+ M OBJECT=^VPRPT(JPID,PID,KEY)
+ S UID="" F  S UID=$O(^VPRPTI(JPID,PID,"rev",KEY,REL,UID)) Q:UID=""  D REVTLT
  D ENCODE^VPRJSON("OBJECT",ROOT,"ERRS")
  ; TODO: figure out how to throw an error at this point (writing out response)
  Q
@@ -63,11 +69,11 @@ REVTLT ; common entry point for rev template
  M OBJECT(REVFLD,CNT,":")=JSON
  Q
  ;
-BLDTLT(CLTN,OBJECT,TLTARY) ; Build JSON objects for associated templates
- ; from: ^VPRJDS, ^VPRJPS
- ; CLTN identifies the collection
- ; OBJECT is the decoded JSON object as a MUMPS array
- ; TLTARY is the array of JSON objects that get built based on templates
+ ; Build JSON objects for associated templates
+ ; @param {string} CLTN - identifies the collection
+ ; @param {array} OBJECT - (passed by reference) decoded JSON object as a MUMPS array
+ ; @param {array} TLTARY - (passed by reference) array of JSON objects that get built based on templates
+BLDTLT(CLTN,OBJECT,TLTARY)
  N TLTNM,TJSON
  S TLTNM="" F  S TLTNM=$O(^VPRMETA("collection",CLTN,"template",TLTNM)) Q:TLTNM=""  D  Q:$G(HTTPERR)
  . I $D(^VPRMETA("template",TLTNM,"collection",CLTN))<10 D SETERROR^VPRJRER(219,TLTNM) Q
@@ -80,7 +86,9 @@ BLDTLT(CLTN,OBJECT,TLTARY) ; Build JSON objects for associated templates
  Q
 QRYTLT(ROOT,KEY,TLT,PID,INST) ; apply template at query time and put in ROOT
  Q
-LOADSPEC(TEMPLATE) ; load the specification for a template
+ ; Load the specification for a template
+ ; @param {array} TEMPLATE - (passed by reference) contains the formatted MUMPS array for a template
+LOADSPEC(TEMPLATE)
  ;  TEMPLATE contains the template name
  ; .TEMPLATE(collection,...): returned information
  Q:TEMPLATE="uid"  ; special case - uid is hard coded template

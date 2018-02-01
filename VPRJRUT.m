@@ -1,8 +1,8 @@
-VPRJRUT ;SLC/KCM -- Utilities for HTTP communications
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
+VPRJRUT ;SLC/KCM -- Utilities for HTTP communications;2017-12-28  2:05 PM
+ ;
+LOW(X) Q $TR(X,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")
  ;
 UP(X) Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-LOW(X) Q $TR(X,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")
  ;
 LTRIM(%X) ; Trim whitespace from left side of string
  ; derived from XLFSTR, but also removes tabs
@@ -58,10 +58,10 @@ VARSIZE(V) ; return the size of a variable
  I $D(V)>1 S I="" F  S I=$O(V(I)) Q:'I  S SIZE=SIZE+$L(V(I))
  Q SIZE
  ;
-PAGE(ROOT,START,LIMIT,SIZE,PREAMBLE) ; create the size and preamble for a page of data
- Q:'$D(ROOT) 0 Q:'$L(ROOT) 0
- N I,J,KEY,KINST,COUNT,TEMPLATE,PID
- K @ROOT@($J)
+PAGE(ROOT,START,LIMIT,SIZE,PREAMBLE,RETCNTS) ; create the size and preamble for a page of data
+ QUIT:'$D(ROOT)  QUIT:'$L(ROOT)
+ N I,J,KEY,KINST,COUNT,TEMPLATE,PID,HASDATA
+ K:$D(@ROOT@($J)) @ROOT@($J)
  S SIZE=0,COUNT=0,TEMPLATE=$G(@ROOT@("template"),0) ;,PID=$G(@ROOT@("pid"))
  I $L(TEMPLATE) D LOADSPEC^VPRJCT1(.TEMPLATE)
  F I=START:1:(START+LIMIT-1) Q:'$D(@ROOT@("data",I))  S COUNT=COUNT+1 D
@@ -70,14 +70,19 @@ PAGE(ROOT,START,LIMIT,SIZE,PREAMBLE) ; create the size and preamble for a page o
  . . . S PID=^(KINST)  ; null if non-pt data
  . . . D TMPLT(ROOT,.TEMPLATE,I,KEY,KINST,PID)
  . . . S J="" F  S J=$O(@ROOT@($J,I,J)) Q:'J  S SIZE=SIZE+$L(@ROOT@($J,I,J))
- S PREAMBLE=$$BLDHEAD(@ROOT@("total"),COUNT,START,LIMIT)
- ; add 3 for "]}}", add COUNT-1 for commas
- S SIZE=SIZE+$L(PREAMBLE)+3+COUNT-$S('COUNT:0,1:1)
- Q
+ S HASDATA=$D(@ROOT@($J))
+ S RETCNTS=$G(RETCNTS,0)
+ S PREAMBLE=$S('$D(^VPRCONFIG("store",$G(HTTPREQ("store")),"global")):$$BLDHEAD(@ROOT@("total"),COUNT,START,LIMIT),1:$$GDSHEAD(HASDATA,RETCNTS,@ROOT@("total"),COUNT))
+ ; for vpr or data stores add 3 for "]}}", add COUNT-1 for commas
+ ; for other data stores add 1 for "}" if no data, 2 for "]}" if data present, add COUNT-1 for commas
+ S SIZE=$S('$D(^VPRCONFIG("store",$G(HTTPREQ("store")),"global")):SIZE+$L(PREAMBLE)+3+COUNT-$S('COUNT:0,1:1),1:SIZE+$L(PREAMBLE)+$S(HASDATA:2,1:1)+COUNT-$S('COUNT:0,1:1))
+ QUIT
+ ;
 TMPLT(ROOT,TEMPLATE,ITEM,KEY,KINST,PID) ; set template
  I HTTPREQ("store")="vpr"  G TLT4VPR
  I HTTPREQ("store")="data" G TLT4DATA
  I HTTPREQ("store")="xvpr" G TLT4XVPR
+ I HTTPREQ("store")'="" G TLT4GDS
  ; otherwise trigger error and quit
  Q
 TLT4XVPR ;
@@ -86,19 +91,22 @@ TLT4XVPR ;
  ; then drop thru to regular VPR template
 TLT4VPR ;
  ; called from PAGE
- N STAMP
+ N STAMP,JPID
+ S JPID=$$JPID4PID^VPRJPR(PID)
+ ; JPID is required in order to get the latest stamp, otherwise we have to bail
+ I JPID="" Q
  I TEMPLATE="uid" S @ROOT@($J,ITEM,1)="{""uid"":"""_KEY_"""}" Q
  I $E(TEMPLATE,1,4)="rel;" D RELTLTP^VPRJCT1($NA(@ROOT@($J,ITEM)),KEY,.TEMPLATE,PID) Q
  I $E(TEMPLATE,1,4)="rev;" D REVTLTP^VPRJCT1($NA(@ROOT@($J,ITEM)),KEY,.TEMPLATE,PID) Q
  ; query time template
  I $D(TEMPLATE)>1 D APPLYTLT Q
  ; saved template
- I $L(TEMPLATE),$D(^VPRPTJ("TEMPLATE",PID,KEY,TEMPLATE)) M @ROOT@($J,ITEM)=^(TEMPLATE) Q
+ I $L(TEMPLATE),$D(^VPRPTJ("TEMPLATE",JPID,PID,KEY,TEMPLATE)) M @ROOT@($J,ITEM)=^(TEMPLATE) Q
  ; else full object
  ; Add the item to the return
  ; Get the bottom of the tree (latest record)
- S STAMP=$O(^VPRPTJ("JSON",PID,KEY,""),-1)
- M @ROOT@($J,ITEM)=^VPRPTJ("JSON",PID,KEY,STAMP)
+ S STAMP=$O(^VPRPTJ("JSON",JPID,PID,KEY,""),-1)
+ M @ROOT@($J,ITEM)=^VPRPTJ("JSON",JPID,PID,KEY,STAMP)
  Q
 TLT4DATA ;
  ; called from PAGE
@@ -115,37 +123,81 @@ TLT4DATA ;
  S STAMP=$O(^VPRJDJ("JSON",KEY,""),-1)
  M @ROOT@($J,ITEM)=^VPRJDJ("JSON",KEY,STAMP)
  Q
+TLT4GDS ; Apply templates for GDS data stores to returned data
+ ; called from PAGE
+ ;
+ N GLOBAL,GLOBALJ
+ ; Parsed JSON
+ S GLOBAL="^"_$G(^VPRCONFIG("store",$G(HTTPREQ("store")),"global"))
+ ; Raw JSON
+ S GLOBALJ="^"_$G(^VPRCONFIG("store",$G(HTTPREQ("store")),"global"))_"J"
+ ;
+ I $G(TEMPLATE)="uid" S @ROOT@($J,ITEM,1)="{""uid"":"""_KEY_"""}" QUIT
+ I $E(TEMPLATE,1,4)="rel;" D RELTLTD^VPRJCT1($NA(@ROOT@($J,ITEM)),KEY,.TEMPLATE) QUIT
+ I $E(TEMPLATE,1,4)="rev;" D REVTLTD^VPRJCT1($NA(@ROOT@($J,ITEM)),KEY,.TEMPLATE) QUIT
+ ;
+ ; query time template
+ ; not supported
+ ;I $D(TEMPLATE)>1 D APPLYTLT Q
+ ;
+ ; If there is a template apply it
+ I $L(TEMPLATE),$D(@GLOBALJ@("TEMPLATE",KEY,TEMPLATE)) D  QUIT
+ . ; GDS data stores require a lock on each data item before it is added to the result
+ . L +@GLOBAL@(KEY):$G(^VPRCONFIG("timeout","gds"),5) E  D SETERROR^VPRJRER(502) Q
+ . M @ROOT@($J,ITEM)=@GLOBALJ@("TEMPLATE",KEY,TEMPLATE)
+ . L -@GLOBAL@(KEY)
+ ;
+ ; Else return the full object
+ ; GDS data stores require a lock on each data item before it is added to the result
+ L +@GLOBAL@(KEY):$G(^VPRCONFIG("timeout","gds"),5) E  D SETERROR^VPRJRER(502) QUIT
+ M @ROOT@($J,ITEM)=@GLOBALJ@("JSON",KEY)
+ L -@GLOBAL@(KEY)
+ QUIT
+ ;
 APPLYTLT ; apply query time template
  ; called from TLT4VPR, TLT4XVPR, TLT4DATA
  ; expects TEMPLATE, KEY, KINST, PID, ROOT, ITEM
  ; no PID means use data store
- N OBJECT,JSON,CLTN,SPEC
- I $L(PID) N STAMP S STAMP=$O(^VPRPT(PID,KEY,""),-1) M OBJECT=^VPRPT(PID,KEY,STAMP) S CLTN=$P(KEY,":",3) I 1
+ N OBJECT,JSON,CLTN,SPEC,JPID
+ ;
+ S JPID=$$JPID4PID^VPRJPR(PID)
+ I $L(PID),JPID'="" D
+ . N STAMP S STAMP=$O(^VPRPT(JPID,PID,KEY,""),-1) M OBJECT=^VPRPT(JPID,PID,KEY,STAMP) S CLTN=$P(KEY,":",3) I 1
  E  N STAMP S STAMP=$O(^VPRJD(KEY,""),-1) M OBJECT=^VPRJD(KEY,STAMP) S CLTN=$P(KEY,":",3)
  M SPEC=TEMPLATE("collection",CLTN)
  I '$D(SPEC) D  QUIT  ; return whole object if template missing
  . ; Add support for metastamps
- . I $L(PID) N STAMP S STAMP=$O(^VPRPTJ("JSON",PID,KEY,""),-1) M @ROOT@($J,ITEM)=^VPRPTJ("JSON",PID,KEY,STAMP) I 1
+ . I $L(PID),JPID'="" N STAMP S STAMP=$O(^VPRPTJ("JSON",JPID,PID,KEY,""),-1) M @ROOT@($J,ITEM)=^VPRPTJ("JSON",JPID,PID,KEY,STAMP) I 1
  . E  N STAMP S STAMP=$O(VPRJDJ("JSON",KEY,"",-1)) M @ROOT@($J,ITEM)=^VPRJDJ("JSON",KEY,STAMP)
  D APPLY^VPRJCT(.SPEC,.OBJECT,.JSON,KINST)
  M @ROOT@($J,ITEM)=JSON
  Q
+ ;
+GDSHEAD(HASDATA,RETCNTS,TOTAL,COUNT) ; Build object header for generic data stores
+ N X
+ S X="{"
+ I RETCNTS S X=X_"""totalItems"":"_TOTAL_",""currentItemCount"":"_COUNT
+ I RETCNTS,HASDATA S X=X_","
+ I HASDATA S X=X_"""items"":["
+ QUIT X
+ ;
 BLDHEAD(TOTAL,COUNT,START,LIMIT) ; Build the object header
  N X,UPDATED
- S UPDATED=$P($$FMTHL7^XLFDT($$NOW^XLFDT),"+")
- S X="{""apiVersion"":""1.0"",""data"":{""updated"":"_UPDATED_","
+ S UPDATED=$$CURRTIME
+ S X="{""data"":{""updated"":"_UPDATED_","
  S X=X_"""totalItems"":"_TOTAL_","
  S X=X_"""currentItemCount"":"_COUNT_","
- I LIMIT'=999999 D  ; only set thise if paging
+ I LIMIT'=999999 D  ; only set this if paging
  . S X=X_"""itemsPerPage"":"_LIMIT_","
  . S X=X_"""startIndex"":"_START_","
- . S X=X_"""pageIndex"":"_(START\LIMIT)_","
- . S X=X_"""totalPages"":"_(TOTAL\LIMIT+$S(TOTAL#LIMIT:1,1:0))_","
+ . ; If LIMIT is 0, make sure to change to 1 so we get back the right info, but don't get a divide by zero error
+ . S X=X_"""pageIndex"":"_(START\$S(LIMIT=0:1,1:LIMIT))_","
+ . S X=X_"""totalPages"":"_(TOTAL\$S(LIMIT=0:1,1:LIMIT)+$S(TOTAL#$S(LIMIT=0:1,1:LIMIT):1,1:0))_","
  S X=X_"""items"":["
  Q X
  ;
-UUID() ; 
- N R,I,J,N 
+UUID() ;
+ N R,I,J,N
  S N="",R="" F  S N=N_$R(100000) Q:$L(N)>64 
  F I=1:2:64 S R=R_$E("0123456789abcdef",($E(N,I,I+1)#16+1)) 
  Q $E(R,1,8)_"-"_$E(R,9,12)_"-4"_$E(R,14,16)_"-"_$E("89ab",$E(N,17)#4+1)_$E(R,18,20)_"-"_$E(R,21,32) 
@@ -243,6 +295,13 @@ CHKEOF   ; Check for EOF
  I $ZE["ENDOFFILE" S EOF=1,$EC=""
  Q
  ;
+CURRTIME() ; Get last access time
+ N TIME,LEN
+ S TIME=$P($TR($$FMTHL7^XLFDT($$NOW^XLFDT),"-","+"),"+")
+ S LEN=14-$L(TIME)
+ S TIME=TIME_$E("00",1,LEN)
+ Q TIME
+ ; 
  ; From Sam Habiel
 CRC32(string,seed) ;
  ; Polynomial X**32 + X**26 + X**23 + X**22 +

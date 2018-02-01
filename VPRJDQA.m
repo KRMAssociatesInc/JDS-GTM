@@ -85,7 +85,7 @@ ADDONE(KEY,INST,SUB) ; add uid, calculating new sort key if necessary
  ; Expects: .ORDER,.CLAUSES
  I $D(CLAUSES) Q:'$$EVALAND^VPRJCF(.CLAUSES,KEY)  ;apply filter, quit if not true
  N I,SORT,KINST
- S I=0 F  S I=$O(ORDER(I)) Q:'I  S SORT(I)=$S(+ORDER(I):SUB(+ORDER(I)),1:$$SORTVAL(I))
+ S I=0 F  S I=$O(ORDER(I)) Q:'I  S SORT(I)=$S(+ORDER(I):SUB(+ORDER(I)),1:$$SORTVAL(I)) S:ORDER(I,"nocase") SORT(I)=$$LOW^XLFSTR(SORT(I))
  S VPRDATA=VPRDATA+1
  ; case
  I ORDER(0)=0 S ^TMP("VPRDATA",$J,KEY,INST)="" G X1

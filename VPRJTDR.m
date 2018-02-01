@@ -1,5 +1,4 @@
 VPRJTDR ;SLC/KCM -- Integration tests for ODC RESTful queries
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 STARTUP  ; Run once before all tests
  N I,TAGS
@@ -19,9 +18,40 @@ ASSERT(EXPECT,ACTUAL) ; convenience
  D EQ^VPRJT(EXPECT,ACTUAL)
  Q
  ;
+ ; POST data for POST query tests
+POSTDATA1 ;; test POST query data for INDEX and LAST
+ ;;{"range":"alpha..delta"}
+ ;;zzzzz
+POSTDATA2 ;; test POST query data for ORDASC
+ ;;{"order":"name asc"}
+ ;;zzzzz
+POSTDATA3 ;; test POST query data for ORDDESC
+ ;;{"order":"name DESC"}
+ ;;zzzzz
+POSTDATA4 ;; test POST query data for ORDEMPTY
+ ;;{"order":"type DESC"}
+ ;;zzzzz
+POSTDATA5 ;; test POST query data for FILTER
+ ;;{"filter":"eq(\"color\",\"orange\")"}
+ ;;zzzzz
+POSTDATA6 ;; test POST query data for EVERY
+ ;;{"start":3,"limit":3}
+ ;;zzzzz
+POSTDATA7 ;; test POST query data for FINDPAR
+ ;;{"filter":"eq(\"color\",\"orange\")","order":"name"}
+ ;;zzzzz
+ ;
 INDEX ;; @TEST query using an index
  N ROOT,JSON,ERR,HTTPERR
  D SETGET^VPRJTX("/data/index/test-name?range=alpha..delta")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(4,JSON("data","totalItems"))
+ D ASSERT(201110201857,JSON("data","items",4,"updated")) ; sorted reverse updated date
+ ; test POST query version
+ K ROOT,JSON,ERR,HTTPERR
+ D SETPOST^VPRJTX("/data/index/test-name?query=true","POSTDATA1","VPRJTDR")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  D DATA2ARY^VPRJTX(.JSON)
@@ -36,10 +66,25 @@ LAST ;; @TEST query for last instance of items in list
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(3,JSON("data","totalItems"))
  D ASSERT("urn:va:test:6",JSON("data","items",1,"uid"))
+ ; test POST query version
+ K ROOT,JSON,ERR,HTTPERR
+ D SETPOST^VPRJTX("/data/last/test-name?query=true","POSTDATA1","VPRJTDR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(3,JSON("data","totalItems"))
+ D ASSERT("urn:va:test:6",JSON("data","items",1,"uid"))
  Q
 ORDASC ;; @TEST query to return in different order
  N ROOT,JSON,ERR,HTTPERR
  D SETGET^VPRJTX("/data/index/test-name?order=name asc")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT("gamma",JSON("data","items",6,"name"))
+ ; test POST query version
+ K ROOT,JSON,ERR,HTTPERR
+ D SETPOST^VPRJTX("/data/index/test-name?query=true","POSTDATA2","VPRJTDR")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  D DATA2ARY^VPRJTX(.JSON)
@@ -52,6 +97,13 @@ ORDDESC ;; @TEST query to return in different order
  D ASSERT(0,$G(HTTPERR))
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT("gamma",JSON("data","items",1,"name"))
+ ; test POST query version
+ K ROOT,JSON,ERR,HTTPERR
+ D SETPOST^VPRJTX("/data/index/test-name?query=true","POSTDATA3","VPRJTDR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT("gamma",JSON("data","items",1,"name"))
  Q
 ORDEMPTY ;; @TEST query where 'order by' field contains empty string
  N ROOT,JSON,ERR,HTTPERR
@@ -60,10 +112,25 @@ ORDEMPTY ;; @TEST query where 'order by' field contains empty string
  D ASSERT(0,$G(HTTPERR))
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT("vegatable",JSON("data","items",1,"type"))
+ ; test POST query version
+ K ROOT,JSON,ERR,HTTPERR
+ D SETPOST^VPRJTX("/data/index/test-name?query=true","POSTDATA4","VPRJTDR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT("vegatable",JSON("data","items",1,"type"))
  Q
 FILTER ;; @TEST filter to return based on criteria
  N ROOT,JSON,ERR,HTTPERR
  D SETGET^VPRJTX("/data/index/test-name?filter=eq(""color"",""orange"")")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(2,JSON("data","totalItems"))
+ D ASSERT("epsilon",JSON("data","items",1,"name"))
+ ; test POST query version
+ K ROOT,JSON,ERR,HTTPERR
+ D SETPOST^VPRJTX("/data/index/test-name?query=true","POSTDATA5","VPRJTDR")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  D DATA2ARY^VPRJTX(.JSON)
@@ -104,6 +171,15 @@ EVERY ;; TEST retrieving every object in a collection
  D ASSERT(3,JSON("data","currentItemCount"))
  D ASSERT(10,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID_"/every////"))))
  D ASSERT(0,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID_"/every////"),$J)))
+ ; test POST query version
+ K JSON
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/every?query=true","POSTDATA6","VPRJTDR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(3,JSON("data","currentItemCount"))
+ D ASSERT(10,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID_"/every////"))))
+ D ASSERT(0,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID_"/every////"),$J)))
  Q
 FINDALL ;; @TEST finding every object in collection
  N JSON,ERR,HTTPERR
@@ -116,6 +192,14 @@ FINDALL ;; @TEST finding every object in collection
 FINDPAR ;; @TEST finding with parameters
  N JSON,ERR,HTTPERR
  D SETGET^VPRJTX("/data/find/test?filter=eq(""color"",""orange"")&order=name")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(2,JSON("data","totalItems"))
+ D ASSERT("urn:va:test:5",JSON("data","items",1,"uid"))
+ ; test POST query version
+ K JSON,ERR,HTTPERR
+ D SETPOST^VPRJTX("/data/find/test?query=true","POSTDATA7","VPRJTDR")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  D DATA2ARY^VPRJTX(.JSON)
@@ -183,6 +267,19 @@ DELCTN ;; @TEST delete collection
  D ASSERT(4,$G(^VPRJDX("count","collection","testb")))
  D ASSERT(10,$D(^VPRJD("urn:va:testb:29")))
  D ASSERT(0,+$G(^VPRJDX("count","collection","test")))
+ Q
+DELSITE ;; @TEST REST endpoint to delete all objects for a site
+ N HTTPERR
+ D SETPUT^VPRJTX("/data","OTHER1","VPRJTD01") ; add something from another collection
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D ASSERT(0,$D(^VPRJD("urn:va:testb:29"))#2)
+ D ASSERT(5,$G(^VPRJDX("count","collection","testb")))
+ D SETDEL^VPRJTX("/data/site/29")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D ASSERT(0,$D(^VPRJD("urn:va:testb:29"))#2)
+ D ASSERT(4,$G(^VPRJDX("count","collection","testb")))
  Q
 1 ; run just one test
  D STARTUP,SETUP,GETNONE,TEARDOWN,SHUTDOWN

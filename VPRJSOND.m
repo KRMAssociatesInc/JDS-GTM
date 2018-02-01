@@ -1,4 +1,4 @@
-VPRJSOND ;SLC/KCM -- Decode JSON
+VPRJSOND ;SLC/KCM,CPC -- Decode JSON
  ;;1.0;VIRTUAL PATIENT RECORD;**2,3**;Sep 01, 2011;Build 50
  ;
 DECODE(VVJSON,VVROOT,VVERR) ; Set JSON object into closed array ref VVROOT
@@ -18,8 +18,8 @@ DIRECT ; TAG for use by DECODE^VPRJSON
  ;
  ; V4W/DLW - Changed VVMAX from 4000 to 100, same as in the encoder
  ; With the change to VVMAX, the following Unit Tests required changes:
- ; SPLITA^VPRJUJD, SPLITB^VPRJUJD, LONG^VPRJUJD, MAXNUM^VPRJUJD 
- N VVMAX S VVMAX=100 ; limit document lines to 100 characters
+ ; SPLITA^VPRJUJD, SPLITB^VPRJUJD, LONG^VPRJUJD, MAXNUM^VPRJUJD
+ N VVMAX S VVMAX=$G(^VPRCONFIG("vvmax","decoder"),100) ; limit document lines to VVMAX
  S VVERR=$G(VVERR,"^TMP(""VPRJERR"",$J)")
  ; If a simple string is passed in, move it to an temp array (VVINPUT)
  ; so that the processing is consistently on an array.
@@ -30,7 +30,8 @@ DIRECT ; TAG for use by DECODE^VPRJSON
  F  S VVTYPE=$$NXTKN() Q:VVTYPE=""  D  I VVERRORS Q
  . I VVTYPE="{" S VVSTACK=VVSTACK+1,VVSTACK(VVSTACK)="",VVPROP=1 D:VVSTACK>64 ERRX("STL{") Q
  . I VVTYPE="}" D  QUIT
- . . I VVSTACK(VVSTACK)?1n.n,VVSTACK(VVSTACK) D ERRX("OBM") ; Numeric and true only
+ . . I VVSTACK=0 D ERRX("SUF}") Q  ;DE8232
+ . . I +VVSTACK(VVSTACK)=VVSTACK(VVSTACK),VVSTACK(VVSTACK) D ERRX("OBM") ; Numeric and true only
  . . S VVSTACK=VVSTACK-1 D:VVSTACK<0 ERRX("SUF}")
  . I VVTYPE="[" S VVSTACK=VVSTACK+1,VVSTACK(VVSTACK)=1 D:VVSTACK>64 ERRX("STL[") Q
  . I VVTYPE="]" D:'VVSTACK(VVSTACK) ERRX("ARM") S VVSTACK=VVSTACK-1 D:VVSTACK<0 ERRX("SUF]") Q
@@ -169,7 +170,7 @@ NAMPARS() ; Return parsed name, advancing index past the close quote
 SETNUM(VVDIGIT) ; Set numeric along with any necessary modifier
  N VVX
  S VVX=$$NUMPARS(VVDIGIT)
- S @$$CURNODE()=$S(VVX["e":+$TR(VVX,"e","E"),1:+VVX)
+ S @$$CURNODE()=+VVX
  ; if numeric is exponent, "0.nnn" or "-0.nnn" store original string
  I +VVX'=VVX S @$$CURNODE()@("\n")=VVX
  Q
@@ -208,9 +209,7 @@ CURNODE() ; Return a global/local variable name based on VVSTACK
  N VVI,VVSUBS
  S VVSUBS=""
  F VVI=1:1:VVSTACK S:VVI>1 VVSUBS=VVSUBS_"," D
- . ; check numeric with pattern match instead of =+var due to GT.M interperting
- . ; scientific notation as a number instead of a string
- . I VVSTACK(VVI)?1N.N S VVSUBS=VVSUBS_VVSTACK(VVI) ; VEN/SMH Fix psudo array bug.
+ . I VVSTACK(VVI)=+VVSTACK(VVI) S VVSUBS=VVSUBS_VVSTACK(VVI) ; VEN/SMH Fix psudo array bug.
  . E  S VVSUBS=VVSUBS_""""_VVSTACK(VVI)_""""
  Q VVROOT_VVSUBS_")"
  ;

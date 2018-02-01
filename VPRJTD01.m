@@ -26,6 +26,9 @@ TEST7 ;;
 OTHER ;;
  ;;{"name":"different item","updated":"201010231755","stampTime":"29","color":"white","uid":"urn:va:testb:29"}
  ;;zzzzz
+OTHER1 ;;
+ ;;{"name":"different item again","updated":"201010231755","stampTime":"30","color":"brown","uid":"urn:va:testb:30"}
+ ;;zzzzz
 NOUID1 ;;
  ;;{"name":"newItem1","updated":"201010241755","stampTime":"11","color":"white","fruit":"pomegranite"}
  ;;zzzzz
@@ -59,4 +62,7 @@ SYS5 ;;
  ;;zzzzz
 SYS5NEW ;;
  ;;{"name":"omega","updated":"201210211922","stampTime":"25","color":"green","type":"","uid":"urn:va:test:F112:4"}
+ ;;zzzzz
+NUM ;;
+ ;;{"name":"alpha","updated":"20150717102913","stampTime":"20150717102913","color":"blue","type":"animal","uid":"urn:va:asu-class:1234:100"}
  ;;zzzzz

@@ -15,6 +15,20 @@ DEMOG9 ;;
  ;;"givenNames":"PATIENT","fullName":"ZZZRETFIVEFIFTYONE,PATIENT","displayName":"Zzzretfivefiftyone,Patient","genderCode":"urn:va:pat-gender:M","genderName":"Male","briefId":"Z3456","sensitive":true,"domainTotals":{},
  ;;"syncErrorCount":0,"religionCode":"urn:va:pat-religion:21","maritalStatuses":[{"code":"urn:va:pat-maritalStatus:M","name":"Married"}],"religionName":"NAZARENE","localId":-9,"stampTime":"9","pid":"93EF;-9"}
  ;;zzzzz
+PTHDRDATA   ; Sample data for patient, urn:va:patient:1HDR:-7
+HDRDEMOG7 ;;
+ ;;{"addresses":[{"city":"Any Town","postalCode":"99998-0071","stateProvince":"WEST VIRGINIAN"}],"aliases":[{"fullName":"P7"}],"briefId":"U7777","dateOfBirth":19350407,"facilities":[{"code":500,"latestDate":20110613,"name":
+ ;;"CAMP MASTER","systemId":"1HDR"}],"familyName":"UTESTPATIENT","gender":"M","givenNames":"SEVEN","icn":"-777V123777","ssn":"-77777777","uid":"urn:va:patient:1HDR:-7:-7","stampTime":"73","pid":"1HDR;-7"}
+ ;;zzzzz
+HDRDEMOG8 ;;
+ ;;{"addresses":[{"city":"Any Town","postalCode":"99998-0071","stateProvince":"WEST VIRGINIAN"}],"aliases":[{"fullName":"P8"}],"briefId":"U7777","dateOfBirth":19350408,"facilities":[{"code":500,"latestDate":20110613,"name":
+ ;;"CAMP MASTER","systemId":"1HDR"}],"familyName":"UTESTPATIENT","gender":"M","givenNames":"EIGHT","icn":"-888V123888","ssn":"-88888888","uid":"urn:va:patient:1HDR:-8:-8","stampTime":"8","pid":"1HDR;-8"}
+ ;;zzzzz
+HDRDEMOG9 ;;
+ ;;{"uid":"urn:va:patient:1HDR:-9:-9","summary":"gov.va.cpe.vpr.Patient{pids=[666223456, 1HDR;-9]}","dateOfBirth":"19350407","ssn":"666223456","last4":"3456","last5":"Z3456","familyName":"ZZZRETFIVEFIFTYONE",
+ ;;"givenNames":"PATIENT","fullName":"ZZZRETFIVEFIFTYONE,PATIENT","displayName":"Zzzretfivefiftyone,Patient","genderCode":"urn:va:pat-gender:M","genderName":"Male","briefId":"Z3456","sensitive":true,"domainTotals":{},
+ ;;"syncErrorCount":0,"religionCode":"urn:va:pat-religion:21","maritalStatuses":[{"code":"urn:va:pat-maritalStatus:M","name":"Married"}],"religionName":"NAZARENE","localId":-9,"stampTime":"9","pid":"1HDR;-9"}
+ ;;zzzzz
 NEWICN9 ;;
  ;;{"uid":"urn:va:patient:93EF:-9:-9","summary":"gov.va.cpe.vpr.Patient{pids=[666223456, 93EF;-9]}","dateOfBirth":"19350407","ssn":"666223456","last4":"3456","last5":"Z3456","familyName":"ZZZRETFIVEFIFTYONE",
  ;;"givenNames":"PATIENT","fullName":"ZZZRETFIVEFIFTYONE,PATIENT","displayName":"Zzzretfivefiftyone,Patient","genderCode":"urn:va:pat-gender:M","genderName":"Male","briefId":"Z3456","sensitive":true,"domainTotals":{},
@@ -64,4 +78,40 @@ UTST4 ;; sample object for patient 8
  ;;zzzzz
 UTST5 ;; sample object for patient 8
  ;;{"uid":"urn:va:utestc:93EF:-8:5","name":"sample object 5","color":"orange","serialNumber":523,"rate":3,"clinical":false,"stay":{"started":"201406012330"},"updated":"201407012330","stampTime":"8"}
+ ;;zzzzz
+DOCORDER1 ;; sample document data for case-insensitive order testing for patient 7
+ ;;{"uid":"urn:va:document:93EF;-7:1","pid":"93EF;-7","author":"MACINTOSH,JOHN","authorDisplayName":"Macintosh,John","authorUid":"urn:va:user:93EF:19840124","stampTime":"8","datetime":20071231125256}
+ ;;zzzzz
+DOCORDER2 ;; sample document data for case-insensitive order testing for patient 7
+ ;;{"uid":"urn:va:document:93EF;-7:2","pid":"93EF;-7","author":"MACMULLIN,ED","authorDisplayName":"MacMullin,Ed","authorUid":"urn:va:user:93EF:19851120","stampTime":"8","datetime":20000521095449}
+ ;;zzzzz
+EHMPDOCS1;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:consult:93EF;-7:264","pid":"93EF;-7","kind":"Consult","statusName":"COMPLETE","dateTime":"20000521094224","stampTime":"20000523160148"}
+ ;;zzzzz
+EHMPDOCS2;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:consult:93EF;-7:265","kind":"Consult","pid":"93EF;-7","statusName":"INCOMPLETE","dateTime":"20000521094225","stampTime":"20000523160148"}
+ ;;zzzzz
+EHMPDOCS3;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:surgery:93EF;-7:266","kind":"Surgery","pid":"93EF;-7","statusName":"COMPLETE","dateTime":"20000521094225","stampTime":"20000523160148"}
+ ;;zzzzz
+EHMPDOCS4;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:surgery:93EF;-7:267","kind":"Surgery","pid":"93EF;-7","statusName":"INCOMPLETE","dateTime":"20000521094225","stampTime":"20000523160148"}
+ ;;zzzzz
+EHMPDOCS5;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:image:93EF;-7:268","kind":"Image","pid":"93EF;-7","statusName":"COMPLETE","dateTime":"20000521094225","stampTime":"20000523160148"}
+ ;;zzzzz
+EHMPDOCS6;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:image:93EF;-7:269","kind":"Image","pid":"93EF;-7","statusName":"INCOMPLETE","dateTime":"20000521094226","stampTime":"20000523160148"}
+ ;;zzzzz
+EHMPDOCS7;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:procedure:93EF;-7:270","kind":"Procedure","pid":"93EF;-7","statusName":"COMPLETE","dateTime":"20000521094225","stampTime":"20000523160148"}
+ ;;zzzzz
+EHMPDOCS8;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:procedure:93EF;-7:271","kind":"Procedure","pid":"93EF;-7","statusName":"INCOMPLETE","dateTime":"20000521094226","stampTime":"20000523160148"}
+ ;;zzzzz
+EHMPDOCS9;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:document:93EF;-7:270","pid":"93EF;-7","statusName":"COMPLETE","dateTime":"20000521094225","stampTime":"20000523160148"}
+ ;;zzzzz
+EHMPDOCS10;;sampledocumentdataforehmp-documentsindex
+ ;;{"uid":"urn:va:document:93EF;-7:271","pid":"93EF;-7","statusName":"INCOMPLETE","dateTime":"20000521094226","stampTime":"20000523160148"}
  ;;zzzzz

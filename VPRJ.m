@@ -1,5 +1,4 @@
 VPRJ ;SLC/KCM -- Menu for JSON data store utilities
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
  ; Menu to run various utilities for the JSON data store:  D ^VPRJ
  ;
@@ -7,19 +6,26 @@ MENU ; Allow utilities to be selected from a menu
  G DOMENU^VPRJ1
  ;
 START ; Start the HTTP listener
- I $$STATUS^VPRJRCL="running" W !,"Listener is already running.",! Q
- ;
- W !,"Starting listener on port ",$$PORT^VPRJRCL
- D GO^VPRJRCL
+ N PORTS
+ S PORTS=$$PORT^VPRJRCL
+ W !,"Starting listener on ports "_PORTS
+ F I=1:1:$L(PORTS," ") D GO^VPRJRCL($P(PORTS," ",I))
  H 1
  W !,"Listener status:  ",$$STATUS^VPRJRCL,!
- Q
+ ;
+ QUIT
+ ;
 STOP ; Stop the HTTP listener
- N X
- I $G(^VPRHTTP(0,"listener"))="stopped" W !,"Listener is already stopped.",! Q
+ N X,NUM,STAT
+ S NUM=""
+ S STAT="stopped"
+ F  S NUM=$O(^VPRHTTP(NUM)) Q:NUM'=+NUM  D
+ . I $D(^VPRHTTP(NUM,"listener"))#2,^VPRHTTP(NUM,"listener")'="stopped" S STAT=$G(^VPRHTTP(NUM,"listener"))
+ I STAT="stopped" W !,"Listeners are already stopped.",! QUIT
  D STOPW^VPRJRCL
- Q
-WAIT ;
+ QUIT
+ ;
+WAIT ; NOT USED - also needs to be reworked for multi-listener support
  N I,X
  S X=$$STATUS^VPRJRCL
  W !,"Listener status: ",X
@@ -29,16 +35,30 @@ WAIT ;
  . W "."
  . I X="stopped" W X
  Q
-PORT ; Change the listening port number
+ADDPORT ; Add a listener port number
  N PORT
  W !,"Enter port number: "
  R PORT:300 E  Q
  I '$L(PORT) Q
- I (PORT<1024)!(PORT>65000) W " ??" G PORT
+ I (PORT<1024)!(PORT>65000) W " ??" G ADDPORT
  D STOP
  D SPORT^VPRJRCL(PORT)
+ W !,"Added listener port: "_PORT,!
  D START
- Q
+ QUIT
+ ;
+REMOVEPORT ; Remove a listener port number
+ N PORT
+ W !,"Enter port number: "
+ R PORT:300 E  Q
+ I '$L(PORT) Q
+ I (PORT<1024)!(PORT>65000) W " ??" G REMOVEPORT
+ D STOP
+ D RPORT^VPRJRCL(PORT)
+ W !,"Removed listener port: "_PORT,!
+ D START
+ QUIT
+ ;
 LOG ; Set the logging level
  N X
  W !,"Log level will be changed on the next connection.",!
@@ -79,7 +99,6 @@ VPRSTAT ; VPR statistics
  Q
 PIDSTAT ; PID statistics
  N PID S PID=$$ASKPID^VPRJ2P Q:'$L(PID)
- S PID=""""_PID_""""
  D STATUS^VPRJ2P(PID)
  Q
 RIDXALL ; Re-index entire VPR
@@ -105,15 +124,17 @@ LISTPTP ; List patients by PID
  D LISTPTS(0)
  Q
 LISTPTS(ALPHA) ; List all the patients in the VPR
- N PID,DFN,UID,NAME,ICN,SSN,LIST,X,STAMP
+ N PID,DFN,UID,NAME,ICN,SSN,LIST,X,STAMP,JPID
  S ALPHA=$G(ALPHA)
- S PID="" F  S PID=$O(^VPRPT(PID)) Q:'$L(PID)  D
- . S UID=$O(^VPRPT(PID,"urn:va:patient:"))
- . S STAMP=$O(^VPRPT(PID,UID,""),-1)
- . I $P(UID,":",3)'="patient" W !,"Missing demographics: ",PID Q
- . S NAME=^VPRPT(PID,UID,STAMP,"fullName"),ICN=$G(^("icn")),SSN=$G(^("ssn"))
- . I ALPHA S LIST(NAME,PID)=SSN_"^"_ICN_"^"_PID Q
- . S LIST(PID,NAME)=SSN_"^"_ICN_"^"_PID
+ S JPID="" F  S JPID=$O(^VPRPT(JPID)) Q:JPID=""  D
+ . S PID="" F  S PID=$O(^VPRPT(JPID,PID)) Q:'$L(PID)  D
+ . . S UID=$O(^VPRPT(JPID,PID,"urn:va:patient:"))
+ . . S STAMP=$O(^VPRPT(JPID,PID,UID,""),-1)
+ . . I $P(UID,":",3)'="patient" W !,"Missing demographics: ",PID Q
+ . . S NAME=$G(^VPRPT(JPID,PID,UID,STAMP,"fullName")),ICN=$G(^("icn")),SSN=$G(^("ssn"))
+ . . I NAME="" W !,"Missing patient full name: ",PID Q
+ . . I ALPHA S LIST(NAME,PID)=SSN_"^"_ICN_"^"_PID Q
+ . . S LIST(PID,NAME)=SSN_"^"_ICN_"^"_PID
  I ALPHA D
  . W !,"Name",?30,"SSN",?40,"ICN",?60,"DFN/PID"
  . S NAME="" F  S NAME=$O(LIST(NAME)) Q:NAME=""  D
@@ -148,7 +169,7 @@ ASKFRSET ; ask first before deleting all data
  Q
 FULLRBLD ; do a full rebuild of VPR and non-patient data
  D SUSPEND
- K ^TMP($J)
+ K:$D(^TMP($J)) ^TMP($J)
  D RBLDALL^VPRJ2P
  D RBLDALL^VPRJ2D
  D RESUME
@@ -156,34 +177,34 @@ FULLRBLD ; do a full rebuild of VPR and non-patient data
 FULLRSET ; reset (delete data and re-init) for VPR and non-patient data
  N NMPORT
  D SUSPEND
- K ^TMP($J)
+ K:$D(^TMP($J)) ^TMP($J)
  D KILLDB^VPRJ2P
  D KILLDB^VPRJ2D
+ D SETUP^VPRJCONFIG
  D RESUME
- ;BL eHMP may require multiple ports. Store ports in VPRHTTP(X,"port") and restart
- I $G(^VPRHTTP(1,"port")) D
- . N PORT
- . S NMPORT=0
- . F  S NMPORT=$O(^VPRHTTP(NMPORT)) Q:NMPORT'=+NMPORT  D
- . . S PORT=^VPRHTTP(NMPORT,"port")
- . . W !,"Restarting HTTP Listener on Port "_PORT
- . . D GO^VPRJRCL(PORT)
- Q
+ QUIT
+ ;
 SUSPEND ; suspend listener and set updating flag
  S ^VPRHTTP(0,"updating")=1
- I $E($G(^VPRHTTP(0,"listener")),1,4)'="stop" D
+ N NUM
+ S NUM=""
+ F  S NUM=$O(^VPRHTTP(NUM)) Q:NUM'=+NUM  I $D(^VPRHTTP(NUM,"listener"))#2,$E(^VPRHTTP(NUM,"listener"),1,4)'="stop" D  Q
  . S ^VPRHTTP(0,"updating","resume")=1
- . W !,"Suspending HTTP Listener..."
+ . W !,"Suspending HTTP Listeners..."
  D STOPW^VPRJRCL
- Q
+ QUIT
+ ;
 RESUME ; resume listener if it was running before and reset updating flag
  N RESUME
  S RESUME=$G(^VPRHTTP(0,"updating","resume"),0)
- K ^VPRHTTP(0,"updating")
+ K:$D(^VPRHTTP(0,"updating")) ^VPRHTTP(0,"updating")
  I RESUME D
- . W !,"Restarting HTTP Listener..."
- . D GO^VPRJRCL
- Q
+ . N PORTS
+ . S PORTS=$$PORT^VPRJRCL
+ . W !,"Restarting listener on ports "_PORTS
+ . F I=1:1:$L(PORTS," ") D GO^VPRJRCL($P(PORTS," ",I))
+ QUIT
+ ;
 ISYES(MSG) ; returns 1 if user answers yes to message, otherwise 0
  N X
  W !,MSG
@@ -194,12 +215,12 @@ ISYES(MSG) ; returns 1 if user answers yes to message, otherwise 0
 LOGMSG(TYPE,MSG) ; log a new message
  N IDX
  W !,MSG,!
- S IDX=$G(^XTMP("VPRJVUP",TYPE,"msg"),0)+1,^XTMP("VPRJVUP",TYPE,"msg")=IDX
+ S IDX=$I(^XTMP("VPRJVUP",TYPE,"msg"))
  S ^XTMP("VPRJVUP",TYPE,"msg",IDX)=MSG
  Q
 LOGCNT(TYPE) ; increment a count
  N CNT
- S CNT=$G(^XTMP("VPRJVUP",TYPE,"count"),0)+1,^XTMP("VPRJVUP",TYPE,"count")=CNT
+ S CNT=$I(^XTMP("VPRJVUP",TYPE,"count"))
  I TYPE="odc" W:CNT#100=0 "." Q
  W "."
  Q

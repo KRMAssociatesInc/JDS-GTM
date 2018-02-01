@@ -1,6 +1,4 @@
 VPRJRSP ;SLC/KCM -- Handle HTTP Response
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
- ;
  ; -- prepare and send RESPONSE
  ;
 RESPOND ; find entry point to handle request and call it
@@ -8,27 +6,40 @@ RESPOND ; find entry point to handle request and call it
  ;
  ; TODO: check cache of HEAD requests first and return that if there?
  K ^TMP($J)
- N ROUTINE,LOCATION,HTTPARGS,HTTPBODY,LOWPATH
+ N ROUTINE,LOCATION,HTTPARGS,HTTPBODY,LOWPATH,QARGS,BAIL
+ D QSPLIT(.QARGS) I $G(HTTPERR) QUIT  ; need to see if query=true before calling MATCH
+ ; support for POST queries, so that we can treat them like regular GET requests
+ I HTTPREQ("method")="POST",$G(QARGS("query"))="true" S HTTPREQ("method")="GET"
  D MATCH(.ROUTINE,.HTTPARGS) I $G(HTTPERR) QUIT
- D QSPLIT(.HTTPARGS) I $G(HTTPERR) QUIT
- S HTTPREQ("paging")=$G(HTTPARGS("start"),0)_":"_$G(HTTPARGS("limit"),999999)
+ M HTTPARGS=QARGS K QARGS ; MATCH clears HTTPARGS, so we need to merge in the query arguments from QSPLIT
  S LOWPATH=$$LOW^VPRJRUT(HTTPREQ("path"))
- S HTTPREQ("store")=$S($E(LOWPATH,2,9)="vpr/all/":"xvpr",$E(LOWPATH,2,4)="vpr":"vpr",1:"data")
+ S HTTPREQ("store")=$S($E(LOWPATH,2,9)="vpr/all/":"xvpr",$E(LOWPATH,2,4)="vpr":"vpr",$L($P(LOWPATH,"/",2)):$P(LOWPATH,"/",2),1:"data")
+ ; support for POST queries, merge the POST body in to HTTPARGS, so GET endpoints work
+ ; get out if handling a POST query results in a JSON decoder error, or a max string error
+ I $G(HTTPARGS("query"))="true" D  QUIT:BAIL
+ . K HTTPARGS("query") ; the GET endpoints would fail if this node existed
+ . D DECODE^VPRJSON("HTTPREQ(""body"")","HTTPARGS","VPRJERR")
+ . I $G(VPRJERR) D SETERROR^VPRJRER(202) S BAIL=1 Q
+ . S BAIL=$$QCONCAT(.HTTPARGS)
+ S HTTPREQ("paging")=$G(HTTPARGS("start"),0)_":"_$G(HTTPARGS("limit"),999999)
+ S HTTPREQ("returncounts")=$G(HTTPARGS("returncounts"),"false")
  ; treat PUT and POST the same for now (we always replace objects when updating)
- I "PUT,POST"[HTTPREQ("method") D  QUIT
+ I "PUT,POST,PATCH"[HTTPREQ("method") D  QUIT
  . N BODY
  . M BODY=HTTPREQ("body") K:'$G(HTTPLOG) HTTPREQ("body")
  . X "S LOCATION=$$"_ROUTINE_"(.HTTPARGS,.BODY)"
  . I $L(LOCATION) S HTTPREQ("location")=$S($D(HTTPREQ("header","host")):"http://"_HTTPREQ("header","host")_LOCATION,1:LOCATION)
  ; otherwise treat as GET
  D @(ROUTINE_"(.HTTPRSP,.HTTPARGS)")
- Q
+ QUIT
+ ;
 QSPLIT(QUERY) ; parses and decodes query fragment into array
  ; expects HTTPREQ to contain "query" node
  ; .QUERY will contain query parameters as subscripts: QUERY("name")=value
- N I,X,NAME,VALUE
- F I=1:1:$L(HTTPREQ("query"),"&") D
- . S X=$$URLDEC^VPRJRUT($P(HTTPREQ("query"),"&",I))
+ N I,X,NAME,VALUE,QSTRING
+ S QSTRING=$$URLDEC^VPRJRUT(HTTPREQ("query"))
+ F I=1:1:$L(QSTRING,"&") D
+ . S X=$P(QSTRING,"&",I)
  . S NAME=$P(X,"="),VALUE=$P(X,"=",2,999)
  . I $L(NAME) S QUERY($$LOW^VPRJRUT(NAME))=VALUE
  Q
@@ -38,16 +49,16 @@ MATCH(ROUTINE,ARGS) ; evaluate paths in sequence until match found (else 404)
  ; ROUTINE contains the TAG^ROUTINE to execute for this path, otherwise empty
  ; .ARGS will contain an array of resolved path arguments
  ;
- N SEQ,PATH,PATTERN,DONE,FAIL,I,PATHSEG,PATTSEG,TEST,ARGUMENT,METHOD,PATHOK
+ N SEQ,PATH,PATTERN,DONE,FAIL,I,PATHSEG,PATTSEG,TEST,ARGUMENT,METHOD,PATHOK,URL
  S DONE=0,PATH=HTTPREQ("path"),PATHOK=0
  S:$E(PATH)="/" PATH=$E(PATH,2,$L(PATH))
- F SEQ=1:1 S PATTERN=$P($T(URLMAP+SEQ),";;",2,99) Q:PATTERN="zzzzz"  D  Q:DONE
+ F SEQ=1:1:$G(^VPRCONFIG("urlmap")) S PATTERN=$O(^VPRCONFIG("urlmap",SEQ)) D  Q:DONE
  . K ARGS
- . S ROUTINE=$P(PATTERN," ",3),METHOD=$P(PATTERN," "),PATTERN=$P(PATTERN," ",2),FAIL=0
- . I $L(PATTERN,"/")'=$L(PATH,"/") S ROUTINE="" Q  ; must have same number segments
+ . S ROUTINE=$G(^VPRCONFIG("urlmap",SEQ,"routine")),METHOD=$G(^VPRCONFIG("urlmap",SEQ,"method")),URL=$G(^VPRCONFIG("urlmap",SEQ,"url")),FAIL=0
+ . I $L(URL,"/")'=$L(PATH,"/") S ROUTINE="" Q  ; must have same number segments
  . F I=1:1:$L(PATH,"/") D  Q:FAIL
  . . S PATHSEG=$$URLDEC^VPRJRUT($P(PATH,"/",I),1)
- . . S PATTSEG=$$URLDEC^VPRJRUT($P(PATTERN,"/",I),1)
+ . . S PATTSEG=$$URLDEC^VPRJRUT($P(URL,"/",I),1)
  . . I $E(PATTSEG)'="{" S FAIL=($$LOW^VPRJRUT(PATHSEG)'=$$LOW^VPRJRUT(PATTSEG)) Q
  . . S PATTSEG=$E(PATTSEG,2,$L(PATTSEG)-1) ; get rid of curly braces
  . . S ARGUMENT=$P(PATTSEG,"?"),TEST=$P(PATTSEG,"?",2)
@@ -58,62 +69,99 @@ MATCH(ROUTINE,ARGS) ; evaluate paths in sequence until match found (else 404)
  I PATHOK,ROUTINE="" D SETERROR^VPRJRER(405,"Method Not Allowed") QUIT
  I ROUTINE="" D SETERROR^VPRJRER(404,"Not Found") QUIT
  Q
+ ;
+QCONCAT(ARGS) ; flatten any extension nodes in ARGS, caused by long query arguments having to go through the JSON decoder
+ N BAIL,COUNT,LINE,MAX,NODE,TEST
+ S NODE="",(COUNT,BAIL)=0
+ ; max string length limit (in Cache) is 3641144, but ARGS is concatenated with other strings later on, so need lower limit
+ S MAX=$G(^VPRCONFIG("maxStringLimit"),3641000)
+ ; this loop has to keep a running count of the length of all argument nodes added together, because they will be concatenated
+ ; together later on in VPRJPR (E.g. INDEX^VPRJPR)
+ F  S NODE=$O(ARGS(NODE)) Q:(NODE="")!(BAIL)  S COUNT=COUNT+$L(ARGS(NODE)) S:COUNT>MAX BAIL=1 I $D(ARGS(NODE,"\"))=10 D
+ . S LINE=0
+ . F  S LINE=$O(ARGS(NODE,"\",LINE)) Q:(LINE="")!(BAIL)  D
+ . . S COUNT=COUNT+$L(ARGS(NODE,"\",LINE))
+ . . I COUNT>MAX  S BAIL=1 Q
+ . . S ARGS(NODE)=ARGS(NODE)_ARGS(NODE,"\",LINE)
+ . K ARGS(NODE,"\")
+ I BAIL D SETERROR^VPRJRER(114,"POST query parameters exceed argument length limit")
+ QUIT BAIL
+ ;
 SENDATA ; write out the data as an HTTP response
  ; expects HTTPERR to contain the HTTP error code, if any
  ; RSPTYPE=1  local variable
  ; RSPTYPE=2  data in ^TMP($J)
  ; RSPTYPE=3  pageable data in ^TMP($J,"data") or ^VPRTMP(hash,"data")
- N SIZE,RSPTYPE,PREAMBLE,START,LIMIT
+ N SIZE,RSPTYPE,PREAMBLE,START,LIMIT,STARTID,RETCNTS
  S RSPTYPE=$S($E($G(HTTPRSP))'="^":1,$D(HTTPRSP("pageable")):3,1:2)
  I RSPTYPE=1 S SIZE=$$VARSIZE^VPRJRUT(.HTTPRSP)
  I RSPTYPE=2 S SIZE=$$REFSIZE^VPRJRUT(.HTTPRSP)
  I RSPTYPE=3 D
- . S START=$P(HTTPREQ("paging"),":"),LIMIT=$P(HTTPREQ("paging"),":",2)
- . D PAGE^VPRJRUT(.HTTPRSP,START,LIMIT,.SIZE,.PREAMBLE)
+ . S START=$P(HTTPREQ("paging"),":"),LIMIT=$P(HTTPREQ("paging"),":",2),STARTID=$G(HTTPRSP("startid"))
+ . S RETCNTS=$S(HTTPREQ("returncounts")="true":1,1:0)
+ . I STARTID'="" F I=1:1:$G(@HTTPRSP@("total")) I $D(@HTTPRSP@("data",I,STARTID)) S START=START+I Q
+ . D PAGE^VPRJRUT(.HTTPRSP,START,LIMIT,.SIZE,.PREAMBLE,RETCNTS)
  . ; if an error was generated during the paging, switch to return the error
  . I $G(HTTPERR) D RSPERROR S RSPTYPE=2,SIZE=$$REFSIZE^VPRJRUT(.HTTPRSP)
- ;
- ; TODO: Handle HEAD requests differently
+ ; ; TODO: Handle HEAD requests differently
  ;       (put HTTPRSP in ^XTMP and return appropriate header)
  ; TODO: Handle 201 responses differently (change simple OK to created)
  ;
- W $$RSPLINE(),$C(13,10)
- W "Date: "_$$GMT^VPRJRUT_$C(13,10)
- I $D(HTTPREQ("location")) W "Location: "_HTTPREQ("location")_$C(13,10)
- W "Content-Type: application/json"_$C(13,10)
- W "Content-Length: ",SIZE,$C(13,10)_$C(13,10)
- I 'SIZE W $C(13,10),! Q  ; flush buffer and quit
+ D W($$RSPLINE()_$C(13,10)) ; Status Line (200, 404, etc)
+ D W("Date: "_$$GMT^VPRJRUT_$C(13,10)) ; RFC 1123 date
+ I $D(HTTPREQ("location")) D W("Location: "_HTTPREQ("location")_$C(13,10))  ; ?? Request location; TODO: Check this. Should be Response.
+ D W("Content-Type: application/json"_$C(13,10))
+ D W("Access-Control-Allow-Origin: *"_$C(13,10))
+ D W("Content-Length: "_SIZE_$C(13,10)_$C(13,10))
+ I 'SIZE D FLUSH Q  ; flush buffer and quit if empty
  ;
- N I,J
+ N I,J,HASDATA
  I RSPTYPE=1 D            ; write out local variable
- . I $D(HTTPRSP)#2 W HTTPRSP
- . I $D(HTTPRSP)>1 S I=0 F  S I=$O(HTTPRSP(I)) Q:'I  W HTTPRSP(I)
+ . I $D(HTTPRSP)#2 D W(HTTPRSP)
+ . I $D(HTTPRSP)>1 S I=0 F  S I=$O(HTTPRSP(I)) Q:'I  D W(HTTPRSP(I))
  I RSPTYPE=2 D            ; write out global using indirection
- . I $D(@HTTPRSP)#2 W @HTTPRSP
- . I $D(@HTTPRSP)>1 S I=0 F  S I=$O(@HTTPRSP@(I)) Q:'I  W @HTTPRSP@(I)
+ . I $D(@HTTPRSP)#2 D W(@HTTPRSP)
+ . I $D(@HTTPRSP)>1 S I=0 F  S I=$O(@HTTPRSP@(I)) Q:'I  D W(@HTTPRSP@(I))
  I RSPTYPE=3 D            ; write out pageable records
- . W PREAMBLE
+ . D W(PREAMBLE)
  . F I=START:1:(START+LIMIT-1) Q:'$D(@HTTPRSP@($J,I))  D
- . . I I>START W "," ; separate items with a comma
- . . S J="" F  S J=$O(@HTTPRSP@($J,I,J)) Q:'J  W @HTTPRSP@($J,I,J)
- . W "]}}"
+ . . I I>START D W(",") ; separate items with a comma
+ . . S J="" F  S J=$O(@HTTPRSP@($J,I,J)) Q:'J  D W(@HTTPRSP@($J,I,J))
+ . S HASDATA=$D(@HTTPRSP@($J))
+ . D W($S('$D(^VPRCONFIG("store",$G(HTTPREQ("store")),"global")):"]}}",+HASDATA:"]}",1:"}"))
  . K @HTTPRSP@($J)
- W $C(13,10),!  ; flush buffer
+ D FLUSH; flush buffer
  I RSPTYPE=3,($E(HTTPRSP,1,4)="^TMP") D UPDCACHE
- Q
+ QUIT
+ ;
+W(DATA) ; EP to write data
+ ; ZEXCEPT: %WBUFF - Buffer in Symbol Table
+ S %WBUFF=%WBUFF_DATA
+ I $L(%WBUFF)>32000 D FLUSH
+ QUIT
+ ;
+FLUSH ; EP to flush written data
+ ; ZEXCEPT: %WBUFF - Buffer in Symbol Table
+ W %WBUFF,!
+ S %WBUFF=""
+ QUIT
+ ;
+ ;
 UPDCACHE ; update the cache for this query
  I HTTPREQ("store")="data" G UPD4DATA
  I HTTPREQ("store")="xvpr" Q  ; don't cache cross patient for now
  ; otherwise drop into VPR cache update
 UPD4VPR ;
- N PID,INDEX,HASH,HASHTS,MTHD
+ N PID,INDEX,HASH,HASHTS,MTHD,JPID
  S PID=$G(^TMP($J,"pid")),INDEX=$G(^TMP($J,"index"))
  S HASH=$G(^TMP($J,"hash")),HASHTS=$G(^TMP($J,"timestamp"))
  Q:'$L(PID)  Q:'$L(INDEX)  Q:'$L(HASH)  Q:PID[","
  ;
+ S JPID=$$JPID4PID^VPRJPR(PID)
+ I JPID="" D SETERROR^VPRJRER(222,"Identifier "_PID) Q
  S MTHD=$G(^VPRMETA("index",INDEX,"common","method"))
- L +^VPRTMP(HASH):1  E  Q
- I $G(^VPRPTI(PID,MTHD,INDEX))=HASHTS D
+ L +^VPRTMP(HASH):$G(^VPRCONFIG("timeout","odhash"),1)  E  Q
+ I $G(^VPRPTI(JPID,PID,MTHD,INDEX))=HASHTS D
  . K ^VPRTMP(HASH)
  . M ^VPRTMP(HASH)=^TMP($J)
  . S ^VPRTMP(HASH,"created")=$H
@@ -127,7 +175,7 @@ UPD4DATA ;
  Q:'$L(INDEX)  Q:'$L(HASH)
  ;
  S MTHD=$G(^VPRMETA("index",INDEX,"common","method"))
- L +^VPRTMP(HASH):1  E  Q
+ L +^VPRTMP(HASH):$G(^VPRCONFIG("timeout","pthash"),1)  E  Q
  I $G(^VPRJDX(MTHD,INDEX))=HASHTS D
  . K ^VPRTMP(HASH)
  . M ^VPRTMP(HASH)=^TMP($J)
@@ -145,6 +193,7 @@ RSPLINE() ; writes out a response line based on HTTPERR
  I $G(HTTPERR)=400 Q "HTTP/1.1 400 Bad Request"
  I $G(HTTPERR)=404 Q "HTTP/1.1 404 Not Found"
  I $G(HTTPERR)=405 Q "HTTP/1.1 405 Method Not Allowed"
+ I $G(HTTPERR)=412 Q "HTTP/1.1 412 Precondition Failed"
  Q "HTTP/1.1 500 Internal Server Error"
  ;
 PING(RESULT,ARGS) ; writes out a ping response
@@ -162,125 +211,10 @@ GETLOG(RESULT,ARGS) ; returns log level info
 PUTLOG(ARGS,BODY) ; sets log level
  N LOG,ERR
  D DECODE^VPRJSON("BODY","LOG","ERR")
- I $D(ERR) D SETERROR^VPRJRER(217) Q
+ I $D(ERR) D SETERROR^VPRJRER(217) Q ""
  S HTTPLOG=$G(LOG("level"))
  I $D(LOG("path")) S HTTPLOG("path")=LOG("path")
  I $D(LOG("name")) S HTTPLOG("name")=LOG("name")
- Q
+ Q ""
 VPRMATCH(ROUTINE,ARGS) ; specific algorithm for matching URL's
- Q
-URLMAP ; map URLs to entry points (HTTP methods handled within entry point)
- ;;POST vpr PUTPT^VPRJPR
- ;;PUT vpr PUTPT^VPRJPR
- ;;DELETE vpr DELALL^VPRJPR
- ;;GET vpr/all/count/{countName} ALLCOUNT^VPRJPR
- ;;GET vpr/all/index/pid/pid ALLPID^VPRJPR
- ;;GET vpr/all/index/{indexName} ALLINDEX^VPRJPR
- ;;GET vpr/all/index/{indexName}/{template} ALLINDEX^VPRJPR
- ;;GET vpr/all/find/{collection} ALLFIND^VPRJPR
- ;;GET vpr/all/find/{collection}/{template} ALLFIND^VPRJPR
- ;;DELETE vpr/all/collection/{collectionName} ALLDELC^VPRJPR
- ;;GET vpr/uid/{uid?1"urn:".E} GETUID^VPRJPR
- ;;GET vpr/uid/{uid?1"urn:".E}/{template} GETUID^VPRJPR
- ;;DELETE vpr/uid/{uid?1"urn:".E} DELUID^VPRJPR
- ;;GET vpr/pid/{icndfn} GETPT^VPRJPR
- ;;POST vpr/{pid} PUTOBJ^VPRJPR
- ;;PUT vpr/{pid} PUTOBJ^VPRJPR
- ;;GET vpr/{pid}/index/{indexName} INDEX^VPRJPR
- ;;GET vpr/{pid}/index/{indexName}/{template} INDEX^VPRJPR
- ;;GET vpr/{pid}/last/{indexName} LAST^VPRJPR
- ;;GET vpr/{pid}/last/{indexName}/{template} LAST^VPRJPR
- ;;GET vpr/{pid}/find/{collection} FIND^VPRJPR
- ;;GET vpr/{pid}/find/{collection}/{template} FIND^VPRJPR
- ;;GET vpr/{pid}/{uid?1"urn:".E} GETOBJ^VPRJPR
- ;;GET vpr/{pid}/{uid?1"urn:".E}/{template} GETOBJ^VPRJPR
- ;;GET vpr/{pid}/count/{countName} COUNT^VPRJPR
- ;;GET vpr/{pid} GETPT^VPRJPR
- ;;GET vpr/{pid}/checksum/{system} CHKSUM^VPRJPR
- ;;DELETE vpr/{pid}/{uid?1"urn:".E} DELUID^VPRJPR
- ;;DELETE vpr/{pid} DELPT^VPRJPR
- ;;DELETE vpr/{pid}/collection/{collectionName} DELCLTN^VPRJPR
- ;;POST data PUTOBJ^VPRJDR
- ;;PUT data PUTOBJ^VPRJDR
- ;;PUT data/{collectionName} NEWOBJ^VPRJDR
- ;;POST data/{collectionName} NEWOBJ^VPRJDR
- ;;GET data/{uid?1"urn:".E} GETOBJ^VPRJDR
- ;;GET data/{uid?1"urn:".E}/{template} GETOBJ^VPRJDR
- ;;GET data/index/{indexName} INDEX^VPRJDR
- ;;GET data/index/{indexName}/{template} INDEX^VPRJDR
- ;;GET data/last/{indexName} LAST^VPRJDR
- ;;GET data/count/{countName} COUNT^VPRJDR
- ;;GET data/find/{collection} FIND^VPRJDR
- ;;GET data/find/{collection}/{template} FIND^VPRJDR
- ;;GET data/all/count/{countName} ALLCOUNT^VPRJDR
- ;;DELETE data/{uid?1"urn:".E} DELUID^VPRJDR
- ;;DELETE data/collection/{collectionName} DELCTN^VPRJDR
- ;;DELETE data DELALL^VPRJDR
- ;;GET ping PING^VPRJRSP
- ;;GET version VERSION^VPRJRSP
- ;;GET jds/logger/this GETLOG^VPRJRSP
- ;;PUT jds/logger/this PUTLOG^VPRJRSP
- ;;POST jds/logger/this PUTLOG^VPRJRSP
- ;;GET vpr/mpid/{icndfn} GETPT^VPRJPR
- ;;GET vpr/jpid/{jpid} PIDS^VPRJPR
- ;;PUT vpr/jpid/{jpid} ASSOCIATE^VPRJPR
- ;;POST vpr/jpid/{jpid} ASSOCIATE^VPRJPR
- ;;PUT vpr/jpid ASSOCIATE^VPRJPR
- ;;POST vpr/jpid ASSOCIATE^VPRJPR
- ;;DELETE vpr/jpid/{jpid} DISASSOCIATE^VPRJPR
- ;;DELETE vpr/jpid/clear CLEAR^VPRJPR
- ;;POST session/set/this SET^VPRJSES
- ;;PUT session/set/this SET^VPRJSES
- ;;GET session/get/{_id} GET^VPRJSES
- ;;GET session/length/this LEN^VPRJSES
- ;;DELETE session/destroy/{_id} DEL^VPRJSES
- ;;DELETE session/clear/this CLR^VPRJSES
- ;;GET session/destroy/{_id} DEL^VPRJSES
- ;;GET session/clear/this CLR^VPRJSES
- ;;GET session/destroy/_id/{_id} DEL^VPRJSES
- ;;POST job SET^VPRJOB
- ;;PUT job SET^VPRJOB
- ;;GET job/{jpid}/{rootJobId}/{jobId} GET^VPRJOB
- ;;GET job/{jpid}/{rootJobId} GET^VPRJOB
- ;;GET job/{jpid} GET^VPRJOB
- ;;DELETE job CLEAR^VPRJOB
- ;;DELETE job/{id} DELETE^VPRJOB
- ;;GET status/{id} GET^VPRSTATUS
- ;;PUT status/{id} SET^VPRSTATUS
- ;;POST status/{id} SET^VPRSTATUS
- ;;DELETE status CLEAR^VPRSTATUS
- ;;DELETE status/{pid} CLEAR^VPRSTATUS
- ;;POST record STORERECORD^VPRSTATUS
- ;;GET statusod/{id} GETOD^VPRSTATUS
- ;;PUT statusod/{id} SETOD^VPRSTATUS
- ;;POST statusod/{id} SETOD^VPRSTATUS
- ;;DELETE statusod/{id} DELOD^VPRSTATUS
- ;;DELETE statusod DELOD^VPRSTATUS
- ;;POST recordod STORERECORDOD^VPRSTATUS
- ;;POST odmutable/set/this SET^VPRJODM
- ;;PUT odmutable/set/this SET^VPRJODM
- ;;GET odmutable/get/{_id} GET^VPRJODM
- ;;GET odmutable/length/this LEN^VPRJODM
- ;;DELETE odmutable/destroy/{_id} DEL^VPRJODM
- ;;DELETE odmutable/clear/this CLR^VPRJODM
- ;;POST siteod/set/this SET^VPRJODM
- ;;PUT siteod/set/this SET^VPRJODM
- ;;GET siteod/get/{_id} GET^VPRJODM
- ;;GET siteod/length/this LEN^VPRJODM
- ;;DELETE siteod/destroy/{_id} DEL^VPRJODM
- ;;DELETE siteod/clear/this CLR^VPRJODM
- ;;POST user/set/this SET^VPRJUSR
- ;;PUT user/set/this SET^VPRJUSR
- ;;GET user/get/{_id} GET^VPRJUSR
- ;;GET user/length/this LEN^VPRJUSR
- ;;DELETE user/destroy/{_id} DEL^VPRJUSR
- ;;DELETE user/clear/this CLR^VPRJUSR
- ;;GET user/destroy/{_id} DEL^VPRJUSR
- ;;GET user/clear/this CLR^VPRJUSR
- ;;GET user/destroy/_id/{_id} DEL^VPRJUSR
- ;;GET tasks/gc/patient/{id} PAT^VPRJGC
- ;;GET tasks/gc/patient PAT^VPRJGC
- ;;GET tasks/gc/data/{site} DATA^VPRJGC
- ;;GET tasks/gc/data DATA^VPRJGC
- ;;zzzzz
  Q

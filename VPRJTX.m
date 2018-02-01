@@ -1,5 +1,4 @@
 VPRJTX ;SLC/KCM -- Utilities for unit tests
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 BLDPT(TAGS) ; Build test patient for integration tests with data in TAGS
  ; TAGS(n)=TAG^RTN  ; entry point for each JSON object, zzzzz terminated
@@ -10,11 +9,24 @@ BLDPT(TAGS) ; Build test patient for integration tests with data in TAGS
  S VPRJTPID=$$ADDPT("DEMOG7^VPRJTP01")
  I $D(TAGS) D ADDDATA(.TAGS,VPRJTPID)
  Q
+BLDHDRPT(TAGS) ; Build HDR test patient for integration tests with data in TAGS
+ N DATA
+ S VPRJTPID=$G(^VPRPTJ("JPID","1HDR;-7"))
+ D PATIDS
+ S VPRJTPID=$$ADDPT("HDRDEMOG7^VPRJTP01")
+ I $D(TAGS) D ADDDATA(.TAGS,VPRJTPID)
+ Q
 PATIDS ; Setup patient identifiers
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","93EF;-7")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","-777V123777")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","1HDR;-777V123777")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","1HDR;-7")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","HDR1;-777V123777")=""
  S ^VPRPTJ("JPID","93EF;-7")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","1HDR;-777V123777")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","1HDR;-7")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","HDR1;-777V123777")="52833885-af7c-4899-90be-b3a6630b2369"
  S ^VPRPTJ("JPID","-777V123777")="52833885-af7c-4899-90be-b3a6630b2369"
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2370")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2370","93EF;-8")=""
@@ -41,8 +53,9 @@ ADDPT(TAG) ; Build a test patient and return the PID
  Q VPRPID
  ;
 ADDDATA(TAGS,VPRPID) ; Add data for the patient identified in VPRJTPID
- N I,JSON,OBJ,LOC,HTTPERR
+ N I,JSON,OBJ,LOC,HTTPERR,VPRJPID
  Q:'$D(TAGS)
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRPID)
  S I="" F  S I=$O(TAGS(I)) Q:'I  D
  . N JSON,OBJ
  . D GETDATA($P(TAGS(I),"^"),$P(TAGS(I),"^",2),.JSON)
@@ -50,7 +63,7 @@ ADDDATA(TAGS,VPRPID) ; Add data for the patient identified in VPRJTPID
  . K JSON
  . S OBJ("pid")=VPRPID
  . D ENCODE^VPRJSON("OBJ","JSON")
- . S LOC=$$SAVE^VPRJPS(VPRPID,.JSON)
+ . S LOC=$$SAVE^VPRJPS(VPRJPID,.JSON)
  . D EQ^VPRJT("",$G(HTTPERR),"HTTPERR IN ADDDATA^VPRJTX")
  Q
 CLRPT ; Clear test patients
@@ -103,11 +116,21 @@ SETGET(URL) ; set up a request (to emulate HTTP call)
  S HTTPREQ("path")=$P(URL,"?")
  S HTTPREQ("query")=$P(URL,"?",2,999)
  Q
-SETPUT(URL,TAG,RTN) ; set up a PUT request based on data in TAG^RTN
+SETPUT(URL,TAG,RTN,SKIP) ; set up a PUT request based on data in TAG^RTN
  N DATA
- D PATIDS
+ D:'$G(SKIP) PATIDS
  S HTTPERR=0
  S HTTPREQ("method")="PUT"
+ S HTTPREQ("path")=$P(URL,"?")
+ S HTTPREQ("query")=$P(URL,"?",2,999)
+ D GETDATA(TAG,RTN,.DATA)
+ M HTTPREQ("body")=DATA
+ Q
+SETPOST(URL,TAG,RTN,SKIP) ; set up a POST request based on data in TAG^RTN
+ N DATA
+ D:'$G(SKIP) PATIDS
+ S HTTPERR=0
+ S HTTPREQ("method")="POST"
  S HTTPREQ("path")=$P(URL,"?")
  S HTTPREQ("query")=$P(URL,"?",2,999)
  D GETDATA(TAG,RTN,.DATA)

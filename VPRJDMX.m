@@ -1,5 +1,4 @@
 VPRJDMX ;SLC/KCM -- Meta data for JSON indexes
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
  ; Types of collation:
  ;       V: Inverse HL7 Time (appends "=" after complementing time)
@@ -33,7 +32,7 @@ IDXTALLY ; tally type indexes
  ; The first collation is the field collation, followed by the sort collation.
  ; The default is s,s (both case-insensitive strings) if no other collation
  ; is defined.
-IDXATTR ;
+IDXATTR ; attribute type indexes
  ;;test-name
  ;;    collections: test
  ;;    fields: name/s, updated/V/0
@@ -76,6 +75,14 @@ IDXATTR ;
  ;;    collections: orderable
  ;;    fields: types[].type,name
  ;;    sort: name asc
+ ;;orderable-linktype
+ ;;    collections: orderable
+ ;;    fields: uid,linktype
+ ;;    sort: name asc
+ ;;vital-type-uid
+ ;;    collections: vital-type
+ ;;    fields: uid
+ ;;    sort: name asc
  ;;clioterminology
  ;;    collections: clioterminology
  ;;    fields: term, termType
@@ -99,6 +106,11 @@ IDXATTR ;
  ;;    fields: name
  ;;    sort: name asc
  ;;    setif: $$CLINLOC^VPRJFPS
+ ;;active-locations-clinics
+ ;;    collections: location
+ ;;    fields: uid,name
+ ;;    sort: name asc
+ ;;    setif: $$ACTIVECLINLOC^VPRJFPS
  ;;status-pt
  ;;    collections: syncstatus
  ;;    fields: pid
@@ -141,5 +153,7 @@ IDXATTR ;
  ;;    collections: pt-select
  ;;    fields: last5/s
  ;;    sort: fullName asc
+ ;;user-uid
+ ;;    collections: user
+ ;;    fields: uid
  ;;zzzzz
- ;

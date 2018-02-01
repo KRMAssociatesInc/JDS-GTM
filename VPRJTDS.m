@@ -55,3 +55,21 @@ DELCLTN ;; @TEST deleting a collection from a specific server
  D ASSERT(0,$D(^VPRJD("urn:va:test:F111:4")))
  D ASSERT(1,$D(^VPRJD("urn:va:test:F000:2"))>0)
  Q
+DELSITE ;; @TEST deletion of all objects for a site
+ N I,TAGS
+ F I=1:1:4 S TAGS(I)="SYS"_I_"^VPRJTD01"
+ D ODSBLD^VPRJTX(.TAGS)
+ D ASSERT(1,$D(^VPRJD("urn:va:test:F000:1"))>0)
+ D ASSERT(1,$D(^VPRJDJ("JSON","urn:va:test:F000:1"))>0)
+ D ASSERT(1,$D(^VPRJDJ("TEMPLATE","urn:va:test:F000:1"))>0)
+ D ASSERT(1,$D(^VPRJD("urn:va:test:F111:4"))>0)
+ D ASSERT(1,$D(^VPRJDJ("JSON","urn:va:test:F111:4"))>0)
+ D ASSERT(1,$D(^VPRJDJ("TEMPLATE","urn:va:test:F111:4"))>0)
+ D DELSITE^VPRJDS("F000")
+ D ASSERT(0,$D(^VPRJD("urn:va:test:F000:1")))
+ D ASSERT(0,$D(^VPRJDJ("JSON","urn:va:test:F000:1")))
+ D ASSERT(0,$D(^VPRJDJ("TEMPLATE","urn:va:test:F000:1")))
+ D ASSERT(1,$D(^VPRJD("urn:va:test:F111:4"))>0)
+ D ASSERT(1,$D(^VPRJDJ("JSON","urn:va:test:F111:4"))>0)
+ D ASSERT(1,$D(^VPRJDJ("TEMPLATE","urn:va:test:F111:4"))>0)
+ Q

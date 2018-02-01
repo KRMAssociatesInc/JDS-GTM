@@ -8,6 +8,8 @@ STARTUP  ; Run once before all tests
  K TAGS
  F I=1:1:3 S TAGS(I)="UTST"_I_"^VPRJTP01"
  D ADDDATA^VPRJTX(.TAGS,VPRJTPID)
+ F I=1:1:2 S TAGS(I)="DOCORDER"_I_"^VPRJTP01"
+ D ADDDATA^VPRJTX(.TAGS,VPRJTPID)
  Q
 SHUTDOWN ; Run once after all tests
  D CLRPT^VPRJTX
@@ -22,7 +24,7 @@ TMP2ARY(ARY) ; convert JSON object in ^TMP($J) to array
  S HTTPREQ("store")="vpr" ; normally this gets set in RESPOND^VPRJRSP
  D PAGE^VPRJRUT("^TMP($J)",0,999,.SIZE,.PREAMBLE)
  N SRC,N,I,J
- S N=0,SRC(N)="{""apiVersion"":""1.0"",""data"":{""totalItems"":"_^TMP($J,"total")_",""items"":["
+ S N=0,SRC(N)="{""data"":{""totalItems"":"_^TMP($J,"total")_",""items"":["
  S I="" F  S I=$O(^TMP($J,$J,I)) Q:I=""  D
  . I I S SRC(N)=SRC(N)_","
  . S J=0 F  S J=$O(^TMP($J,$J,I,J)) Q:'J  D
@@ -147,7 +149,7 @@ MATCH ;; match query (DISABLED for NOW)
  D ASSERT(1,$G(ARY("data","totalItems")))
  D ASSERT("urn:vadc:BL110",$G(ARY("data","items",1,"products",1,"drugClassCode")))
  Q
-TALLY ;; @TEST tally items
+TALLY ;; @TEST tally items by PID
  N HTTPERR
  K ^TMP($J)
  D QTALLY^VPRJPQ(VPRJTPID,"kind")
@@ -156,6 +158,16 @@ TALLY ;; @TEST tally items
  D ASSERT(0,$G(ERR(0),0),"JSON conversion error")
  D ASSERT(2,ARY("data","totalItems"))
  D ASSERT(4,ARY("data","items",2,"count"))
+ Q
+TALLY2 ;; @TEST get tally items by JPID
+ N HTTPERR,RESULT,ARGS,ARY
+ K ^TMP($J)
+ S ARGS("pid")=VPRJTPID
+ S ARGS("countName")="collection"
+ D COUNT^VPRJPR(.RESULT,.ARGS)
+ D DECODE^VPRJSON(RESULT,"ARY","ERR")
+ I $D(ERR) D ASSERT(0,$D(ERR),"JSON conversion error") ZWRITE ERR Q
+ D ASSERT(3,$G(ARY("data","items",4,"count")),"count not found or wrong")
  Q
 UID ;; @TEST get uid
  N HTTPERR
@@ -175,6 +187,67 @@ ORDER ;; @TEST sorting on different field
  D QINDEX^VPRJPQ(VPRJTPID,"medication","","qualifiedName desc")
  K ARY D TMP2ARY(.ARY)
  D ASSERT("WARFARIN",ARY("data","items",1,"qualifiedName"))
+ Q
+ORDERCI ;; @TEST sorting by case sensitive or case insensitive
+ N HTTPERR,ARY
+ K ^TMP($J)
+ D QINDEX^VPRJPQ(VPRJTPID,"document",,"authorDisplayName asc cs")
+ K ARY D TMP2ARY(.ARY)
+ D ASSERT("MacMullin,Ed",ARY("data","items",1,"authorDisplayName"),"Passing 'cs' in 'order' should make sorting case sensitive.")
+ K ^TMP($J)
+ D QINDEX^VPRJPQ(VPRJTPID,"document",,"authorDisplayName cs asc")
+ K ARY D TMP2ARY(.ARY)
+ D ASSERT("MacMullin,Ed",ARY("data","items",1,"authorDisplayName"),"Passing 'cs' in 'order' should make sorting case sensitive.")
+ K ^TMP($J)
+ D QINDEX^VPRJPQ(VPRJTPID,"document",,"authorDisplayName cs")
+ K ARY D TMP2ARY(.ARY)
+ D ASSERT("MacMullin,Ed",ARY("data","items",1,"authorDisplayName"),"Passing 'cs' in 'order' should make sorting case sensitive.")
+ K ^TMP($J)
+ D QINDEX^VPRJPQ(VPRJTPID,"document",,"authorDisplayName")
+ K ARY D TMP2ARY(.ARY)
+ D ASSERT("MacMullin,Ed",ARY("data","items",1,"authorDisplayName"),"Default sorting should be case sensitive.")
+ K ^TMP($J)
+ D QINDEX^VPRJPQ(VPRJTPID,"document",,"authorDisplayName asc ci")
+ K ARY D TMP2ARY(.ARY)
+ D ASSERT("Macintosh,John",ARY("data","items",1,"authorDisplayName"),"Passing 'ci' in 'order' should make sorting case insensitive.")
+ K ^TMP($J)
+ D QINDEX^VPRJPQ(VPRJTPID,"document",,"authorDisplayName ci asc")
+ K ARY D TMP2ARY(.ARY)
+ D ASSERT("Macintosh,John",ARY("data","items",1,"authorDisplayName"),"Passing 'ci' in 'order' should make sorting case insensitive.")
+ K ^TMP($J)
+ D QINDEX^VPRJPQ(VPRJTPID,"document",,"authorDisplayName ci")
+ K ARY D TMP2ARY(.ARY)
+ D ASSERT("Macintosh,John",ARY("data","items",1,"authorDisplayName"),"Passing 'ci' in 'order' should make sorting case insensitive.")
+ Q
+SETORDER ;; @TEST handle sorting modifiers in any order
+ N HTTPERR,ORDER,INDEX,TEMPLATE
+ S INDEX="document",TEMPLATE=""
+ M INDEX=^VPRMETA("index",INDEX,"common")
+ ; the collate spec for this index is defined as 'V', which flips the sort direction modfier and makes the tests confusing
+ ; so we'll remove that for our test
+ S INDEX("collate",1)=""
+ S ORDER="authorDisplayName desc ci"
+ D SETORDER^VPRJCO(.ORDER)
+ D ASSERT(-1,ORDER(1,"dir"),"Failed to get desc sorting modifier when first")
+ D ASSERT(1,ORDER(1,"nocase"),"Failed to get case insensitive sorting modifier when second")
+ K ORDER S ORDER="authorDisplayName ci desc"
+ D SETORDER^VPRJCO(.ORDER)
+ D ASSERT(-1,ORDER(1,"dir"),"Failed to get desc sorting modifier when second")
+ D ASSERT(1,ORDER(1,"nocase"),"Failed to get case insensitive sorting modifier when first")
+ K ORDER S ORDER="ci desc"
+ D SETORDER^VPRJCO(.ORDER)
+ D ASSERT("1-1",ORDER(1,"nocase")_ORDER(1,"dir"),"Failed to parse default sort field with case insentive modifier first")
+ K ORDER S ORDER="desc ci"
+ D SETORDER^VPRJCO(.ORDER)
+ D ASSERT("1-1",ORDER(1,"nocase")_ORDER(1,"dir"),"Failed to parse default sort field with case insentive modifier second")
+ K ORDER S ORDER="ci"
+ D SETORDER^VPRJCO(.ORDER)
+ D ASSERT($P(INDEX("order")," "),$P(ORDER," "),"Failed to get default sort field")
+ D ASSERT("1",ORDER(1,"nocase"),"Failed to parse default sort field with case insentive modifier only")
+ K ORDER S ORDER="desc"
+ D SETORDER^VPRJCO(.ORDER)
+ D ASSERT($P(INDEX("order")," "),$P(ORDER," "),"Failed to get default sort field")
+ D ASSERT(-1,ORDER(1,"dir"),"Failed to parse default sort field with direction modifier only")
  Q
 1 ; do one test
  D STARTUP,SORTSTOP,SHUTDOWN

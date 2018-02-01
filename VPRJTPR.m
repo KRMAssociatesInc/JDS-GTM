@@ -1,5 +1,4 @@
 VPRJTPR ;SLC/KCM -- Integration tests for RESTful queries
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 STARTUP  ; Run once before all tests
  N I,TAGS
@@ -10,6 +9,7 @@ SHUTDOWN ; Run once after all tests
  D CLRPT^VPRJTX
  K ^VPRPTJ
  K ^VPRPT
+ K ^VPRMETA("JPID")
  K ^TMP
  Q
 SETUP    ; Run before each test
@@ -18,79 +18,273 @@ SETUP    ; Run before each test
 TEARDOWN ; Run after each test
  K HTTPREQ,HTTPERR,HTTPRSP
  Q
-ASSERT(EXPECT,ACTUAL) ; convenience
- D EQ^VPRJT(EXPECT,ACTUAL)
+ASSERT(EXPECT,ACTUAL,MSG) ; convenience
+ D EQ^VPRJT(EXPECT,ACTUAL,$G(MSG))
  Q
  ;
+ ; POST data for POST query tests
+POSTDATA1 ;; test POST query data for TIMERNG
+ ;;{"range":"20060101..20061231"}
+ ;;zzzzz
+POSTDATA2 ;; test POST query data for LAST
+ ;;{"range":"Metformin, Aspirin Tab"}
+ ;;zzzzz
+POSTDATA3 ;; test POST query data for ORDASC
+ ;;{"order":"qualifiedName asc"}
+ ;;zzzzz
+POSTDATA4 ;; test POST query data for ORDDESC
+ ;;{"order":"qualifiedName DESC"}
+ ;;zzzzz
+POSTDATA5 ;; test POST query data for ORDEMPTY
+ ;;{"order":"stopped"}
+ ;;zzzzz
+POSTDATA6 ;; test POST query data for FILTER
+ ;;{"filter":"gt(\"orders[].fillsRemaining\",4)"}
+ ;;zzzzz
+POSTDATA7 ;; test POST query data for FINDPAR
+ ;;{"filter":"eq(\"products[].ingredientName\",\"METFORMIN\") eq(\"dosages[].dose\",\"250 MG\")"}
+ ;;zzzzz
+ ;
 TIMERNG ;; @TEST query for range of time
- ;;{"apiVersion":"1.0","data":{"updated":20120517174918,"totalItems":3,"items":[{
- N ROOT,JSON,ERR,HTTPERR
+ ;;{"data":{"updated":20120517174918,"totalItems":3,"items":[{
+ N ROOT,JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/med-time/?range=20060101..20061231")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(3,$G(JSON("data","totalItems")))
+ D ASSERT("METFORMIN",$G(JSON("data","items",3,"products",1,"ingredientName")))
+ ; test POST query version
+ K HTTPER,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/med-time/?query=true","POSTDATA1","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(3,$G(JSON("data","totalItems")))
  D ASSERT("METFORMIN",$G(JSON("data","items",3,"products",1,"ingredientName")))
  Q
 LAST ;; @TEST query for last instance of items in list
- N ROOT,JSON,ERR,HTTPERR
+ N ROOT,JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/last/med-ingredient-name?range=Metformin, Aspirin Tab")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(2,$G(JSON("data","totalItems")))
+ D ASSERT("urn:va:med:93EF:-7:18069",$G(JSON("data","items",1,"uid")))
+ D ASSERT("urn:va:med:93EF:-7:18068",$G(JSON("data","items",2,"uid")))
+ ; test POST query version
+ K HTTPERR,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/last/med-ingredient-name?query=true","POSTDATA2","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(2,$G(JSON("data","totalItems")))
  D ASSERT("urn:va:med:93EF:-7:18069",$G(JSON("data","items",1,"uid")))
  D ASSERT("urn:va:med:93EF:-7:18068",$G(JSON("data","items",2,"uid")))
  Q
 ORDASC ;; @TEST query to return in different order
- N ROOT,JSON,ERR,HTTPERR
+ N ROOT,JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?order=qualifiedName asc")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT("WARFARIN",$G(JSON("data","items",5,"qualifiedName")))
+ ; test POST query version
+ K HTTPER,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?query=true","POSTDATA3","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT("WARFARIN",$G(JSON("data","items",5,"qualifiedName")))
  Q
 ORDDESC ;; @TEST query to return in different order
- N ROOT,JSON,ERR,HTTPERR
+ N ROOT,JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?order=qualifiedName DESC")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT("WARFARIN",$G(JSON("data","items",1,"qualifiedName")))
+ ; test POST query version
+ K HTTPER,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?query=true","POSTDATA4","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT("WARFARIN",$G(JSON("data","items",1,"qualifiedName")))
  Q
 ORDEMPTY ;; @TEST "order by" where field includes empty string
- N ROOT,JSON,ERR,HTTPERR
+ N ROOT,JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?order=stopped")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT("",$G(JSON("data","items",1,"stopped")))
+ D ASSERT("20080128",$G(JSON("data","items",5,"stopped")))
+ ; test POST query version
+ K HTTPERR,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?query=true","POSTDATA5","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT("",$G(JSON("data","items",1,"stopped")))
  D ASSERT("20080128",$G(JSON("data","items",5,"stopped")))
  Q
 FILTER ;; @TEST filter to return based on criteria
- ;;{"apiVersion":"1.0","data":{"updated":20120517174918,"totalItems":3,"items":[{
- N ROOT,JSON,ERR,HTTPERR
+ ;;{"data":{"updated":20120517174918,"totalItems":3,"items":[{
+ N ROOT,JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/medication/?filter=gt(""orders[].fillsRemaining"",4)")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(1,$G(JSON("data","totalItems")))
  D ASSERT("urn:va:med:93EF:-7:17203",$G(JSON("data","items",1,"uid")))
  ;D SHOWRSP^VPRJTX(ROOT)
+ ; test POST query version
+ K HTTPERR,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/medication/?query=true","POSTDATA6","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(1,$G(JSON("data","totalItems")))
+ D ASSERT("urn:va:med:93EF:-7:17203",$G(JSON("data","items",1,"uid")))
  Q
 GETUID ;; @TEST getting an object by UID only
- N JSON,ERR,HTTPERR
+ N JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/uid/"_"urn:va:med:93EF:-7:18068")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT("ASPIRIN",$G(JSON("data","items",1,"qualifiedName")))
  Q
 EVERY ;; @TEST retrieving every object for a patient
- N JSON,ERR,HTTPERR,VPRJTPID1
+ N JSON,ERR,HTTPERR,VPRJTPID1,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/every")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(6,$G(JSON("data","totalItems")))
  D ASSERT(0,$D(^TMP($J,$J)))
@@ -102,6 +296,10 @@ EVERY ;; @TEST retrieving every object for a patient
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/every?start=3&limit=3")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(3,$G(JSON("data","currentItemCount")))
  ; Cache is disabled
@@ -109,61 +307,139 @@ EVERY ;; @TEST retrieving every object for a patient
  ;D ASSERT(0,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID1_"/every////"),$J)))
  Q
 FINDALL ;; @TEST finding every object in collection
- N JSON,ERR,HTTPERR
+ N JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/find/med")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(5,$G(JSON("data","totalItems")))
  Q
 FINDPAR ;; @TEST finding with parameters
- N JSON,ERR,HTTPERR
+ N JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/find/med?filter=eq(""products[].ingredientName"",""METFORMIN"") eq(""dosages[].dose"",""250 MG"")")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(1,$G(JSON("data","totalItems")))
+ D ASSERT("urn:va:med:93EF:-7:16982",$G(JSON("data","items",1,"uid")))
+ ; test POST query version
+ K HTTPERR,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/find/med?query=true","POSTDATA7","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(1,$G(JSON("data","totalItems")))
  D ASSERT("urn:va:med:93EF:-7:16982",$G(JSON("data","items",1,"uid")))
  Q
 FINDLIKE ;; @TEST finding using like()
- N JSON,ERR,HTTPERR
+ N JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/find/med?filter=like(""products[].ingredientName"",""ASPIRIN%25"")")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(1,$G(JSON("data","totalItems")))
  D ASSERT("urn:va:med:93EF:-7:18068",$G(JSON("data","items",1,"uid")))
  Q
 ADDOBJ ;; @TEST adding object to store
- N HTTPERR,VPRJPID
+ N HTTPERR,VPRJPID,PTIME,TIME
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETPUT^VPRJTX("/vpr/"_VPRJTPID,"MED6","VPRJTP02")
  D RESPOND^VPRJRSP
- S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D ASSERT("/vpr/"_VPRJPID_"/urn:va:med:93EF:-7:15231",HTTPREQ("location"))
- D ASSERT(10,$D(^VPRPT(VPRJTPID,"urn:va:med:93EF:-7:15231")))
- D ASSERT(1,$D(^VPRPTI(VPRJTPID,"attr","medication","79949668=","urn:va:med:93EF:-7:15231",1)))
+ D ASSERT(10,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:med:93EF:-7:15231")))
+ D ASSERT(1,$D(^VPRPTI(VPRJPID,VPRJTPID,"attr","medication","79949668=","urn:va:med:93EF:-7:15231",1)))
  Q
 DELOBJ ;; @TEST remove object from store
- N HTTPERR
+ N HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETDEL^VPRJTX("/vpr/uid/urn:va:med:93EF:-7:15231")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
- D ASSERT(0,$D(^VPRPT(VPRJTPID,"urn:va:med:93EF:-7:15231")))
- D ASSERT(0,$D(^VPRPTI(VPRJTPID,"list","medication",20050331,"urn:va:med:93EF:-7:15231")))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D ASSERT(0,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:med:93EF:-7:15231")))
+ D ASSERT(0,$D(^VPRPTI(VPRJPID,VPRJTPID,"list","medication",20050331,"urn:va:med:93EF:-7:15231")))
  Q
 ADDPT ;; @TEST add new patient
- N MYPID,JSON,HTTPERR
+ N MYPID,JSON,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S TIME=$$CURRTIME^VPRJRUT
+ H 1
  D SETPUT^VPRJTX("/vpr","DEMOG8","VPRJTP01")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  S MYPID="93EF;-8"
+ S VPRJPID=$$JPID4PID^VPRJPR(MYPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
  D ASSERT(1,$D(^VPRPTJ("JPID",MYPID)))
  D ASSERT("/vpr/"_MYPID_"/urn:va:patient:93EF:-8:-8",$G(HTTPREQ("location")))
  ; do it again, make sure we get the same PID
  D SETPUT^VPRJTX("/vpr","DEMOG8","VPRJTP01")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D ASSERT("/vpr/"_MYPID_"/urn:va:patient:93EF:-8:-8",$G(HTTPREQ("location")))
  ; now get the patient demographics
  D SETGET^VPRJTX("/vpr/"_MYPID)
@@ -174,28 +450,43 @@ ADDPT ;; @TEST add new patient
  D SETDEL^VPRJTX("/vpr/"_MYPID)
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
- D ASSERT(0,$D(^VPRPT(MYPID)))
- D ASSERT(0,$D(^VPRPTJ("JSON",MYPID)))
- D ASSERT(0,$D(^VPRPTI(MYPID)))
+ D ASSERT(0,$D(^VPRPT(VPRJPID,MYPID)))
+ D ASSERT(0,$D(^VPRPTJ("JSON",VPRJPID,MYPID)))
+ D ASSERT(0,$D(^VPRPTI(VPRJPID,MYPID)))
+ D ASSERT(0,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")))
  Q
 NOICN ;; @TEST add patient without ICN
- N HTTPERR,JSON
+ N HTTPERR,JSON,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S TIME=$$CURRTIME^VPRJRUT
+ H 1
  D SETPUT^VPRJTX("/vpr","DEMOG9","VPRJTP01")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S VPRJPID=$$JPID4PID^VPRJPR("93EF;-9")
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D ASSERT("/vpr/93EF;-9/urn:va:patient:93EF:-9:-9",HTTPREQ("location"))
  ; do it again for same pid
  D SETPUT^VPRJTX("/vpr","DEMOG9","VPRJTP01")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  D ASSERT("/vpr/93EF;-9/urn:va:patient:93EF:-9:-9",HTTPREQ("location"))
- D ASSERT(1,$D(^VPRPT("93EF;-9"))>0)
+ D ASSERT(1,$D(^VPRPT(VPRJPID,"93EF;-9"))>0)
  ; one more time for date of death
  D SETPUT^VPRJTX("/vpr","DIED9","VPRJTP01")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D ASSERT("/vpr/93EF;-9/urn:va:patient:93EF:-9:-9",HTTPREQ("location"))
- D ASSERT(1,$D(^VPRPT("93EF;-9"))>0)
+ D ASSERT(1,$D(^VPRPT(VPRJPID,"93EF;-9"))>0)
  D SETGET^VPRJTX("/vpr/93EF;-9")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
@@ -206,21 +497,42 @@ NOICN ;; @TEST add patient without ICN
  D SETDEL^VPRJTX("/vpr/93EF;-9")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
- D ASSERT(0,$D(^VPRPT("93EF;-9")))
- D ASSERT(0,$D(^VPRPTJ("JSON","93EF;-9")))
- D ASSERT(0,$D(^VPRPTI("93EF;-9")))
+ D ASSERT(0,$D(^VPRPT(VPRJPID,"93EF;-9")))
+ D ASSERT(0,$D(^VPRPTJ("JSON",VPRJPID,"93EF;-9")))
+ D ASSERT(0,$D(^VPRPTI(VPRJPID,"93EF;-9")))
+ D ASSERT(0,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")))
  Q
 ADDICN ;; @TEST add an ICN where the patient did not previously have one
- N HTTPERR,JSON
- D SETPUT^VPRJTX("/vpr","DEMOG9","VPRJTP01")
+ N HTTPERR,JSON,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S TIME=$$CURRTIME^VPRJRUT
+ H 1
+ S ^VPRPTJ("JPID","93EF;-9")="52833885-af7c-4899-90be-b3a6630b2371"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2371")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2371","93EF;-9")=""
+ ; store patient demographics
+ D SETPUT^VPRJTX("/vpr","DEMOG9","VPRJTP01",1)
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S VPRJPID=$$JPID4PID^VPRJPR("93EF;-9")
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D ASSERT("/vpr/93EF;-9/urn:va:patient:93EF:-9:-9",HTTPREQ("location"))
- D SETPUT^VPRJTX("/vpr","NEWICN9","VPRJTP01")
+ ; Add ICN to patient
+ D SETPUT^VPRJTX("/vpr","NEWICN9","VPRJTP01",1)
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D ASSERT("/vpr/93EF;-9/urn:va:patient:93EF:-9:-9",HTTPREQ("location"))
- D ASSERT(1,$D(^VPRPT("93EF;-9"))>0)
+ D ASSERT(1,$D(^VPRPT(VPRJPID,"93EF;-9"))>0)
+ ; Verify ICN is part of returned demographics
  D SETGET^VPRJTX("/vpr/93EF;-9")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
@@ -249,10 +561,21 @@ NSITE ;; @TEST multiple sites for patient demographics
  D ASSERT(MYPID,$G(^VPRPTJ("JPID","93EF;-7"))) ; Ensure correct data for forward index PID
  Q
 FULLICN ;; @TEST get patient info using full ICN
- N HTTPREQ,HTTPERR,JSON
+ N HTTPREQ,HTTPERR,JSON,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
  D SETGET^VPRJTX("/vpr/-777V123777")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(2,$G(JSON("data","currentItemCount")))
  D ASSERT("urn:va:patient:93EF:-7:-7",$G(JSON("data","items",2,"uid")))
@@ -263,16 +586,30 @@ FULLICN ;; @TEST get patient info using full ICN
  D ASSERT(1,$D(^VPRPTJ("JPID","-777V123777")))
  Q
 NUMFAC ;; @TEST fully numeric facility id
- N MYPID,JSON,HTTPERR
+ N MYPID,JSON,HTTPERR,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S TIME=$$CURRTIME^VPRJRUT
+ H 1
  D SETPUT^VPRJTX("/vpr","NUMFAC","VPRJTP01")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  S MYPID="4321;-1"
  D ASSERT("/vpr/"_MYPID_"/urn:va:patient:4321:-1:-1",HTTPREQ("location"))
+ S VPRJPID=$$JPID4PID^VPRJPR(MYPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  ; do it again, make sure we get the same PID
  D SETPUT^VPRJTX("/vpr","NUMFAC","VPRJTP01")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
  D ASSERT("/vpr/"_MYPID_"/urn:va:patient:4321:-1:-1",HTTPREQ("location"))
  ; now get the patient demographics
  D SETGET^VPRJTX("/vpr/"_MYPID)
@@ -284,15 +621,103 @@ NUMFAC ;; @TEST fully numeric facility id
  D SETDEL^VPRJTX("/vpr/"_MYPID)
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
- D ASSERT(0,$D(^VPRPT(MYPID)))
- D ASSERT(0,$D(^VPRPTJ("JSON",MYPID)))
- D ASSERT(0,$D(^VPRPTI(MYPID)))
+ D ASSERT(0,$D(^VPRPT(VPRJPID,MYPID)))
+ D ASSERT(0,$D(^VPRPTJ("JSON",VPRJPID,MYPID)))
+ D ASSERT(0,$D(^VPRPTI(VPRJPID,MYPID)))
+ D ASSERT(0,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")))
  Q
 DELCLTN ;; @TEST delete collection via REST
- N HTTPERR,X
- S X=$O(^VPRPT(VPRJTPID,"urn:va:med:")) D ASSERT(1,+(X["med"))
+ N HTTPERR,X,PTIME,TIME,VPRJPID
+ ; The hang commands are necessary to ensure subsequent accesses on the lastAccessTime node don't happen within the same second
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ D ASSERT(1,$G(VPRJPID)'="","JPID doesn't exist for this patient")
+ I $G(VPRJPID)="" QUIT
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")),"lastAccessTime doesn't exist for this patient")
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ S X=$O(^VPRPT(VPRJPID,VPRJTPID,"urn:va:med:")) D ASSERT(1,+(X["med"))
  D SETDEL^VPRJTX("/vpr/"_VPRJTPID_"/collection/med")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
- S X=$O(^VPRPT(VPRJTPID,"urn:va:med:")) D ASSERT(0,+(X["med"))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ S X=$O(^VPRPT(VPRJPID,VPRJTPID,"urn:va:med:")) D ASSERT(0,+(X["med"))
+ Q
+DELSITE ;; @TEST REST endpoint to delete a site's patient data
+ N HTTPERR,PID1,PID2,JPID1,JPID2
+ S PID1="93EF;-7"
+ S PID2="93DD;-7"
+ S JPID=$$JPID4PID^VPRJPR(PID1)
+ D SETPUT^VPRJTX("/vpr","DEMOG7","VPRJTP01")
+ ; Kill non-primary sites to test lastAccessTime
+ K ^VPRPTJ("JPID","1HDR;-7")
+ K ^VPRPTJ("JPID","1HDR;-777V123777")
+ K ^VPRPTJ("JPID","HDR1;-777V123777")
+ K ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","1HDR;-7")
+ K ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","1HDR;-777V123777")
+ K ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","HDR1;-777V123777")
+ D ASSERT(10,$D(^VPRPT(JPID,PID1)))
+ D ASSERT(10,$D(^VPRPTJ("JSON",JPID,PID1)))
+ D ASSERT(10,$D(^VPRPTJ("TEMPLATE",JPID,PID1)))
+ D ASSERT(1,^VPRPTI(JPID,PID1,"tally","collection","patient"))
+ D ASSERT(10,$D(^VPRPT(JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTJ("JSON",JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTJ("TEMPLATE",JPID,PID2)))
+ D ASSERT(1,^VPRPTI(JPID,PID2,"tally","collection","patient"))
+ D SETDEL^VPRJTX("/vpr/site/93EF")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D ASSERT(0,$D(^VPRPT(JPID,PID1)))
+ D ASSERT(0,$D(^VPRPTJ("JSON",JPID,PID1)))
+ D ASSERT(0,$D(^VPRPTJ("TEMPLATE",JPID,PID1)))
+ D ASSERT(0,^VPRPTI(JPID,PID1,"tally","collection","patient"))
+ D ASSERT(10,$D(^VPRPT(JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTJ("JSON",JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTJ("TEMPLATE",JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTI(JPID,PID2)))
+ D ASSERT(1,$D(^VPRMETA("JPID",JPID,"lastAccessTime")))
+ D SETDEL^VPRJTX("/vpr/site/93DD")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D ASSERT(0,$D(^VPRPT(JPID,PID1)))
+ D ASSERT(0,$D(^VPRPTJ("JSON",JPID,PID1)))
+ D ASSERT(0,$D(^VPRPTJ("TEMPLATE",JPID,PID1)))
+ D ASSERT(0,$D(^VPRPT(JPID,PID2)))
+ D ASSERT(0,$D(^VPRPTJ("JSON",JPID,PID2)))
+ D ASSERT(0,$D(^VPRPTJ("TEMPLATE",JPID,PID2)))
+ D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")))
+ Q
+GETDMOG1 ;; @TEST try to get demographics when none on file ICN
+ ; Ensure requried variables are clean
+ N HTTPERR
+ K ^TMP("HTTPERR",$J)
+ ; Setup Patient Asssociations
+ S ^VPRPTJ("JPID","8765;-1")="52833885-af7c-4899-90be-b3a6630b2373"
+ S ^VPRPTJ("JPID","-222V123222")="52833885-af7c-4899-90be-b3a6630b2373"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2373")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2373","8765;-1")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2373","-222V123222")=""
+ ; Try to get demographics for ICN
+ D SETGET^VPRJTX("vpr/mpid/-222V123222")
+ D RESPOND^VPRJRSP
+ D ASSERT(HTTPERR,400,"HTTPERR isn't set and should be")
+ D ASSERT($G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
+ Q
+GETDMOG2 ;; @TEST try to get demographics when none on file PID
+ ; Ensure requried variables are clean
+ N HTTPERR
+ K ^TMP("HTTPERR",$J)
+ ; Setup Patient Asssociations
+ S ^VPRPTJ("JPID","8765;-1")="52833885-af7c-4899-90be-b3a6630b2373"
+ S ^VPRPTJ("JPID","-222V123222")="52833885-af7c-4899-90be-b3a6630b2373"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2373")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2373","8765;-1")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2373","-222V123222")=""
+ ; Try to get demographics for PID
+ D SETGET^VPRJTX("vpr/mpid/8765;-1")
+ D RESPOND^VPRJRSP
+ D ASSERT(HTTPERR,400,"HTTPERR isn't set and should be")
+ D ASSERT($G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
  Q

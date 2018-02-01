@@ -1,21 +1,26 @@
 VPRJREQ ;SLC/KCM -- Listen for HTTP requests
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
  ; Listener Process ---------------------------------------
  ;
 START(TCPPORT) ; set up listening for connections
  Q:$G(^VPRHTTP(0,"updating"))        ; don't allow starting during upgrade
  ;
+ N FLG
+ S TCPPORT=$G(TCPPORT,9080)
+ ;
  ; Setup for different M implementations/Virtual machines
  N OS S OS=$S(+$SY=47:"GT.M",+$SY=50:"MV1",1:"CACHE") ; Get Mumps Virtual Machine
- I OS="GT.M" S @("$ZINTERRUPT=""I $$JOBEXAM^VPRJREQ($ZPOSITION)""") ; for GT.M, set interrupt.
+ I OS="GT.M" D  ; for GT.M, set interrupt.
+ . I $T(JOBEXAM^ZSY)]"" S $ZINT="I $$JOBEXAM^ZSY($ZPOS),$$JOBEXAM^VPRJREQ($ZPOS)"
+ . E  S $ZINTERRUPT="I $$JOBEXAM^VPRJREQ($ZPOSITION)" 
  ;
  ; Device ID
+ S TCPPORT=+$G(TCPPORT)
  I OS="CACHE" S TCPIO="|TCP|"_TCPPORT
  I OS="GT.M" S TCPIO="SCK$"_TCPPORT
  ;
  ; Open Code
- I OS="CACHE" O TCPIO:(:TCPPORT:"ACT"):15 E  U 0 W !,"error cannot open port "_TCPPORT Q
+ I OS="CACHE" O TCPIO:(/ACCEPT=1:/CRLF=1:/TMODE=1:/PORT=TCPPORT:/NOXY=1:/CONNECTIONS=1000:/IBUFSIZE=$G(^VPRCONFIG("HTTP","inputBuffer"),1048576):/OBUFSIZE=$G(^VPRCONFIG("HTTP","outputBuffer"),1048576)):15 E  U 0 W !,"error" QUIT
  I OS="GT.M" O TCPIO:(LISTEN=TCPPORT_":TCP":delim=$C(13,10):attach="server"):15:"socket" E  U 0 W !,"error cannot open port "_TCPPORT Q
  ;
  ; Now we are really really listening.
@@ -29,7 +34,12 @@ START(TCPPORT) ; set up listening for connections
  N CHILDSOCK  ; That will be set below; Child socket
  ;
 LOOP ; wait for connection, spawn process to handle it
- I $E(^VPRHTTP(0,"listener"),1,4)="stop" C TCPIO S ^VPRHTTP(0,"listener")="stopped" Q
+ S FLG=0
+ I $D(^VPRHTTP(TCPPORT,"listener"))#2,$E(^VPRHTTP(TCPPORT,"listener"),1,4)="stop" D
+ . C TCPIO
+ . S ^VPRHTTP(TCPPORT,"listener")="stopped"
+ . S FLG=1
+ I FLG QUIT
  D CHRON
  ;
  ; ---- CACHE CODE ----
@@ -92,7 +102,8 @@ ESECS(TS) ; return elapsed seconds since TS (in $H format)
  ;
 GTMLNX  ;From Linux xinetd script; $P is the main stream
  S ^VPRHTTP(0,"listener")="starting"
- S @("$ZINTERRUPT=""I $$JOBEXAM^VPRJREQ($ZPOSITION)""")
+ I $T(JOBEXAM^ZSY)]"" S $ZINT="I $$JOBEXAM^ZSY($ZPOS),$$JOBEXAM^VPRJREQ($ZPOS)"
+ E  S $ZINT="I $$JOBEXAM^VPRJREQ($ZPOS)"
  X "U $P:(nowrap:nodelimiter:ioerror=""ETSOCK"")"
  S %="",@("%=$ZTRNLNM(""REMOTE_HOST"")") S:$L(%) IO("IP")=%
  G CHILD
@@ -128,14 +139,14 @@ NEXT ; begin next request
  I HTTPLOG=2,'$D(HTTPLOG("path")) S HTTPLOG("path")=$G(^VPRHTTP(0,"logging","path"))
  ;
 WAIT ; wait for request on this connection
- I $E($G(^VPRHTTP(0,"listener")),1,4)="stop" C TCP Q
  X:OS="CACHE" "U TCP:(::""CT"")" ;VEN/SMH - Cache Only line; Terminators are $C(10,13)
  X:OS="GT.M" "U TCP:(delim=$C(13,10))" ; VEN/SMH - GT.M Delimiters
- R TCPX:10 I '$T G ETDC
- I '$L(TCPX) G ETDC
+ R TCPX:10 I '$T G WAIT
+ I '$L(TCPX) G WAIT
  ;
  ; -- got a request and have the first line
- D INCRLOG ; set unique request id
+ ; only increment the logger if we have logging enabled
+ D:HTTPLOG INCRLOG ; set unique request id
  I HTTPLOG>3 D LOGRAW(TCPX)
  S HTTPREQ("line1")=TCPX
  S HTTPREQ("method")=$P(TCPX," ")
@@ -236,26 +247,17 @@ ETCODE ; error trap when calling out to routines
  ; for the next HTTP request (goto NEXT).
  S $ETRAP="Q:$ESTACK&$QUIT 0 Q:$ESTACK  S $ECODE="""" G NEXT"
  Q
-ETDC ; error trap for client disconnect ; not a true M trap
- D LOGDC
- K ^TMP($J),^TMP("HTTPERR",$J)
- C $P  
- HALT ; Stop process 
- ;
 ETBAIL ; error trap of error traps
  U TCP
  W "HTTP/1.1 500 Internal Server Error",$C(13,10),$C(13,10),!
+ C TCP H 1
  K ^TMP($J),^TMP("HTTPERR",$J)
- C TCP
  HALT  ; exit because we can't recover
  ;
 INCRLOG ; get unique log id for each request
  N DT,ID
  S DT=HTTPLOG("DT")
- L +^VPRHTTP("log",DT):2 E  S HTTPLOG("ID")=99999 Q  ; get unique logging session
- S ID=$G(^VPRHTTP("log",DT),0)+1
- S ^VPRHTTP("log",DT)=ID
- L -^VPRHTTP("log",DT)
+ S ID=$I(^VPRHTTP("log",DT))
  S HTTPLOG("ID")=ID
  Q
 LOGGING ; log non-error information based on log level
@@ -290,15 +292,18 @@ LOGRAW(X) ; log raw lines read in
  S ^VPRHTTP("log",DT,$J,ID,"raw",LN,"ZB")=$A($ZB)
  Q
 LOGERR ; log error information
+ ; Always increment the log id for errors
+ D INCRLOG
  N %D,%I
  S %D=HTTPLOG("DT"),%I=HTTPLOG("ID")
- S ^VPRHTTP("log",%D,$J,%I,"error")=$ZERROR_"  ($ECODE:"_$ECODE_")"
+ N ISGTM S ISGTM=$P($SYSTEM,",")=47
+ S ^VPRHTTP("log",%D,$J,%I,"error")=$S(ISGTM:$ZSTATUS,1:$ZERROR_"  ($ECODE:"_$ECODE_")")
  N %LVL,%TOP,%N
  S %TOP=$STACK(-1),%N=0
  F %LVL=0:1:%TOP S %N=%N+1,^VPRHTTP("log",%D,$J,%I,"error","stack",%N)=$STACK(%LVL,"PLACE")_":"_$STACK(%LVL,"MCODE")
  N %X,%Y
  S %X="^VPRHTTP(""log"",%D,$J,%I,""error"",""symbols"","
- ;TODO make the following loop work also in GTM (DOLRO^%ZOSV)
+ ;
  S %Y="%" F  M:$D(@%Y) @(%X_"%Y)="_%Y) S %Y=$O(@%Y) Q:%Y=""
  ;
  D LOGGING
