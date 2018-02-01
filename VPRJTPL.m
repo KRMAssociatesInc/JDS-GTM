@@ -57,7 +57,7 @@ PATIDS ; Setup patient identifiers
  Q
  ;
 KILLIDS
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRPTJ("JPID","ZZUT;3")
  K ^VPRPTJ("JPID","ZZUT1;3")

@@ -252,7 +252,7 @@ PATDATA ;; @TEST Ensure previous versions of patient data are garbage collected
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  ; Ensure previous version of object is gone
  D ASSERT(0,$D(^VPRPT(JPID,PID,UID,METASTAMP1)),"Previous medication ARRAY version found and it shouldn't be found")
  D ASSERT(10,$D(^VPRPT(JPID,PID,UID,METASTAMP2)),"Current medication ARRAY version not found and it should be found")
@@ -281,7 +281,7 @@ PATDATA2 ;; @TEST Ensure previous versions of patient data are garbage collected
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  ; Ensure previous version of object is gone
  D ASSERT(0,$D(^VPRPT(JPID,PID,UID,METASTAMP1)),"Previous medication ARRAY version found and it shouldn't be found")
  D ASSERT(10,$D(^VPRPT(JPID,PID,UID,METASTAMP2)),"Current medication ARRAY version not found and it should be found")
@@ -309,7 +309,7 @@ PATDATAll ;; @TEST Ensure previous versions of patient data are garbage collecte
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  F PID="93EF;-7","93EF;-8" D
  . S PID2=$TR(PID,";",":")
  . S UID="urn:va:med:"_PID2_":15231"
@@ -340,7 +340,7 @@ PATDATAll2 ;; @TEST Ensure previous versions of patient data are garbage collect
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  F PID="93EF;-7","93EF;-8" D
  . S PID2=$TR(PID,";",":")
  . S UID="urn:va:med:"_PID2_":15231"
@@ -371,7 +371,7 @@ OPDATA ;; @TEST  Ensure previous versions of operational data are garbage collec
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  ; Ensure previous version of object is gone
  D ASSERT(0,$D(^VPRJD(UID,METASTAMP1)),"Previous test ARRAY version found and it shouldn't be found")
  D ASSERT(10,$D(^VPRJD(UID,METASTAMP2)),"Current test ARRAY version not found and it should be found")
@@ -396,7 +396,7 @@ OPDATA2 ;; @TEST Ensure previous versions of operational data are garbage collec
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  ; Ensure previous version of object is gone
  D ASSERT(0,$D(^VPRJD(UID,METASTAMP1)),"Previous test ARRAY version found and it shouldn't be found")
  D ASSERT(10,$D(^VPRJD(UID,METASTAMP2)),"Current test ARRAY version not found and it should be found")
@@ -421,7 +421,7 @@ OPDATAM ;; @TEST  Ensure previous versions of multipleoperational data are garba
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  F SITE="F111","F112" D
  . S UID="urn:va:test:"_SITE_":4"
  . ; Ensure previous version of object is gone
@@ -448,7 +448,7 @@ OPDATA2M ;; @TEST Ensure previous versions of multiple operational data are garb
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  F SITE="F111","F112" D
  . S UID="urn:va:test:"_SITE_":4"
  . ; Ensure previous version of object is gone
@@ -522,7 +522,7 @@ JOBDATA ;; @TEST Ensure previous versions of patient job data are garbage collec
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  ; Ensure that the correct jobs remain, and the correct jobs are gone
  ; ^VPRJOB(Sequential counter)=Passed JSON Object
  D ASSERT(0,$D(^VPRJOB(1)),"Earlier job ARRAY found and it should not be found")
@@ -645,7 +645,7 @@ JOBMDATA ;; @TEST Ensure previous versions of patient job data are garbage colle
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  ; Ensure that the correct jobs remain, and the correct jobs are gone
  ; ^VPRJOB(Sequential counter)=Passed JSON Object
  D ASSERT(0,$D(^VPRJOB(1)),"Earlier job ARRAY found and it should not be found")
@@ -865,7 +865,7 @@ JOBDATAll ;; @TEST Ensure previous versions of patient job data are garbage coll
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  ; Ensure that the correct jobs remain, and the correct jobs are gone
  ; ^VPRJOB(Sequential counter)=Passed JSON Object
  D ASSERT(0,$D(^VPRJOB(1)),"Earlier job ARRAY found and it should not be found")
@@ -1094,7 +1094,7 @@ JOBMDATALL ;; @TEST Ensure previous versions of patient job data are garbage col
  ; Wait for job to finish
  H 1
  ; Ensure HTTP Request had no errors
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"Error during HTTP rquest")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"Error during HTTP rquest")
  ; Ensure that the correct jobs remain, and the correct jobs are gone
  ; ^VPRJOB(Sequential counter)=Passed JSON Object
  D ASSERT(0,$D(^VPRJOB(1)),"Earlier job ARRAY found and it should not be found")

@@ -10,12 +10,12 @@ VPRJTSYNCOD ;KRM/CJE -- Unit Tests for SET Operational Sync Status
 STARTUP  ; Run once before all tests
  K ^VPRSTATUSOD("ZZUT")
  K ^VPRSTATUSOD("1ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 SHUTDOWN ; Run once after all tests
  K ^VPRSTATUSOD("ZZUT")
  K ^VPRSTATUSOD("1ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 ASSERT(EXPECT,ACTUAL,MSG) ; for convenience
  D EQ^VPRJT(EXPECT,ACTUAL,$G(MSG))
@@ -27,107 +27,107 @@ SYNCSTAT(RETURN,SITE) ; Sync status for a site
 SETNSITE ;; @TEST Error code is set if no site
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Null Site
  D SYNCSTAT(.BODY,"")
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"An Operational Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(227,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 227 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(227,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 227 error should exist")
  ; Non-existant Site
  K BODY,ARG,RETURN
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTAT(.BODY,"")
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"An Operational Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(227,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 227 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(227,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 227 error should exist")
  ; Cleanup Vars
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 SETNSRCST ;; @TEST Error code is set if no source stampTime
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Null source stampTime
  S BODY(1)=" { ""stampTime"": ""20141031094920"",""sourceMetaStamp"": { ""ZZUT"": { ""stampTime"": """",""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": ""20141031094922"",""itemMetaStamp"": {  ""urn:va:allergy:ZZUT:1001"": { ""stampTime"": ""20141031094923"" }, ""urn:va:allergy:ZZUT:1002"": { ""stampTime"": ""20141031094924"" } } },""vitals"": { ""domain"": ""vitals"",""stampTime"": ""20141031094925"",""itemMetaStamp"": { ""urn:va:vitals:ZZUT:1001"": { ""stampTime"": ""20141031094926"" },""urn:va:vitals:ZZUT:1002"": { ""stampTime"": ""20141031094927"" } } } } }"
  S ARG("id")=""
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"An Operational Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  ; Cleanup Vars
  K RETURN,ARG,BODY
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Non-existant source stampTime
  S BODY(1)=" { ""stampTime"": ""20141031094920"",""sourceMetaStamp"": { ""ZZUT"": { ""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": ""20141031094922"",""itemMetaStamp"": {  ""urn:va:allergy:ZZUT:1001"": { ""stampTime"": ""20141031094923"" }, ""urn:va:allergy:ZZUT:1002"": { ""stampTime"": ""20141031094924"" } } },""vitals"": { ""domain"": ""vitals"",""stampTime"": ""20141031094925"",""itemMetaStamp"": { ""urn:va:vitals:ZZUT:1001"": { ""stampTime"": ""20141031094926"" },""urn:va:vitals:ZZUT:1002"": { ""stampTime"": ""20141031094927"" } } } } }"
  S ARG("id")=""
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"An Operational Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  ; Cleanup Vars
  K RETURN,ARG,BODY
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 SETNDOMST ;; @TEST Error code is set if no domain stampTime
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Null domain stampTime
  S BODY(1)=" { ""stampTime"": ""20141031094920"",""sourceMetaStamp"": { ""ZZUT"": { ""stampTime"": ""20141031094921"",""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": """",""itemMetaStamp"": {  ""urn:va:allergy:ZZUT:1001"": { ""stampTime"": ""20141031094923"" }, ""urn:va:allergy:ZZUT:1002"": { ""stampTime"": ""20141031094924"" } } },""vitals"": { ""domain"": ""vitals"",""stampTime"": ""20141031094925"",""itemMetaStamp"": { ""urn:va:vitals:ZZUT:1001"": { ""stampTime"": ""20141031094926"" },""urn:va:vitals:ZZUT:1002"": { ""stampTime"": ""20141031094927"" } } } } }"
  S ARG("id")=""
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"An Operational Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  ; Cleanup Vars
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Non-existant domain stampTime
  S BODY(1)=" { ""stampTime"": ""20141031094920"",""sourceMetaStamp"": { ""ZZUT"": { ""stampTime"": ""20141031094921"",""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": ""20141031094922"",""itemMetaStamp"": {  ""urn:va:allergy:ZZUT:1001"": { ""stampTime"": ""20141031094923"" }, ""urn:va:allergy:ZZUT:1002"": { ""stampTime"": ""20141031094924"" } } },""vitals"": { ""domain"": ""vitals"",""itemMetaStamp"": { ""urn:va:vitals:ZZUT:1001"": { ""stampTime"": ""20141031094926"" },""urn:va:vitals:ZZUT:1002"": { ""stampTime"": ""20141031094927"" } } } } }"
  S ARG("id")=""
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"An Operational Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  ; Cleanup Vars
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 SETNITMST ;; @TEST Error code is set if no item stampTime
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Null item stampTime
  S BODY(1)=" { ""stampTime"": ""20141031094920"",""sourceMetaStamp"": { ""ZZUT"": { ""stampTime"": ""20141031094921"",""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": ""20141031094922"",""itemMetaStamp"": {  ""urn:va:allergy:ZZUT:1001"": { ""stampTime"": ""20141031094923"" }, ""urn:va:allergy:ZZUT:1002"": { ""stampTime"": ""20141031094924"" } } },""vitals"": { ""domain"": ""vitals"",""stampTime"": ""20141031094925"",""itemMetaStamp"": { ""urn:va:vitals:ZZUT:1001"": { ""stampTime"": """" },""urn:va:vitals:ZZUT:1002"": { ""stampTime"": ""20141031094927"" } } } } }"
  S ARG("id")=""
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"An Operational Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  ; Cleanup Vars
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Non-existant item stampTime
  S BODY(1)=" { ""stampTime"": ""20141031094920"",""sourceMetaStamp"": { ""ZZUT"": { ""stampTime"": ""20141031094921"",""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": ""20141031094922"",""itemMetaStamp"": {  ""urn:va:allergy:ZZUT:1001"": { ""stampTime"": ""20141031094923"" }, ""urn:va:allergy:ZZUT:1002"": { ""stampTime"": ""20141031094924"" } } },""vitals"": { ""domain"": ""vitals"",""stampTime"": ""20141031094925"",""itemMetaStamp"": { ""urn:va:vitals:ZZUT:1001"": { ""something"":""test"" },""urn:va:vitals:ZZUT:1002"": { ""stampTime"": ""20141031094927"" } } } } }"
  S ARG("id")=""
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"An Operational Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  ; Cleanup Vars
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 SETONE ;; @TEST SET one site operational Sync Status
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
  K ^VPRSTATUSOD("1ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTAT(.BODY,"ZZUT")
  S ARG("id")="ZZUT"
  S ARG("detailed")="true"
@@ -143,7 +143,7 @@ SETONE ;; @TEST SET one site operational Sync Status
  ; Cleanup Vars
  K ^VPRSTATUSOD("ZZUT")
  K ^VPRSTATUSOD("1ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Run single test again with 1ZZUT
  D SYNCSTAT(.BODY,"1ZZUT")
  S ARG("id")="1ZZUT"
@@ -162,7 +162,7 @@ SETTWO ;; @TEST SET two site Operational Data Sync Status
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
  K ^VPRSTATUSOD("1ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; ZZUT
  D SYNCSTAT(.BODY,"ZZUT")
  S ARG("id")="ZZUT"
@@ -194,39 +194,39 @@ GETNSITE ;; @TEST Error code is set if no site data
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
  K ^VPRSTATUSOD("1ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Null Site
  S ARG("id")=""
  D GET^VPRJDSTATUS(.BODY,.ARG)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"A Operational Data Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(241,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 241 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(241,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 241 error should exist")
  ; Non-existant Site
  K ARG,BODY
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D GET^VPRJDSTATUS(.BODY,.ARG)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"A Operational Data Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(241,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 241 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(241,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 241 error should exist")
  Q
 GETBJSONE ;;  Error code is set if JSON can't be encoded
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
  K ^VPRSTATUSOD("1ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Null Site
  S ARG("id")=""
  D GET^VPRJDSTATUS(.BODY,.ARG)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"A Operational Data Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(211,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 211 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(211,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 211 error should exist")
  ; Non-existant Site
  D SYNCSTAT(.BODY,"")
  S ARG("id")=""
  D GET^VPRJDSTATUS(.BODY,.ARG)
  D ASSERT("",$G(^VPRSTATUSOD("ZZUT","stampTime")),"A Operational Data Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(211,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 211 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(211,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 211 error should exist")
  Q
 BLANK ; basic sync status
  K ^VPRSTATUSOD
@@ -288,7 +288,7 @@ BLANK2DIFF ; basic sync status
  ;
 GETINITIAL ;; @TEST Get Initial Operational Data Sync Status
  N DATA,ARG,ERR,OBJECT,HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D BLANK
  S ARG("id")="ZZUT"
  S ARG("detailed")="true"
@@ -730,7 +730,7 @@ GET2DIFFSOURCE ;; @TEST Get Operational Data Sync Status - Allergy and Vitals St
  ;
 GETFILTER ;; @TEST Get Operational Data Sync Status with filters
  N DATA,ARG,ERR,OBJECT,HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D BLANK3
  ;
  S ARG("id")="ZZUT"
@@ -812,7 +812,7 @@ DELONE ;; @TEST DELETE one site operational Sync Status
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
  K ^VPRSTATUSOD("1ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Store some data so we can delete it
  D SYNCSTAT(.BODY,"ZZUT")
  S ARG("id")="ZZUT"
@@ -848,7 +848,7 @@ DELALL ;; @TEST DELETE ALL site operational Sync Status
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
  K ^VPRSTATUSOD("1ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTAT(.BODY,"ZZUT")
  S ARG("id")="ZZUT"
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
@@ -879,7 +879,7 @@ SETGET ;; @TEST with realistic data for setting and retrieving an site operation
  N DATA,ARG,ERR,OBJECT,RETURN,BODY,HTTPERR
  ; Store the data
  K ^VPRSTATUSOD("DBCA")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  S BODY(1)="{""stampTime"": ""20141031094920"",""sourceMetaStamp"": {""DCBA"": {""stampTime"": ""20141031094920"",""domainMetaStamp"": {""doc-def"": {""domain"": ""doc-def"",""stampTime"": ""20141031094920"",""itemMetaStamp"": {""urn:va:doc-def:DCBA:1001"": {""stampTime"": ""20141031094920"" },""urn:va:doc-def:DCBA:1002"": {""stampTime"": ""20141031094920"",}}},""pt-select"": {""domain"": ""pt-select"",""stampTime"": ""20141031094920"",""itemMetaStamp"": {""urn:va:pt-select:DCBA:1001"": {""stampTime"": ""20141031094920"",},""urn:va:pt-select:DCBA:1002"": {""stampTime"": ""20141031094920"",}}}}}}}"
  S ARG("id")="DBCA"
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
@@ -926,7 +926,7 @@ SETGET2 ;; @TEST with realistic data for setting and retrieving an site operatio
  N DATA,ARG,ERR,OBJECT,RETURN,BODY,JSON,RSLT,HTTPERR
  ; Store the data
  K ^VPRSTATUSOD("DBCA")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  S BODY(1)="{""stampTime"": ""20141031094920"",""sourceMetaStamp"": {""DCBA"": {""stampTime"": ""20141031094920"",""domainMetaStamp"": {""doc-def"": {""domain"": ""doc-def"",""stampTime"": ""20141031094920"",""itemMetaStamp"": {""urn:va:doc-def:DCBA:1001"": {""stampTime"": ""20141031094920"" },""urn:va:doc-def:DCBA:1002"": {""stampTime"": ""20141031094920"",}}},""pt-select"": {""domain"": ""pt-select"",""stampTime"": ""20141031094920"",""itemMetaStamp"": {""urn:va:pt-select:DCBA:1001"": {""stampTime"": ""20141031094920"",},""urn:va:pt-select:DCBA:1002"": {""stampTime"": ""20141031094920"",}}}}}}}"
  S ARG("id")="DBCA"
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
@@ -1022,10 +1022,12 @@ SETGET2 ;; @TEST with realistic data for setting and retrieving an site operatio
  K ^VPRJDJ("JSON","urn:va:pt-select:DCBA:1002")
  K ^VPRJD("urn:va:pt-select:DCBA:1002")
  Q
-SETERRLCK ;; @TEST Error due locked event (2 second wait)
+SETERRLCK ;; TEST Error due locked event (2 second wait)
+ ; Disable test if process-private globals are in use.
+ ; This test relies on getting HTTPERR from a JOB'ed process
  N RETURN,BODY,ARG,TIMEOUT,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Temporaraily reset timeout value to a low number so unit tests don't take forever
  S TIMEOUT=^VPRCONFIG("timeout")
  S ^VPRCONFIG("timeout")=1
@@ -1034,6 +1036,8 @@ SETERRLCK ;; @TEST Error due locked event (2 second wait)
  S ARG("id")="ZZUT"
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
  ; Begin storing a record
+ ; This uses ^TMP("ZZUT") for IPC to simulate multiple jobs storing at the same time.
+ ; This can't use process-private globals if available.
  L +^VPRSTATUSOD("ZZUT","allergy","urn:va:allergy:ZZUT:1001",20141031094923):$G(^VPRCONFIG("timeout"),5) E  S ^TMP("ZZUT","LOCK")=1 Q
  S ^VPRSTATUSOD("ZZUT","allergy","urn:va:allergy:ZZUT:1001",20141031094923,"stored")=1
  ; Attempt to store new metastamp while record is still in progress
@@ -1041,8 +1045,8 @@ SETERRLCK ;; @TEST Error due locked event (2 second wait)
  H 2
  ; Ensure error codition exists
  D ASSERT("",$G(^TMP("ZZUT","LOCK")),"Record lock not acquired")
- D ASSERT(500,$G(^TMP("HTTPERR",$G(^TMP("ZZUT","STOREJOB")),1,"error","code")),"An HTTP 500 should exist")
- D ASSERT(502,$G(^TMP("HTTPERR",$G(^TMP("ZZUT","STOREJOB")),1,"error","errors",1,"reason")),"A 502 error should exist")
+ D ASSERT(500,$G(^||TMP("HTTPERR",$G(^TMP("ZZUT","STOREJOB")),1,"error","code")),"An HTTP 500 should exist")
+ D ASSERT(502,$G(^||TMP("HTTPERR",$G(^TMP("ZZUT","STOREJOB")),1,"error","errors",1,"reason")),"A 502 error should exist")
  ; Ensure locks are removed
  L -^VPRSTATUSOD("ZZUT","allergy","urn:va:allergy:ZZUT:1001",20141031094923)
  ; Ensure temp global is cleaned up
@@ -1053,6 +1057,8 @@ SETERRLCK ;; @TEST Error due locked event (2 second wait)
  Q
 STORE
  S BODY(1)=" { ""stampTime"": ""20141031094922"",""sourceMetaStamp"": { ""ZZUT"": { ""stampTime"": ""20141031094922"",""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": ""20141031094922"",""itemMetaStamp"": {  ""urn:va:allergy:ZZUT:1001"": { ""stampTime"": ""20141031094927"" } } } } } } }"
+ ; This uses ^TMP("ZZUT") for IPC to simulate multiple jobs storing at the same time.
+ ; This can't use process-private globals if available.
  S ^TMP("ZZUT","STOREJOB")=$J
  S ARG("id")="ZZUT"
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
@@ -1060,7 +1066,7 @@ STORE
 STAMPMRG ;; @TEST Merge of metaStamps
  N RETURN,BODY,ARG,TIMEOUT,HTTPERR
  K ^VPRSTATUSOD("ZZUT")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Setup initial metastamp
  D SYNCSTAT(.BODY,"ZZUT")
  S ARG("id")="ZZUT"
@@ -1087,7 +1093,7 @@ SETGETNUM ;; @TEST Operational data store/retrieve with fully numeric metastamp
  N DATA,ARG,ERR,OBJECT,RETURN,BODY,HTTPERR,LOC
  ; Store the data
  K ^VPRSTATUSOD("1234")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  S BODY(1)="{""stampTime"":""20150717104657"",""sourceMetaStamp"":{""1234"":{""stampTime"":""20150717104657"",""domainMetaStamp"":{""asu-class"":{""domain"":""asu-class"",""stampTime"":""20150717104657"",""itemMetaStamp"":{""urn:va:asu-class:1234:100"":{""stampTime"":""20150717102913""}}}}}}}"
  S ARG("id")="1234"
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)
@@ -1128,7 +1134,7 @@ GETNODOMAINSTAMP ;; @TEST Domain syncComplete only if a domainStamp exists
  N DATA,ARG,ERR,OBJECT,RETURN,BODY,HTTPERR
  ; Store the data
  K ^VPRSTATUSOD("DBCA")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  S BODY(1)="{""stampTime"": ""20141031094920"",""sourceMetaStamp"": {""DCBA"": {""stampTime"": ""20141031094920"",""domainMetaStamp"": {""doc-def"": {""domain"": ""doc-def"",""stampTime"": ""20141031094920"",""itemMetaStamp"": {""urn:va:doc-def:DCBA:1001"": {""stampTime"": ""20141031094920"" },""urn:va:doc-def:DCBA:1002"": {""stampTime"": ""20141031094920"",}}},""pt-select"": {""domain"": ""pt-select"",""stampTime"": ""20141031094920"",""itemMetaStamp"": {""urn:va:pt-select:DCBA:1001"": {""stampTime"": ""20141031094920"",},""urn:va:pt-select:DCBA:1002"": {""stampTime"": ""20141031094920"",}}}}}}}"
  S ARG("id")="DBCA"
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)

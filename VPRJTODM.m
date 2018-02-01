@@ -27,10 +27,10 @@ SETJSONERR ;; @TEST Error code is set if JSON is mangled in PUT/POST
  ; Send it to the URL
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJODM("ZZUT")),"A operational data mutable exists and it should not")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
- D ASSERT(202,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 202 reason code should have occurred")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
+ D ASSERT(202,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 202 reason code should have occurred")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 SETIDRR ;; @TEST Error code is set if no ID
  N RETURN,BODY,ARG,HTTPERR
@@ -38,31 +38,31 @@ SETIDRR ;; @TEST Error code is set if no ID
  S BODY(1)=$$SITEOD("","lastUpdate","20150127-1000")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJODM("ZZUT")),"A operational data mutable exists and it should not")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
- D ASSERT(220,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 220 reason code should have occurred")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
+ D ASSERT(220,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 220 reason code should have occurred")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K BODY,RETURN,ARG
  ; Try with a non existant _id field
  S BODY(1)="{""ZZUT"": ""20150127-1000""}"
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(0,$D(^VPRJODM("ZZUT")),"A operational data mutable exists and it should not")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
- D ASSERT(220,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 220 reason code should have occurred")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 error should have occured")
+ D ASSERT(220,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 220 reason code should have occurred")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 SET1 ;; @TEST Store one operational data mutable
  N RETURN,BODY,ARG,HTTPERR
  S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-1000")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"A operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1000",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup ^VPRJODM
  K ^VPRJODM("ZZUT")
  I $G(^VPRJODM(0))>0 S ^VPRJODM(0)=^VPRJODM(0)-1
@@ -72,33 +72,33 @@ SET2 ;; @TEST Store two operational data mutable
  S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-1000")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"A operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1000",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K RETURN,BODY,ARG
  ; Run it again with a new lastUpdate time
  S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-1500")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"A operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1500",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K RETURN,BODY,ARG
  ; Run it again with a new lastUpdate time that is smaller
  S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-25")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"A operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-25",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup ^VPRJODM
  K ^VPRJODM("ZZUT")
  I $G(^VPRJODM(0))>0 S ^VPRJODM(0)=^VPRJODM(0)-3
@@ -109,10 +109,10 @@ DELIDERR ;; @TEST Error code is set if no Id
  D DEL^VPRJODM(.DATA,.ARGS)
  D ASSERT(0,$D(^VPRJODM("ZZUT")),"A operational data mutable exists and it should not")
  D ASSERT(0,$D(DATA),"No DATA should be returned")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
- D ASSERT(111,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 111 reason code should have occurred")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
+ D ASSERT(111,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 111 reason code should have occurred")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup vars
  K DATA,OBJECT,ERR,ARGS
  ; Try with a blank _id
@@ -120,10 +120,10 @@ DELIDERR ;; @TEST Error code is set if no Id
  D DEL^VPRJODM(.DATA,.ARGS)
  D ASSERT(0,$D(^VPRJODM("ZZUT")),"A operational data mutable exists and it should not")
  D ASSERT(0,$D(DATA),"No DATA should be returned")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
- D ASSERT(111,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 111 reason code should have occurred")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
+ D ASSERT(111,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 111 reason code should have occurred")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 DEL ;; @TEST Delete operational data mutable
  N RETURN,BODY,ARG,DATA,ARGS,OBJECT,ERR,HTTPERR
@@ -131,11 +131,11 @@ DEL ;; @TEST Delete operational data mutable
  S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-1000")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"A operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1000",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K BODY,RETURN,ARG
  ; Now delete it
@@ -145,7 +145,7 @@ DEL ;; @TEST Delete operational data mutable
  D ASSERT(0,$D(^VPRJODM("ZZUT")),"A operational data mutable exists and it should not")
  D ASSERT("{}",$G(DATA),"DATA returned from a DELETE call (should not happen)")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 LEN ;; @TEST Get number of operational data mutable
  N RETURN,BODY,ARG,DATA,ARGS,OBJECT,ERR,HTTPERR
@@ -153,42 +153,42 @@ LEN ;; @TEST Get number of operational data mutable
  S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-1000")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"A operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1000",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K BODY,RETURN,ARG
  ; Now get length
  D LEN^VPRJODM(.DATA,.ARGS)
  D DECODE^VPRJSON("DATA","OBJECT","ERR")
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"An HTTP Error Occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"An HTTP Error Occured")
  D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
  D ASSERT(1,$G(OBJECT("length")),"The total number of objects doesn't match1")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K OBJECT,DATA,ERR,ARGS
  ; Create operational data mutable
  S BODY(1)=$$SITEOD("ZZUT1","lastUpdate","20150127-1000")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"A operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1000",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K BODY,RETURN,ARG
  ; Now get length
  D LEN^VPRJODM(.DATA,.ARGS)
  D DECODE^VPRJSON("DATA","OBJECT","ERR")
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"An HTTP Error Occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"An HTTP Error Occured")
  D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
  D ASSERT(2,$G(OBJECT("length")),"The total number of objects doesn't match2")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup ^VPRJODM
  K ^VPRJODM("ZZUT")
  K ^VPRJODM("ZZUT1")
@@ -200,10 +200,10 @@ GETIDERR ;; @TEST Error code is set if no Id
  D GET^VPRJODM(.DATA,.ARGS)
  D ASSERT(0,$D(^VPRJODM("ZZUT")),"A operational data mutable exists and it should not")
  D ASSERT(0,$D(DATA),"No DATA should be returned")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
- D ASSERT(111,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 111 reason code should have occurred")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
+ D ASSERT(111,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 111 reason code should have occurred")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K DATA,OBJECT,ARGS
  ; Try with a null id
@@ -211,20 +211,20 @@ GETIDERR ;; @TEST Error code is set if no Id
  D GET^VPRJODM(.DATA,.ARGS)
  D ASSERT(0,$D(^VPRJODM("ZZUT")),"A operational data mutable exists and it should not")
  D ASSERT(0,$D(DATA),"No DATA should be returned")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
- D ASSERT(111,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 111 reason code should have occurred")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
+ D ASSERT(111,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 111 reason code should have occurred")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 GETJSONERR ;; Error code is set if encoding to JSON fails
  N DATA,ARGS,OBJECT,HTTPERR
  S ARGS("_id")="ZZUT"
  D GET^VPRJODM(.DATA,.ARGS)
  D ASSERT(0,$D(DATA),"No DATA should be returned")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
- D ASSERT(202,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 202 reason code should have occurred")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
+ D ASSERT(202,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 202 reason code should have occurred")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 GET ;; @TEST Get operational data mutable
  N RETURN,ARG,BODY,DATA,ARGS,OBJECT,ERR,HTTPERR
@@ -232,11 +232,11 @@ GET ;; @TEST Get operational data mutable
  S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-1000")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1000",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K RETURN,ARG,BODY
  ; Get the data we stored
@@ -245,22 +245,22 @@ GET ;; @TEST Get operational data mutable
  D DECODE^VPRJSON("DATA","OBJECT","ERR")
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
  D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(OBJECT("_id")),"returned data for the wrong _id")
  D ASSERT("20150127-1000",$G(OBJECT("lastUpdate")),"returned data for lastUpdate didn't match")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K DATA,ARGS,OBJECT,ERR
  ; Create operational data mutable update
  S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-1500")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1500",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K RETURN,ARG,BODY
  ; Get the data we stored update
@@ -269,22 +269,22 @@ GET ;; @TEST Get operational data mutable
  D DECODE^VPRJSON("DATA","OBJECT","ERR")
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
  D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(OBJECT("_id")),"returned data for the wrong _id")
  D ASSERT("20150127-1500",$G(OBJECT("lastUpdate")),"returned data for lastUpdate didn't match")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K DATA,ARGS,OBJECT,ERR
  ; Create second operational data mutable
  S BODY(1)=$$SITEOD("ZZUT1","lastUpdate","20150127-1000")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT1")),"operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT1",$G(^VPRJODM("ZZUT1","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1000",$G(^VPRJODM("ZZUT1","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K RETURN,ARG,BODY
  ; Get second operational data mutable
@@ -293,11 +293,11 @@ GET ;; @TEST Get operational data mutable
  D DECODE^VPRJSON("DATA","OBJECT","ERR")
  D ASSERT(10,$D(^VPRJODM("ZZUT1")),"operational data mutable does not exists and it should")
  D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT1",$G(OBJECT("_id")),"returned data for the wrong _id")
  D ASSERT("20150127-1000",$G(OBJECT("lastUpdate")),"returned data for lastUpdate didn't match")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; leave these around so they can be killed in the next test
  Q
 GETFILTER ;; @TEST Get operational data mutable with filter
@@ -306,22 +306,22 @@ GETFILTER ;; @TEST Get operational data mutable with filter
  S BODY(1)=$$SITEOD("ZZUT","lastUpdate","20150127-1000")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1000",$G(^VPRJODM("ZZUT","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K RETURN,ARG,BODY
  ; Create operational data mutable update
  S BODY(1)=$$SITEOD("ZZUT1","lastUpdate","20150127-1500")
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT1")),"operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT1",$G(^VPRJODM("ZZUT1","_id")),"The _id field was not stored correctly")
  D ASSERT("20150127-1500",$G(^VPRJODM("ZZUT1","lastUpdate")),"The lastUpdate field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K RETURN,ARG,BODY
  ; Get the data we stored update
@@ -329,13 +329,13 @@ GETFILTER ;; @TEST Get operational data mutable with filter
  D GET^VPRJODM(.DATA,.ARGS)
  D DECODE^VPRJSON("DATA","OBJECT","ERR")
  D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(OBJECT("items",1,"_id")),"returned data for the wrong _id")
  D ASSERT("20150127-1000",$G(OBJECT("items",1,"lastUpdate")),"returned data for lastUpdate didn't match")
  D ASSERT("ZZUT1",$G(OBJECT("items",2,"_id")),"returned data for the wrong _id")
  D ASSERT("20150127-1500",$G(OBJECT("items",2,"lastUpdate")),"returned data for lastUpdate didn't match")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K DATA,ARGS,OBJECT,ERR
  ; Get second operational data mutable
@@ -343,11 +343,11 @@ GETFILTER ;; @TEST Get operational data mutable with filter
  D GET^VPRJODM(.DATA,.ARGS)
  D DECODE^VPRJSON("DATA","OBJECT","ERR")
  D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT1",$G(OBJECT("items",1,"_id")),"returned data for the wrong _id")
  D ASSERT("20150127-1500",$G(OBJECT("items",1,"lastUpdate")),"returned data for lastUpdate didn't match")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; leave these around so they can be killed in the next test
  Q
 CLR ;; @TEST Clear ALL operational data mutable
@@ -358,7 +358,7 @@ CLR ;; @TEST Clear ALL operational data mutable
  D ASSERT("{}",$G(DATA),"DATA returned from a DELETE call (should not happen)")
  D ASSERT(10,$D(^VPRJODM),"Global not cleared")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q
 REAL ;; @TEST with realistic data
  N RETURN,ARG,BODY,DATA,ARGS,OBJECT,ERR,HTTPERR
@@ -366,12 +366,12 @@ REAL ;; @TEST with realistic data
  S BODY(1)="{""_id"": ""ZZUT"",""timestamp"": ""3150126-724"",""uid"": ""urn:va:vprupdate:ZZUT""}"
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("3150126-724",$G(^VPRJODM("ZZUT","timestamp")),"The timestamp field was not stored correctly")
  D ASSERT("urn:va:vprupdate:ZZUT",$G(^VPRJODM("ZZUT","uid")),"The uid field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K RETURN,ARG,BODY
  ; Get the data we stored
@@ -380,12 +380,12 @@ REAL ;; @TEST with realistic data
  D DECODE^VPRJSON("DATA","OBJECT","ERR")
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
  D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(OBJECT("_id")),"returned data for the wrong _id")
  D ASSERT("3150126-724",$G(OBJECT("timestamp")),"returned data for timestamp didn't match")
  D ASSERT("urn:va:vprupdate:ZZUT",$G(OBJECT("uid")),"The uid field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup VPRJODM
  D CLR^VPRJODM(.DATA,.ARGS)
  Q
@@ -395,12 +395,12 @@ SETGET ;; @TEST set and get of session data
  S BODY(1)="{""_id"": ""ZZUT"",""timestamp"": ""3150126-724"",""uid"": ""urn:va:vprupdate:ZZUT""}"
  S RETURN=$$SET^VPRJODM(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(^VPRJODM("ZZUT","_id")),"The _id field was not stored correctly")
  D ASSERT("3150126-724",$G(^VPRJODM("ZZUT","timestamp")),"The timestamp field was not stored correctly")
  D ASSERT("urn:va:vprupdate:ZZUT",$G(^VPRJODM("ZZUT","uid")),"The uid field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup Vars
  K RETURN,ARG,BODY
  ; Get the data we stored
@@ -409,12 +409,12 @@ SETGET ;; @TEST set and get of session data
  D DECODE^VPRJSON("DATA","OBJECT","ERR")
  D ASSERT(10,$D(^VPRJODM("ZZUT")),"operational data mutable does not exist and it should")
  D ASSERT(0,$D(ERR),"A JSON Decode Error Occured")
- D ASSERT(0,$D(^TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J,1,"error")),"An HTTP error should NOT have occured")
  D ASSERT("ZZUT",$G(OBJECT("_id")),"returned data for the wrong _id")
  D ASSERT("3150126-724",$G(OBJECT("timestamp")),"returned data for timestamp didn't match")
  D ASSERT("urn:va:vprupdate:ZZUT",$G(OBJECT("uid")),"The uid field was not stored correctly")
  ; Cleanup HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Cleanup VPRJODM
  K DATA,ARGS
  D CLR^VPRJODM(.DATA,.ARGS)

@@ -1,5 +1,4 @@
 VPRJTX ;SLC/KCM -- Utilities for unit tests
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 BLDPT(TAGS) ; Build test patient for integration tests with data in TAGS
  ; TAGS(n)=TAG^RTN  ; entry point for each JSON object, zzzzz terminated
@@ -77,7 +76,7 @@ CLRPT ; Clear test patients
  . D CLEARPT^VPRJPS(ICN)
  K VPRJTPID
  K HTTPREQ,HTTPERR,HTTPRSP
- K ^TMP($J),^TMP("HTTPERR",$J)
+ K ^||TMP($J),^||TMP("HTTPERR",$J)
  Q
 ODSBLD(TAGS) ; Build sample data in non-patient data store
  ; TAGS(n)=TAG^RTN  ; entry point for each JSON object, zzzzz terminated
@@ -93,7 +92,7 @@ ODSCLR ; Clear sample data from non-patient data store
  D DELCTN^VPRJDS("test")
  D DELCTN^VPRJDS("testb")
  D DELCTN^VPRJDS("utestods")
- K ^TMP($J),^TMP("HTTPERR",$J)
+ K ^||TMP($J),^||TMP("HTTPERR",$J)
  Q
 GETDATA(TAG,RTN,DATA) ; load data from TAG^RTN into .DATA until zzzzz
  N I,L,X,OBJ
@@ -122,6 +121,16 @@ SETPUT(URL,TAG,RTN,SKIP) ; set up a PUT request based on data in TAG^RTN
  D:'$G(SKIP) PATIDS
  S HTTPERR=0
  S HTTPREQ("method")="PUT"
+ S HTTPREQ("path")=$P(URL,"?")
+ S HTTPREQ("query")=$P(URL,"?",2,999)
+ D GETDATA(TAG,RTN,.DATA)
+ M HTTPREQ("body")=DATA
+ Q
+SETPOST(URL,TAG,RTN,SKIP) ; set up a POST request based on data in TAG^RTN
+ N DATA
+ D:'$G(SKIP) PATIDS
+ S HTTPERR=0
+ S HTTPREQ("method")="POST"
  S HTTPREQ("path")=$P(URL,"?")
  S HTTPREQ("query")=$P(URL,"?",2,999)
  D GETDATA(TAG,RTN,.DATA)

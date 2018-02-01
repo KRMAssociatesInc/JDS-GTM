@@ -3,7 +3,7 @@ VPRJTSYSS ;KRM/CJE -- Unit Tests for SET Patient Sync Status
  ;
 STARTUP  ; Run once before all tests
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  K ^VPRPTJ("JPID","ZZUT;3")
  K ^VPRPTJ("JPID","ZZUT1;3")
  K ^VPRPTJ("JPID","1234V4321")
@@ -16,7 +16,7 @@ STARTUP  ; Run once before all tests
  Q
 SHUTDOWN ; Run once after all tests
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  K ^VPRPTJ("JPID","ZZUT;3")
  K ^VPRPTJ("JPID","ZZUT1;3")
  K ^VPRPTJ("JPID","1234V4321")
@@ -77,49 +77,49 @@ ERRORICN ;; Error code is set if no ICN - Disabled ICN no longer required
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTAT(.BODY,"ZZUT;3","")
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  S JPID=$$JPID4PID^VPRJPR("ZZUT;3")
  D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"Sync lastAccessTime exists and it should not")
  D ASSERT(0,$D(^VPRSTATUS(JPID,"ZZUT;3","ZZUT",20141031094921)),"A Patient Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(211,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 211 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(211,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 211 error should exist")
  Q
 ERRORPID ;; @TEST Error code is set if no PID
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTAT(.BODY,"","1234v4321")
  S ARG("id")=""
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  S JPID=$$JPID4PID^VPRJPR("ZZUT;3")
  D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"Sync lastAccessTime exists and it should not")
  D ASSERT(0,$D(^VPRSTATUS(JPID,"ZZUT;3","ZZUT",20141031094921)),"A Patient Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(227,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 227 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(227,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 227 error should exist")
  Q
 ERRORBPID ;;  Error code is set if BAD PID
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTAT(.BODY,"undefined","undefined")
  S ARG("id")=""
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  S JPID=$$JPID4PID^VPRJPR("ZZUT;3")
  D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"Sync lastAccessTime exists and it should not")
  D ASSERT(0,$D(^VPRSTATUS(JPID,"ZZUT;3","ZZUT",20141031094921)),"A Patient Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(211,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 211 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(211,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 211 error should exist")
  Q
 ERRORCONF ;; @TEST Error code is set if ICN and PID conflict
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Set up Bad Patient IDs
  D SHUTDOWN
  D BADPATIDS
@@ -129,8 +129,8 @@ ERRORCONF ;; @TEST Error code is set if ICN and PID conflict
  S JPID=$$JPID4PID^VPRJPR("ZZUT;3")
  D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"Sync lastAccessTime exists and it should not")
  D ASSERT(0,$D(^VPRSTATUS(JPID,"ZZUT;3","ZZUT",20141031094921)),"A Patient Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(223,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 223 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(223,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 223 error should exist")
  ; Reset Patient IDs
  D SHUTDOWN
  D PATIDS
@@ -138,15 +138,15 @@ ERRORCONF ;; @TEST Error code is set if ICN and PID conflict
 ERRUNKPID ;; @TEST Error code is set if JPID is unknown
  N RETURN,BODY,ARG,HTTPERR
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Kill existing Patient ids and try to set a sync status
  D SHUTDOWN
  D SYNCSTAT(.BODY,"ZZUT;3","1234V4321")
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  D ASSERT(0,$D(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3","ZZUT",20141031094921)),"A Patient Sync Status exists and there should not be")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
- D ASSERT(224,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should exist")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 404 should exist")
+ D ASSERT(224,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should exist")
  ; Reset Patient IDs
  D SHUTDOWN
  D PATIDS
@@ -155,7 +155,7 @@ SETONE ;; @TEST Set one site Patient Sync Status
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTAT(.BODY,"ZZUT;3","1234V4321")
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
@@ -175,7 +175,7 @@ SETTWO ;; @TEST Set two site Patient Sync Status
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2370","ZZUT1;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2370","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; ZZUT
  D SYNCSTAT(.BODY,"ZZUT;3","1234V4321")
  S ARG("id")="ZZUT;3"
@@ -207,77 +207,79 @@ SETNOSOURCE ;; @TEST Error with no source stampTime
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTATNS(.BODY,"ZZUT;3","1234V4321")
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  S JPID=$$JPID4PID^VPRJPR("ZZUT;3")
  D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"Sync lastAccessTime exists and it should not")
  D ASSERT(0,$G(^VPRSTATUS(JPID,"ZZUT;3","ZZUT","stampTime"))=20141031094927,"A Patient Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  Q
 SETNODOMAIN ;; @TEST Error with no domain stampTime
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTATND(.BODY,"ZZUT;3","1234V4321")
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  S JPID=$$JPID4PID^VPRJPR("ZZUT;3")
  D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"Sync lastAccessTime exists and it should not")
  D ASSERT(0,$G(^VPRSTATUS(JPID,"ZZUT;3","ZZUT","stampTime"))=20141031094928,"A Patient Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  Q
 SETNOEVENT ;; @TEST Error with no event stampTime
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTATNE(.BODY,"ZZUT;3","1234V4321")
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  S JPID=$$JPID4PID^VPRJPR("ZZUT;3")
  D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"Sync lastAccessTime exists and it should not")
  D ASSERT(0,$G(^VPRSTATUS(JPID,"ZZUT;3","ZZUT","stampTime"))=20141031094929,"A Patient Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  Q
 SETNONNUM ;; @TEST Error with a non-numeric stampTime
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  S BODY(1)=" { ""icn"": ""1234V4321"",""stampTime"": ""ASDF"",""sourceMetaStamp"": { ""ZZUT"": { ""pid"": ""ZZUT;3"",""localId"": ""3"",""stampTime"": ""20141031094921"",""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": ""20141031094922"",""eventMetaStamp"": {  ""urn:va:allergy:ZZUT:1001"": { ""stampTime"": ""20141031094923"" }, ""urn:va:allergy:ZZUT:1002"": { ""stampTime"": ""ASDF"" } } },""vitals"": { ""domain"": ""vitals"",""stampTime"": ""20141031094925"",""eventMetaStamp"": { ""urn:va:vitals:ZZUT:1001"": { ""stampTime"": ""20141031094926"" },""urn:va:vitals:ZZUT:1002"": { ""stampTime"": ""20141031094927"" } } } } }"
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  S JPID=$$JPID4PID^VPRJPR("ZZUT;3")
  D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"Sync lastAccessTime exists and it should not")
  D ASSERT(0,$G(^VPRSTATUS(JPID,"ZZUT;3","ZZUT","stampTime"))="ASDF","A Patient Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  Q
 SETSUBSEC ;; @TEST Error with a non-numeric stampTime
  N RETURN,BODY,ARG,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  S BODY(1)=" { ""icn"": ""1234V4321"",""stampTime"": ""20141031094930"",""sourceMetaStamp"": { ""ZZUT"": { ""pid"": ""ZZUT;3"",""localId"": ""3"",""stampTime"": ""20141031094921"",""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": ""20141031094922"",""eventMetaStamp"": {  ""urn:va:allergy:ZZUT:1001"": { ""stampTime"": ""20141031094923"" }, ""urn:va:allergy:ZZUT:1002"": { ""stampTime"": ""ASDF"" } } },""vitals"": { ""domain"": ""vitals"",""stampTime"": ""20141031094925"",""eventMetaStamp"": { ""urn:va:vitals:ZZUT:1001"": { ""stampTime"": ""20141031094926"" },""urn:va:vitals:ZZUT:1002"": { ""stampTime"": ""20141031094927.123"" } } } } }"
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  S JPID=$$JPID4PID^VPRJPR("ZZUT;3")
  D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"Sync lastAccessTime exists and it should not")
  D ASSERT(0,$G(^VPRSTATUS(JPID,"ZZUT;3","ZZUT","stampTime"))=20141031094930,"A Patient Sync Status exists and there should not be")
- D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
- D ASSERT(228,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
+ D ASSERT(400,$G(^||TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should exist")
+ D ASSERT(228,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 228 error should exist")
  Q
-SETERRLCK ;; @TEST Error due locked event (2 second wait)
+SETERRLCK ;; TEST Error due locked event (2 second wait)
+ ; Disable test if process-private globals are in use.
+ ; This test relies on getting HTTPERR from a JOB'ed process
  N RETURN,BODY,ARG,TIMEOUT,HTTPERR
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2370","ZZUT1;3")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Temporaraily reset timeout value to a low number so unit tests don't take forever
  S TIMEOUT=^VPRCONFIG("timeout")
  S ^VPRCONFIG("timeout")=1
@@ -286,6 +288,8 @@ SETERRLCK ;; @TEST Error due locked event (2 second wait)
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
  ; Begin storing a record
+ ; This uses ^TMP("ZZUT") for IPC to simulate multiple jobs storing at the same time.
+ ; This can't use process-private globals if available.
  L +^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3","ZZUT","allergy","urn:va:allergy:ZZUT:3:1001",20141031094923):$G(^VPRCONFIG("timeout"),5) E  S ^TMP("ZZUT","LOCK")=1 Q
  S ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3","ZZUT","allergy","urn:va:allergy:ZZUT:3:1001",20141031094923,"stored")=1
  ; Attempt to store new metastamp while record is still in progress
@@ -293,25 +297,27 @@ SETERRLCK ;; @TEST Error due locked event (2 second wait)
  H 2
  ; Ensure error codition exists
  D ASSERT("",$G(^TMP("ZZUT","LOCK")),"Record lock not acquired")
- D ASSERT(500,$G(^TMP("HTTPERR",$G(^TMP("ZZUT","STOREJOB")),1,"error","code")),"An HTTP 500 should exist")
- D ASSERT(502,$G(^TMP("HTTPERR",$G(^TMP("ZZUT","STOREJOB")),1,"error","errors",1,"reason")),"A 502 error should exist")
+ D ASSERT(500,$G(^||TMP("HTTPERR",$G(^TMP("ZZUT","STOREJOB")),1,"error","code")),"An HTTP 500 should exist")
+ D ASSERT(502,$G(^||TMP("HTTPERR",$G(^TMP("ZZUT","STOREJOB")),1,"error","errors",1,"reason")),"A 502 error should exist")
  ; Ensure locks are removed
  L -^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3","ZZUT","allergy","urn:va:allergy:ZZUT:3:1001",20141031094923)
  ; Ensure temp global is cleaned up
- K ^TMP("HTTPERR",$J)
- K ^TMP("HTTPERR",^TMP("ZZUT","STOREJOB"))
- K ^TMP("VPRJERR",$J)
+ K ^||TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",^||TMP("ZZUT","STOREJOB"))
+ K ^||TMP("VPRJERR",$J)
  K ^TMP("ZZUT","LOCK")
  K ^TMP("ZZUT","STOREJOB")
  ; Reset timeout value back to what it was
  S ^VPRCONFIG("timeout")=TIMEOUT
  Q
 SETFLG
- L +^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3","ZZUT","allergy","urn:va:allergy:ZZUT:3:1001",20141031094923):$G(^VPRCONFIG("timeout"),5) E  S ^TMP("ZZUT","LOCK")=1 Q
+ L +^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3","ZZUT","allergy","urn:va:allergy:ZZUT:3:1001",20141031094923):$G(^VPRCONFIG("timeout"),5) E  S ^||TMP("ZZUT","LOCK")=1 Q
  S ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3","ZZUT","allergy","urn:va:allergy:ZZUT:3:1001",20141031094923,"stored")=1
  Q
 STORE
  S BODY(1)=" { ""icn"": ""1234V4321"",""stampTime"": ""20141031094922"",""sourceMetaStamp"": { ""ZZUT"": { ""pid"": ""ZZUT;3"",""localId"": ""3"",""stampTime"": ""20141031094922"",""domainMetaStamp"": { ""allergy"": { ""domain"": ""allergy"",""stampTime"": ""20141031094922"",""eventMetaStamp"": {  ""urn:va:allergy:ZZUT:3:1001"": { ""stampTime"": ""20141031094927"" } } } } } } }"
+ ; This uses ^TMP("ZZUT") for IPC to simulate multiple jobs storing at the same time.
+ ; This can't use process-private globals if available.
  S ^TMP("ZZUT","STOREJOB")=$J
  S ARG("id")="ZZUT;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
@@ -320,7 +326,7 @@ STAMPMRG ;; @TEST Merge of metaStamps
  N RETURN,BODY,ARG,TIMEOUT,HTTPERR,JPID
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","ZZUT;3")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Setup initial metastamp
  D SYNCSTAT(.BODY,"ZZUT;3","1234V4321")
  S ARG("id")="ZZUT;3"
@@ -353,7 +359,7 @@ SETGETNUM ;; @TEST Patient data store/retrieve with fully numeric metastamp
  ; Store the data
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","1234")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  S BODY(1)="{""icn"":""1234V4321"",""stampTime"":""20141031094921"",""sourceMetaStamp"":{""1234"":{""pid"":""1234;3"",""localId"":""3"",""stampTime"":""20141031094921"",""domainMetaStamp"":{""allergy"":{""domain"":""allergy"",""stampTime"":""20141031094922"",""eventMetaStamp"":{""urn:va:allergy:1234:1001"":{""stampTime"":""20141031094923""}}}}}}}"
  S ARG("id")="1234;3"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
@@ -394,7 +400,7 @@ SETGETNUMOD ;; @TEST Patient data store/retrieve with fully numeric metastamp Op
  ; Store the data
  K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","1234")
  K ^VPRMETA("JPID","52833885-af7c-4899-90be-b3a6630b2369","lastAccessTime")
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  S BODY(1)="{""stampTime"":""20141031094921"",""sourceMetaStamp"":{""1234"":{""stampTime"":""20141031094921"",""domainMetaStamp"":{""allergy"":{""domain"":""allergy"",""stampTime"":""20141031094922"",""itemMetaStamp"":{""urn:va:allergy:1234:1001"":{""stampTime"":""20141031094923""}}}}}}}"
  S ARG("id")="1234"
  S RETURN=$$SET^VPRJDSTATUS(.ARG,.BODY)

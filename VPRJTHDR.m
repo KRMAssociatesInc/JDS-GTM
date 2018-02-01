@@ -1,5 +1,4 @@
 VPRJTHDR ;KRM/CJE -- Integration tests for Patient Data and HDR
- ;;1.0;JSON DATA STORE;;May 05, 2015
  ;
 STARTUP  ; Run once before all tests
  N I,TAGS
@@ -11,7 +10,7 @@ SHUTDOWN ; Run once after all tests
  K ^VPRPTJ
  K ^VPRPT
  K ^VPRMETA("JPID")
- K ^TMP
+ K ^||TMP
  Q
 SETUP    ; Run before each test
  K HTTPREQ,HTTPERR,HTTPRSP
@@ -25,11 +24,22 @@ TEARDOWN ; Run after each test
  K ^VPRPTJ
  K ^VPRPT
  K ^VPRMETA("JPID")
- K ^TMP
+ K ^||TMP
  Q
 ASSERT(EXPECT,ACTUAL,MSG) ; convenience
  D EQ^VPRJT(EXPECT,ACTUAL,$G(MSG))
  Q
+ ;
+ ; POST data for POST query tests
+POSTDATA1 ;; test POST query data for EVERY
+ ;;{"start":3,"limit":3}
+ ;;zzzzz
+POSTDATA2 ;; test POST query data for FINDPAR
+ ;;{"filter":"eq(\"products[].ingredientName\",\"METFORMIN\") eq(\"dosages[].dose\",\"250 MG\")"}
+ ;;zzzzz
+POSTDATA3 ;; test POST query data for FINDLIKE
+ ;;{"filter":"like(\"products[].ingredientName\",\"ASPIRIN%25\")"}
+ ;;zzzzz
  ;
 GETUID ;; @TEST getting an object by UID only
  N JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
@@ -275,7 +285,7 @@ EVERY ;;  retrieving every object for a patient
  K HTTPERR
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(6,$G(JSON("data","totalItems")))
- D ASSERT(0,$D(^TMP($J,$J)))
+ D ASSERT(0,$D(^||TMP($J,$J)))
  S VPRJTPID1=$$JPID4PID^VPRJPR(VPRJTPID)
  ; Cache is disable
  ;D ASSERT(10,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID1_"/every////"))))
@@ -289,6 +299,12 @@ EVERY ;;  retrieving every object for a patient
  ; Cache is disabled
  ;D ASSERT(10,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID1_"/every////"))))
  ;D ASSERT(0,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID1_"/every////"),$J)))
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/every?query=true","POSTDATA1","VPRJTHDR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ K HTTPERR,JSON
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(3,$G(JSON("data","currentItemCount")))
  Q
 FINDALL ;; @TEST finding every object in collection
  N JSON,ERR,HTTPERR,FLAG,ITEM,PTIME,TIME,VPRJPID
@@ -352,10 +368,28 @@ FINDPAR ;;  finding with parameters
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(1,$G(JSON("data","totalItems")))
  D ASSERT("urn:va:med:93EF:-7:16982",$G(JSON("data","items",1,"uid")))
+ ; test POST query version
+ K JSON,ERR,HTTPERR
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/find/med?query=true","POSTDATA2","VPRJTHDR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ K HTTPERR
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(1,$G(JSON("data","totalItems")))
+ D ASSERT("urn:va:med:93EF:-7:16982",$G(JSON("data","items",1,"uid")))
  Q
 FINDLIKE ;;  finding using like()
  N JSON,ERR,HTTPERR
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/find/med?filter=like(""products[].ingredientName"",""ASPIRIN%25"")")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ K HTTPERR
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(1,$G(JSON("data","totalItems")))
+ D ASSERT("urn:va:med:93EF:-7:18068",$G(JSON("data","items",1,"uid")))
+ ; test POST query version
+ K JSON,ERR,HTTPERR
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/find/med?query=true","POSTDATA3","VPRJTHDR")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  K HTTPERR

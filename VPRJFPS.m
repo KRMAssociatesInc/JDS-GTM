@@ -1,5 +1,4 @@
 VPRJFPS ;SLC/KCM -- Set/Kill Indexes for Medications
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 VALID(MED) ; Return true if required fields for indexing are present
  I '$L($G(MED("facility"))) Q 0
@@ -44,6 +43,9 @@ CWAD(DOC) ; Return true if CWAD document
  S S=$G(DOC("status"))
  I ((C="C")!(C="D")!(C="W")),((S="COMPLETED")!(S="AMENDED")) Q 1
  Q 0
+CWADNRMVD(DOC) ; Return true if CWAD document and not removed
+ I $G(DOC("removed"))="true" Q 0
+ Q $$CWAD(.DOC)
 PRNTDOCS(DOC) ; Return if the docment does NOT have a child, ensuring this index only contains parent documents
  I $D(DOC("parentUid")) Q 0
  Q 1
@@ -79,6 +81,9 @@ PTSYNCSTATUS(STAT) ; return true if syncstatus object has forOperational=false
 TASKPND(TASK) ;
  I $G(TASK("completed"))="true" Q 0
  Q 1
+NRMVD(DOC) ; return true if not removed
+ I $G(DOC("removed"))="true" Q 0
+ Q 1
 PACT(PROB) ; return true if active problem and not removed
  I $G(PROB("removed"))="true" Q 0
  I $G(PROB("statusCode"))="urn:sct:55561003" Q 1
@@ -107,4 +112,18 @@ ALLDOC(OBJ) ; return true to include in the all document index
  N C S C=$G(OBJ("documentTypeCode"))
  I (C="RA")!(C="CR")!(C="CP")!(C="SR") Q 0  ; skip imaging,consult,proc,surgery
  Q 1                                        ; include other documents
+ ;
+OSYNCPAT(OBJ)
+ I $P($G(OBJ("uid")),":",3)="patient" Q 1
+ Q 0
+ ;
+OSYNCUSER(OBJ)
+ I $P($G(OBJ("uid")),":",3)="user" Q 1
+ Q 0
+ ;
+EHMPDOC(OBJ) ; return true to include some documents but not all
+ I '$$ALLDOC(.OBJ) Q 0                      ; if not in all document set, skip
+ ; If a consult, imaging, or procedure entry is not complete, exclude it
+ I "^Consult^Imaging^Procedure^"[("^"_$G(OBJ("kind"))_"^")&'($G(OBJ("statusName"))="COMPLETE") Q 0
+ Q 1
  ;

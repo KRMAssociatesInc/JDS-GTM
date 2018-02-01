@@ -56,5 +56,5 @@ BADIDX ;; @TEST bad index name
  D SETGET^VPRJTX("/data/index/bad-index")
  D RESPOND^VPRJRSP
  D ASSERT(1,$G(HTTPERR)>0)
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  Q

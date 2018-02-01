@@ -1,5 +1,4 @@
 VPRJTPR ;SLC/KCM -- Integration tests for RESTful queries
- ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
 STARTUP  ; Run once before all tests
  N I,TAGS
@@ -11,7 +10,7 @@ SHUTDOWN ; Run once after all tests
  K ^VPRPTJ
  K ^VPRPT
  K ^VPRMETA("JPID")
- K ^TMP
+ K ^||TMP
  Q
 SETUP    ; Run before each test
  K HTTPREQ,HTTPERR,HTTPRSP
@@ -22,6 +21,29 @@ TEARDOWN ; Run after each test
 ASSERT(EXPECT,ACTUAL,MSG) ; convenience
  D EQ^VPRJT(EXPECT,ACTUAL,$G(MSG))
  Q
+ ;
+ ; POST data for POST query tests
+POSTDATA1 ;; test POST query data for TIMERNG
+ ;;{"range":"20060101..20061231"}
+ ;;zzzzz
+POSTDATA2 ;; test POST query data for LAST
+ ;;{"range":"Metformin, Aspirin Tab"}
+ ;;zzzzz
+POSTDATA3 ;; test POST query data for ORDASC
+ ;;{"order":"qualifiedName asc"}
+ ;;zzzzz
+POSTDATA4 ;; test POST query data for ORDDESC
+ ;;{"order":"qualifiedName DESC"}
+ ;;zzzzz
+POSTDATA5 ;; test POST query data for ORDEMPTY
+ ;;{"order":"stopped"}
+ ;;zzzzz
+POSTDATA6 ;; test POST query data for FILTER
+ ;;{"filter":"gt(\"orders[].fillsRemaining\",4)"}
+ ;;zzzzz
+POSTDATA7 ;; test POST query data for FINDPAR
+ ;;{"filter":"eq(\"products[].ingredientName\",\"METFORMIN\") eq(\"dosages[].dose\",\"250 MG\")"}
+ ;;zzzzz
  ;
 TIMERNG ;; @TEST query for range of time
  ;;{"data":{"updated":20120517174918,"totalItems":3,"items":[{
@@ -34,6 +56,20 @@ TIMERNG ;; @TEST query for range of time
  S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
  H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/med-time/?range=20060101..20061231")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(3,$G(JSON("data","totalItems")))
+ D ASSERT("METFORMIN",$G(JSON("data","items",3,"products",1,"ingredientName")))
+ ; test POST query version
+ K HTTPER,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/med-time/?query=true","POSTDATA1","VPRJTPR")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  S PTIME=TIME
@@ -64,6 +100,21 @@ LAST ;; @TEST query for last instance of items in list
  D ASSERT(2,$G(JSON("data","totalItems")))
  D ASSERT("urn:va:med:93EF:-7:18069",$G(JSON("data","items",1,"uid")))
  D ASSERT("urn:va:med:93EF:-7:18068",$G(JSON("data","items",2,"uid")))
+ ; test POST query version
+ K HTTPERR,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/last/med-ingredient-name?query=true","POSTDATA2","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(2,$G(JSON("data","totalItems")))
+ D ASSERT("urn:va:med:93EF:-7:18069",$G(JSON("data","items",1,"uid")))
+ D ASSERT("urn:va:med:93EF:-7:18068",$G(JSON("data","items",2,"uid")))
  Q
 ORDASC ;; @TEST query to return in different order
  N ROOT,JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
@@ -75,6 +126,19 @@ ORDASC ;; @TEST query to return in different order
  S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
  H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?order=qualifiedName asc")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT("WARFARIN",$G(JSON("data","items",5,"qualifiedName")))
+ ; test POST query version
+ K HTTPER,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?query=true","POSTDATA3","VPRJTPR")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  S PTIME=TIME
@@ -102,6 +166,19 @@ ORDDESC ;; @TEST query to return in different order
  D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT("WARFARIN",$G(JSON("data","items",1,"qualifiedName")))
+ ; test POST query version
+ K HTTPER,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?query=true","POSTDATA4","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT("WARFARIN",$G(JSON("data","items",1,"qualifiedName")))
  Q
 ORDEMPTY ;; @TEST "order by" where field includes empty string
  N ROOT,JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
@@ -113,6 +190,20 @@ ORDEMPTY ;; @TEST "order by" where field includes empty string
  S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
  H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?order=stopped")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT("",$G(JSON("data","items",1,"stopped")))
+ D ASSERT("20080128",$G(JSON("data","items",5,"stopped")))
+ ; test POST query version
+ K HTTPERR,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/medication?query=true","POSTDATA5","VPRJTPR")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  S PTIME=TIME
@@ -144,6 +235,20 @@ FILTER ;; @TEST filter to return based on criteria
  D ASSERT(1,$G(JSON("data","totalItems")))
  D ASSERT("urn:va:med:93EF:-7:17203",$G(JSON("data","items",1,"uid")))
  ;D SHOWRSP^VPRJTX(ROOT)
+ ; test POST query version
+ K HTTPERR,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/index/medication/?query=true","POSTDATA6","VPRJTPR")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(1,$G(JSON("data","totalItems")))
+ D ASSERT("urn:va:med:93EF:-7:17203",$G(JSON("data","items",1,"uid")))
  Q
 GETUID ;; @TEST getting an object by UID only
  N JSON,ERR,HTTPERR,PTIME,TIME,VPRJPID
@@ -182,7 +287,7 @@ EVERY ;; @TEST retrieving every object for a patient
  D ASSERT(1,TIME>PTIME)
  D DATA2ARY^VPRJTX(.JSON)
  D ASSERT(6,$G(JSON("data","totalItems")))
- D ASSERT(0,$D(^TMP($J,$J)))
+ D ASSERT(0,$D(^||TMP($J,$J)))
  S VPRJTPID1=$$JPID4PID^VPRJPR(VPRJTPID)
  ; Cache is disable
  ;D ASSERT(10,$D(^VPRTMP($$HASH^VPRJRUT("vpr/index/"_VPRJTPID1_"/every////"))))
@@ -230,6 +335,20 @@ FINDPAR ;; @TEST finding with parameters
  S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
  H 1
  D SETGET^VPRJTX("/vpr/"_VPRJTPID_"/find/med?filter=eq(""products[].ingredientName"",""METFORMIN"") eq(""dosages[].dose"",""250 MG"")")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ S PTIME=TIME
+ H 1
+ S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
+ D ASSERT(1,TIME>PTIME)
+ D DATA2ARY^VPRJTX(.JSON)
+ D ASSERT(1,$G(JSON("data","totalItems")))
+ D ASSERT("urn:va:med:93EF:-7:16982",$G(JSON("data","items",1,"uid")))
+ ; test POST query version
+ K HTTPERR,JSON,PTIME,TIME
+ S TIME=^VPRMETA("JPID",VPRJPID,"lastAccessTime")
+ H 1
+ D SETPOST^VPRJTX("/vpr/"_VPRJTPID_"/find/med?query=true","POSTDATA7","VPRJTPR")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
  S PTIME=TIME
@@ -334,6 +453,7 @@ ADDPT ;; @TEST add new patient
  D ASSERT(0,$D(^VPRPT(VPRJPID,MYPID)))
  D ASSERT(0,$D(^VPRPTJ("JSON",VPRJPID,MYPID)))
  D ASSERT(0,$D(^VPRPTI(VPRJPID,MYPID)))
+ D ASSERT(0,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")))
  Q
 NOICN ;; @TEST add patient without ICN
  N HTTPERR,JSON,PTIME,TIME,VPRJPID
@@ -380,6 +500,7 @@ NOICN ;; @TEST add patient without ICN
  D ASSERT(0,$D(^VPRPT(VPRJPID,"93EF;-9")))
  D ASSERT(0,$D(^VPRPTJ("JSON",VPRJPID,"93EF;-9")))
  D ASSERT(0,$D(^VPRPTI(VPRJPID,"93EF;-9")))
+ D ASSERT(0,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")))
  Q
 ADDICN ;; @TEST add an ICN where the patient did not previously have one
  N HTTPERR,JSON,PTIME,TIME,VPRJPID
@@ -503,6 +624,7 @@ NUMFAC ;; @TEST fully numeric facility id
  D ASSERT(0,$D(^VPRPT(VPRJPID,MYPID)))
  D ASSERT(0,$D(^VPRPTJ("JSON",VPRJPID,MYPID)))
  D ASSERT(0,$D(^VPRPTI(VPRJPID,MYPID)))
+ D ASSERT(0,$D(^VPRMETA("JPID",VPRJPID,"lastAccessTime")))
  Q
 DELCLTN ;; @TEST delete collection via REST
  N HTTPERR,X,PTIME,TIME,VPRJPID
@@ -527,35 +649,50 @@ DELSITE ;; @TEST REST endpoint to delete a site's patient data
  N HTTPERR,PID1,PID2,JPID1,JPID2
  S PID1="93EF;-7"
  S PID2="93DD;-7"
- S JPID1=$$JPID4PID^VPRJPR(PID1)
- S JPID2=$$JPID4PID^VPRJPR(PID2)
+ S JPID=$$JPID4PID^VPRJPR(PID1)
  D SETPUT^VPRJTX("/vpr","DEMOG7","VPRJTP01")
- D SETPUT^VPRJTX("/vpr","NUMFAC","VPRJTP01")
- D ASSERT(10,$D(^VPRPT(JPID1,PID1)))
- D ASSERT(10,$D(^VPRPTJ("JSON",JPID1,PID1)))
- D ASSERT(10,$D(^VPRPTJ("TEMPLATE",JPID1,PID1)))
- D ASSERT(1,^VPRPTI(JPID1,PID1,"tally","collection","patient"))
- D ASSERT(10,$D(^VPRPT(JPID2,PID2)))
- D ASSERT(10,$D(^VPRPTJ("JSON",JPID2,PID2)))
- D ASSERT(10,$D(^VPRPTJ("TEMPLATE",JPID2,PID2)))
- D ASSERT(1,^VPRPTI(JPID2,PID2,"tally","collection","patient"))
+ ; Kill non-primary sites to test lastAccessTime
+ K ^VPRPTJ("JPID","1HDR;-7")
+ K ^VPRPTJ("JPID","1HDR;-777V123777")
+ K ^VPRPTJ("JPID","HDR1;-777V123777")
+ K ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","1HDR;-7")
+ K ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","1HDR;-777V123777")
+ K ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","HDR1;-777V123777")
+ D ASSERT(10,$D(^VPRPT(JPID,PID1)))
+ D ASSERT(10,$D(^VPRPTJ("JSON",JPID,PID1)))
+ D ASSERT(10,$D(^VPRPTJ("TEMPLATE",JPID,PID1)))
+ D ASSERT(1,^VPRPTI(JPID,PID1,"tally","collection","patient"))
+ D ASSERT(10,$D(^VPRPT(JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTJ("JSON",JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTJ("TEMPLATE",JPID,PID2)))
+ D ASSERT(1,^VPRPTI(JPID,PID2,"tally","collection","patient"))
  D SETDEL^VPRJTX("/vpr/site/93EF")
  D RESPOND^VPRJRSP
  D ASSERT(0,$G(HTTPERR))
- D ASSERT(0,$D(^VPRPT(JPID1,PID1)))
- D ASSERT(0,$D(^VPRPTJ("JSON",JPID1,PID1)))
- D ASSERT(0,$D(^VPRPTJ("TEMPLATE",JPID1,PID1)))
- D ASSERT(0,^VPRPTI(JPID1,PID1,"tally","collection","patient"))
- D ASSERT(10,$D(^VPRPT(JPID2,PID2)))
- D ASSERT(10,$D(^VPRPTJ("JSON",JPID2,PID2)))
- D ASSERT(10,$D(^VPRPTJ("TEMPLATE",JPID2,PID2)))
- D ASSERT(10,$D(^VPRPTI(JPID2,PID2)))
+ D ASSERT(0,$D(^VPRPT(JPID,PID1)))
+ D ASSERT(0,$D(^VPRPTJ("JSON",JPID,PID1)))
+ D ASSERT(0,$D(^VPRPTJ("TEMPLATE",JPID,PID1)))
+ D ASSERT(0,^VPRPTI(JPID,PID1,"tally","collection","patient"))
+ D ASSERT(10,$D(^VPRPT(JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTJ("JSON",JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTJ("TEMPLATE",JPID,PID2)))
+ D ASSERT(10,$D(^VPRPTI(JPID,PID2)))
+ D ASSERT(1,$D(^VPRMETA("JPID",JPID,"lastAccessTime")))
  D SETDEL^VPRJTX("/vpr/site/93DD")
+ D RESPOND^VPRJRSP
+ D ASSERT(0,$G(HTTPERR))
+ D ASSERT(0,$D(^VPRPT(JPID,PID1)))
+ D ASSERT(0,$D(^VPRPTJ("JSON",JPID,PID1)))
+ D ASSERT(0,$D(^VPRPTJ("TEMPLATE",JPID,PID1)))
+ D ASSERT(0,$D(^VPRPT(JPID,PID2)))
+ D ASSERT(0,$D(^VPRPTJ("JSON",JPID,PID2)))
+ D ASSERT(0,$D(^VPRPTJ("TEMPLATE",JPID,PID2)))
+ D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")))
  Q
 GETDMOG1 ;; @TEST try to get demographics when none on file ICN
  ; Ensure requried variables are clean
  N HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Setup Patient Asssociations
  S ^VPRPTJ("JPID","8765;-1")="52833885-af7c-4899-90be-b3a6630b2373"
  S ^VPRPTJ("JPID","-222V123222")="52833885-af7c-4899-90be-b3a6630b2373"
@@ -566,12 +703,12 @@ GETDMOG1 ;; @TEST try to get demographics when none on file ICN
  D SETGET^VPRJTX("vpr/mpid/-222V123222")
  D RESPOND^VPRJRSP
  D ASSERT(HTTPERR,400,"HTTPERR isn't set and should be")
- D ASSERT($G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
+ D ASSERT($G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
  Q
 GETDMOG2 ;; @TEST try to get demographics when none on file PID
  ; Ensure requried variables are clean
  N HTTPERR
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  ; Setup Patient Asssociations
  S ^VPRPTJ("JPID","8765;-1")="52833885-af7c-4899-90be-b3a6630b2373"
  S ^VPRPTJ("JPID","-222V123222")="52833885-af7c-4899-90be-b3a6630b2373"
@@ -582,5 +719,5 @@ GETDMOG2 ;; @TEST try to get demographics when none on file PID
  D SETGET^VPRJTX("vpr/mpid/8765;-1")
  D RESPOND^VPRJRSP
  D ASSERT(HTTPERR,400,"HTTPERR isn't set and should be")
- D ASSERT($G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
+ D ASSERT($G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),225,"Incorrect error reason passed to client")
  Q

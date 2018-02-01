@@ -1,7 +1,7 @@
 VPRJRER ;SLC/KCM -- Error Recording
  ;;1.0;JSON DATA STORE;;Sep 01, 2012
  ;
-SETERROR(ERRCODE,MESSAGE) ; set error info into ^TMP("HTTPERR",$J)
+SETERROR(ERRCODE,MESSAGE) ; set error info into ^||TMP("HTTPERR",$J)
  ; causes HTTPERR system variable to be set
  ; ERRCODE:  query errors are 100-199, update errors are 200-299, M errors are 500
  ; MESSAGE:  additional explanatory material
@@ -21,6 +21,7 @@ SETERROR(ERRCODE,MESSAGE) ; set error info into ^TMP("HTTPERR",$J)
  I ERRCODE=111 S ERRNAME="Unrecognized parameter"
  I ERRCODE=112 S ERRNAME="Filter required"
  I ERRCODE=113 S ERRNAME="No reverse field name"
+ I ERRCODE=114 S HTTPERR=413,TOPMSG="Request entity too large",ERRNAME="Parameter length limit exceeded"
  ; update errors (200-299)
  I ERRCODE=201 S ERRNAME="Unknown collection" ; unused?
  I ERRCODE=202 S ERRNAME="Unable to decode JSON"
@@ -73,6 +74,7 @@ SETERROR(ERRCODE,MESSAGE) ; set error info into ^TMP("HTTPERR",$J)
  ; Generic Data Store Error codes
  I ERRCODE=270 S HTTPERR=400,ERRNAME="Error generating index metadata"
  I ERRCODE=271 S HTTPERR=400,ERRNAME="Duplicate index found"
+ I ERRCODE=272 S HTTPERR=500,ERRNAME="Record already locked"
  ; HTTP errors
  I ERRCODE=400 S ERRNAME="Bad Request"
  I ERRCODE=404 S ERRNAME="Not Found"
@@ -93,7 +95,7 @@ SETERROR(ERRCODE,MESSAGE) ; set error info into ^TMP("HTTPERR",$J)
  . . S RSET=##class(%ResultSet).%New("%SYS.LockQuery:List")
  . . ; Execute the query to get all locks (includes remote systems from ECP)
  . . D RSET.Execute("")
- . . WHILE (RSET.Next()){S LCNT=$G(LCNT)+1 S ^TMP("HTTPERR",$J,1,"error","locks",LCNT)=RSET.Data("LockString")}
+ . . WHILE (RSET.Next()){S LCNT=$G(LCNT)+1 S ^||TMP("HTTPERR",$J,1,"error","locks",LCNT)=RSET.Data("LockString")}
  . I LOCKS'="" D
  . . S ERRNAME=$G(ERRNAME)_" Lock space available "_$P(LOCKS,",",1)
  . . S ERRNAME=$G(ERRNAME)_" Lock space usable "_$P(LOCKS,",",2)
@@ -103,11 +105,11 @@ SETERROR(ERRCODE,MESSAGE) ; set error info into ^TMP("HTTPERR",$J)
  ;
  I ERRCODE>500 S HTTPERR=500,TOPMSG="Internal Server Error"  ; M Server Error
  I ERRCODE<500,ERRCODE>400 S HTTPERR=ERRCODE,TOPMSG=ERRNAME  ; Other HTTP Errors
- S NEXTERR=$G(^TMP("HTTPERR",$J,0),0)+1,^TMP("HTTPERR",$J,0)=NEXTERR
- S ^TMP("HTTPERR",$J,1,"error","code")=HTTPERR
- S ^TMP("HTTPERR",$J,1,"error","message")=TOPMSG
- S ^TMP("HTTPERR",$J,1,"error","request")=$G(HTTPREQ("method"))_" "_$G(HTTPREQ("path"))_" "_$G(HTTPREQ("query"))
- S ^TMP("HTTPERR",$J,1,"error","errors",NEXTERR,"reason")=ERRCODE
- S ^TMP("HTTPERR",$J,1,"error","errors",NEXTERR,"message")=ERRNAME
- I $L($G(MESSAGE)) S ^TMP("HTTPERR",$J,1,"error","errors",NEXTERR,"domain")=MESSAGE
+ S NEXTERR=$G(^||TMP("HTTPERR",$J,0),0)+1,^||TMP("HTTPERR",$J,0)=NEXTERR
+ S ^||TMP("HTTPERR",$J,1,"error","code")=HTTPERR
+ S ^||TMP("HTTPERR",$J,1,"error","message")=TOPMSG
+ S ^||TMP("HTTPERR",$J,1,"error","request")=$G(HTTPREQ("method"))_" "_$G(HTTPREQ("path"))_" "_$G(HTTPREQ("query"))
+ S ^||TMP("HTTPERR",$J,1,"error","errors",NEXTERR,"reason")=ERRCODE
+ S ^||TMP("HTTPERR",$J,1,"error","errors",NEXTERR,"message")=ERRNAME
+ I $L($G(MESSAGE)) S ^||TMP("HTTPERR",$J,1,"error","errors",NEXTERR,"domain")=MESSAGE
  Q

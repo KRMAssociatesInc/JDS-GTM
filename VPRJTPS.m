@@ -35,11 +35,11 @@ ADDPTUNKJPID ;; @TEST Error condition when JPID is unknown adding a patient
  D ASSERT(0,$D(^VPRPT("52833885-af7c-4899-90be-b3a6630b2369",VPRJTPID,"urn:va:patient:93EF:-7:-7")))
  D ASSERT("",$G(^VPRPTJ("JPID",VPRJTPID)))
  D ASSERT(0,$D(^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")))
- D ASSERT(10,$D(^TMP("HTTPERR",$J)),"An HTTP Error did not occur while filing data")
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"A 404 error code should have occurred")
- D ASSERT(224,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should have occurred")
- K ^TMP("HTTPERR")
- K ^TMP("VPRJERR")
+ D ASSERT(10,$D(^||TMP("HTTPERR",$J)),"An HTTP Error did not occur while filing data")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"A 404 error code should have occurred")
+ D ASSERT(224,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should have occurred")
+ K ^||TMP("HTTPERR")
+ K ^||TMP("VPRJERR")
  Q
 ADDOBJUNKJPID ;; @TEST Error condition when JPID is unknown adding an object
  N DATA,LOC,METASTAMP,VPRJTPID,HTTPERR,VPRJPID
@@ -55,10 +55,10 @@ ADDOBJUNKJPID ;; @TEST Error condition when JPID is unknown adding an object
  D ASSERT(0,$D(^VPRPTJ("JSON")))
  D ASSERT(0,$D(^VPRPTJ("TEMPLATE")))
  D ASSERT("",$G(^VPRPTI))
- D ASSERT(404,$G(^TMP("HTTPERR",$J,1,"error","code")),"A 404 error code should have occurred")
- D ASSERT(224,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should have occurred")
- K ^TMP("HTTPERR")
- K ^TMP("VPRJERR")
+ D ASSERT(404,$G(^||TMP("HTTPERR",$J,1,"error","code")),"A 404 error code should have occurred")
+ D ASSERT(224,$G(^||TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"A 224 error should have occurred")
+ K ^||TMP("HTTPERR")
+ K ^||TMP("VPRJERR")
  Q
 ADDPT ;; @TEST adding a patient
  N DATA,METASTAMP,VPRJTPID,HTTPERR,PTIME,TIME,VPRJPID
@@ -125,7 +125,7 @@ ADDLNK ;; @TEST adding object with links defined
  S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
  F I=1:1:5 S TAGS(I)="DATA"_I_"^VPRJTP03"
  D ADDDATA^VPRJTX(.TAGS,VPRJTPID)
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"An HTTP Error occured filing data")
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"An HTTP Error occured filing data")
  D ASSERT(1,$D(^VPRPTI(VPRJPID,VPRJTPID,"rev","urn:va:utesta:93EF:-7:1","utest-multiple","urn:va:utestc:93EF:-7:23","items#1")))
  D ASSERT(1,$D(^VPRPTI(VPRJPID,VPRJTPID,"rev","urn:va:utestb:93EF:-7:3","utest-multiple","urn:va:utestc:93EF:-7:23","items#2")))
  D ASSERT(1,$D(^VPRPTI(VPRJPID,VPRJTPID,"rev","urn:va:utesta:93EF:-7:2","utest-single","urn:va:utestc:93EF:-7:23",1)))
@@ -237,36 +237,38 @@ DELCSRV ;; @TEST delete a collection for a specific server
  I $G(VPRJPID)="" QUIT
  F I=6:1:7 S TAGS(I)="SRV"_I_"^VPRJTP03"
  D ADDDATA^VPRJTX(.TAGS,VPRJTPID)
- D ASSERT(0,$D(^TMP("HTTPERR",$J)),"An HTTP Error occured filing data")
- D ASSERT(10,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:utesta:9999:-7:6")))
+ D ASSERT(0,$D(^||TMP("HTTPERR",$J)),"An HTTP Error occured filing data")
+ D ASSERT(10,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:utesta:PORT:-7:6")))
  D ASSERT(10,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:utesta:93EF:-7:7")))
- D DELCLTN^VPRJPS(VPRJTPID,"utesta","9999")
+ D DELCLTN^VPRJPS(VPRJTPID,"utesta","PORT")
  S PTIME=TIME
  H 1
  S TIME=$G(^VPRMETA("JPID",VPRJPID,"lastAccessTime"))
  D ASSERT(1,TIME>PTIME)
- D ASSERT(0,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:utesta:9999:-7:6")))
+ D ASSERT(0,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:utesta:PORT:-7:6")))
  D ASSERT(10,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:utesta:93EF:-7:7")))
  Q
+ ;
 DELPT ;; @TEST deleting a patient and all places data exists
- N JPID,TYPE,TYPE2,STAMP,VPRJTPID,HTTPERR
+ N PID,JPID,TYPE,TYPE2,STAMP,VPRJTPID,HTTPERR
  S VPRJTPID="93EF;-7"
  ; Add job status
  K ^VPRJOB
  K ^VPRPTJ("JPID")
  D PATIDS
  S JPID="52833885-af7c-4899-90be-b3a6630b2369"
+ S PID="93EF;-7"
  S TYPE="jmeadows-lab-sync-request"
  S TYPE2="jmeadows-vitals-sync-request"
  S STAMP=201412180711200
- D JOBSTATG^VPRJTJOB(2,1,JPID,TYPE,STAMP,"created")
- D JOBSTATG^VPRJTJOB(3,1,JPID,TYPE2,STAMP+1,"created")
+ D JOBSTATG^VPRJTJOB(2,1,"pid",PID,TYPE,STAMP,"created")
+ D JOBSTATG^VPRJTJOB(3,1,"pid",PID,TYPE2,STAMP+1,"created")
  D ASSERT(10,$D(^VPRJOB(1)),"Job status Sequential Counter 1 does not exist and should")
  D ASSERT(10,$D(^VPRJOB(2)),"Job status Sequential Counter 2 does not exist and should")
  ; Add sync status
  N RETURN,BODY,ARG
  K ^VPRSTATUS(JPID,VPRJTPID)
- K ^TMP("HTTPERR",$J)
+ K ^||TMP("HTTPERR",$J)
  D SYNCSTAT^VPRJTSYSS(.BODY,"93EF;-7","-777V123777")
  S ARG("id")="93EF;-7"
  S RETURN=$$SET^VPRJPSTATUS(.ARG,.BODY)
@@ -329,32 +331,61 @@ DELPT ;; @TEST deleting a patient and all places data exists
  ; Ensure job status is deleted
  D ASSERT(0,$D(^VPRJOB(1)),"Job status Sequential Counter 1 does exist and should not")
  D ASSERT(0,$D(^VPRJOB(2)),"Job status Sequential Counter 2 does exist and should not")
+ ; Ensure lastAccessTime is deleted
+ D ASSERT(0,$D(^VPRMETA("JPID",JPID,"lastAccessTime")),"A lastAccessTime data node exists and should not")
  Q
+ ;
 DELSITE ;; @TEST Delete a site's patient data
- N VPRJTPID1,VPRJTPID2,TAGS,I
+ N VPRJTPID1,VPRJTPID2,VPRJPID1,VPRJPID2,TAGS,I
  S VPRJTPID1="93EF;-7"
  S VPRJTPID2="93EF;-8"
  S VPRJTPID1=$$ADDPT^VPRJTX("DEMOG7^VPRJTP01")
  F I=1:1:3 S TAGS(I)="UTST"_I_"^VPRJTP01"
  D ADDDATA^VPRJTX(.TAGS,VPRJTPID1)
  S VPRJTPID2=$$ADDPT^VPRJTX("DEMOG8^VPRJTP01")
+ S VPRJPID1=$$JPID4PID^VPRJPR(VPRJTPID1)
+ S VPRJPID2=$$JPID4PID^VPRJPR(VPRJTPID2)
  F I=4:1:5 S TAGS(I)="UTST"_I_"^VPRJTP01"
  D ADDDATA^VPRJTX(.TAGS,VPRJTPID2)
- D ASSERT(10,$D(^VPRPT($$JPID4PID^VPRJPR(VPRJTPID1),VPRJTPID1)))
- D ASSERT(10,$D(^VPRPTJ("JSON",$$JPID4PID^VPRJPR(VPRJTPID1),VPRJTPID1)))
- D ASSERT(10,$D(^VPRPTJ("TEMPLATE",$$JPID4PID^VPRJPR(VPRJTPID1),VPRJTPID1)))
- D ASSERT(1,^VPRPTI($$JPID4PID^VPRJPR(VPRJTPID1),VPRJTPID1,"tally","collection","patient"))
- D ASSERT(10,$D(^VPRPT($$JPID4PID^VPRJPR(VPRJTPID2),VPRJTPID2)))
- D ASSERT(10,$D(^VPRPTJ("JSON",$$JPID4PID^VPRJPR(VPRJTPID2),VPRJTPID2)))
- D ASSERT(10,$D(^VPRPTJ("TEMPLATE",$$JPID4PID^VPRJPR(VPRJTPID2),VPRJTPID2)))
- D ASSERT(1,^VPRPTI($$JPID4PID^VPRJPR(VPRJTPID2),VPRJTPID2,"tally","collection","patient"))
+ D ASSERT(10,$D(^VPRPT(VPRJPID1,VPRJTPID1)))
+ D ASSERT(10,$D(^VPRPTJ("JSON",VPRJPID1,VPRJTPID1)))
+ D ASSERT(10,$D(^VPRPTJ("TEMPLATE",VPRJPID1,VPRJTPID1)))
+ D ASSERT(1,^VPRPTI(VPRJPID1,VPRJTPID1,"tally","collection","patient"))
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID1,"lastAccessTime")),"A lastAccessTime data node does not exist and should")
+ D ASSERT(10,$D(^VPRPT(VPRJPID2,VPRJTPID2)))
+ D ASSERT(10,$D(^VPRPTJ("JSON",VPRJPID2,VPRJTPID2)))
+ D ASSERT(10,$D(^VPRPTJ("TEMPLATE",VPRJPID2,VPRJTPID2)))
+ D ASSERT(1,^VPRPTI(VPRJPID2,VPRJTPID2,"tally","collection","patient"))
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID2,"lastAccessTime")),"A lastAccessTime data node does not exist and should")
  D DELSITE^VPRJPS("93EF")
  D ASSERT(0,$D(^VPRPT("52833885-af7c-4899-90be-b3a6630b2369",VPRJTPID1)))
  D ASSERT(0,$D(^VPRPTJ("JSON","52833885-af7c-4899-90be-b3a6630b2369",VPRJTPID1)))
  D ASSERT(0,$D(^VPRPTJ("TEMPLATE","52833885-af7c-4899-90be-b3a6630b2369",VPRJTPID1)))
  D ASSERT(0,^VPRPTI("52833885-af7c-4899-90be-b3a6630b2369",VPRJTPID1,"tally","collection","patient"))
+ ; VPRJPID1 has HDR data, while VPRJPID2 does not. lastAccessTime will still be here because of the HDR data
+ D ASSERT(1,$D(^VPRMETA("JPID",VPRJPID1,"lastAccessTime")),"A lastAccessTime data node does not exist and it should")
  D ASSERT(0,$D(^VPRPT("52833885-af7c-4899-90be-b3a6630b2370",VPRJTPID2)))
  D ASSERT(0,$D(^VPRPTJ("JSON","52833885-af7c-4899-90be-b3a6630b2370",VPRJTPID2)))
  D ASSERT(0,$D(^VPRPTJ("TEMPLATE","52833885-af7c-4899-90be-b3a6630b2370",VPRJTPID2)))
  D ASSERT(0,^VPRPTI("52833885-af7c-4899-90be-b3a6630b2370",VPRJTPID2,"tally","collection","patient"))
+ D ASSERT(0,$D(^VPRMETA("JPID",VPRJPID2,"lastAccessTime")),"A lastAccessTime data node exists and should not")
+ QUIT
+ ;
+RESENDERRDEVENT ;; @TEST resending an event that had a syncError
+ N DATA,LOC,METASTAMP,VPRJTPID,HTTPERR,PTIME,TIME,VPRJPID,NEWMETASTAMP
+ ; First, manually setup an entry to look like a syncError
+ D PATIDS
+ S VPRJTPID="93EF;-7"
+ S VPRJPID=$$JPID4PID^VPRJPR(VPRJTPID)
+ S METASTAMP=71
+ S ^VPRSTATUS(VPRJPID,VPRJTPID,"93EF","med","urn:va:med:93EF:-7:16982",METASTAMP,"syncError")=1
+ K ^VPRSTATUS(VPRJPID,VPRJTPID,"93EF","med","urn:va:med:93EF:-7:16982",METASTAMP,"stored")
+ ; Now resend the event
+ D GETDATA^VPRJTX("MED1","VPRJTP02",.DATA)
+ S LOC=$$SAVE^VPRJPS(VPRJPID,.DATA)
+ S NEWMETASTAMP=$O(^VPRPT(VPRJPID,VPRJTPID,"urn:va:med:93EF:-7:16982",""),-1)
+ D ASSERT(METASTAMP,NEWMETASTAMP,"Resending event created new metastamp")
+ D ASSERT(10,$D(^VPRPT(VPRJPID,VPRJTPID,"urn:va:med:93EF:-7:16982",NEWMETASTAMP)),"Resending event didn't create entry")
+ D ASSERT("",$G(^VPRSTATUS(VPRJPID,VPRJTPID,"93EF","med","urn:va:med:93EF:-7:16982",NEWMETASTAMP,"syncError")),"Sync Error should have been cleared")
+ D ASSERT(1,$G(^VPRSTATUS(VPRJPID,VPRJTPID,"93EF","med","urn:va:med:93EF:-7:16982",NEWMETASTAMP,"stored")),"Object should be stored")
  Q

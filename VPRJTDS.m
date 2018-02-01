@@ -27,8 +27,8 @@ CHKIDX ;; @TEST indexes that were built after adding object
  Q
 GETOBJ ;; @TEST getting an object
  D QKEY^VPRJDQ("urn:va:test:1")
- D ASSERT(1,$D(^TMP($J,"data",0,"urn:va:test:1",0)))
- D ASSERT(1,$G(^TMP($J,"total")))
+ D ASSERT(1,$D(^||TMP($J,"data",0,"urn:va:test:1",0)))
+ D ASSERT(1,$G(^||TMP($J,"total")))
  Q
 DELOBJ ;; @TEST deletion of object
  D DELETE^VPRJDS("urn:va:test:1")

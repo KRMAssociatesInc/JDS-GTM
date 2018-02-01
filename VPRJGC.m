@@ -1,5 +1,4 @@
-VPRJGC ;KRM/CJE -- Handle Garbage Collection operations ; 04/13/2015
- ;;1.0;JSON DATA STORE;;APR 13, 2015
+VPRJGC ;KRM/CJE -- Handle Garbage Collection operations
  ; No entry from top
  Q
  ;
@@ -22,6 +21,8 @@ DATA(RESULT,ARGS)
  . ; If we have a site and the current site matches signal loop to quit next time
  . I $G(ARGS("site")) I SITE=ARGS("site") S OPDGCD=1
  . ; Get the sync status
+ . ; This can't use process private globals (if available) as this is an explict
+ . ; need for IPC (Inter-process communication)
  . S SYNCSTATUS=$NA(^TMP($J,"SYNCSTATUSO"))
  . D DATA^VPRJDSTATUS(SYNCSTATUS,SITE)
  . ; Collect the garbage
@@ -49,6 +50,8 @@ PAT(RESULT,ARGS)
  . . F  S ID=$O(PIDS(ID)) Q:ID=""  D
  . . . S GCPID=PIDS(ID)
  . . . ; Get the sync status
+ . . . ; This can't use process private globals (if available) as this is an explict
+ . . . ; need for IPC (Inter-process communication)
  . . . N SYNCSTATUS S SYNCSTATUS=$NA(^TMP($J,"SYNCSTATUSP"))
  . . . D PATIENT^VPRJPSTATUS(SYNCSTATUS,GCPID)
  . . . ; Collect the garbage
@@ -102,10 +105,10 @@ GCDATA(SITE,STATUS)
  . F  S OLDSTAMP=$O(^VPRJD(UID,OLDSTAMP),-1) Q:OLDSTAMP=""  D
  . . ; Previous object versions found
  . . ; Delete previous version of object
- . . K ^VPRJD(UID,OLDSTAMP)
+ . . K:$D(^VPRJD(UID,OLDSTAMP)) ^VPRJD(UID,OLDSTAMP)
  . . ; Delete previous version of JSON string
- . . K ^VPRJDJ("JSON",UID,OLDSTAMP)
- K ^VPRJGC("DATA","RUNNING",SITE)
+ . . K:$D(^VPRJDJ("JSON",UID,OLDSTAMP)) ^VPRJDJ("JSON",UID,OLDSTAMP)
+ K:$D(^VPRJGC("DATA","RUNNING",SITE)) ^VPRJGC("DATA","RUNNING",SITE)
  Q
  ;
 GCPAT(PID,STATUS,SITE)
@@ -143,12 +146,12 @@ GCPAT(PID,STATUS,SITE)
  . F  S OLDSTAMP=$O(^VPRPT(JPID,PID,UID,OLDSTAMP),-1) Q:OLDSTAMP=""  D
  . . ; Previous object versions found
  . . ; Delete previous version of object
- . . K ^VPRPT(JPID,PID,UID,OLDSTAMP)
+ . . K:$D(^VPRPT(JPID,PID,UID,OLDSTAMP)) ^VPRPT(JPID,PID,UID,OLDSTAMP)
  . . ; Delete previous version of JSON string
- . . K ^VPRPTJ("JSON",JPID,PID,UID,OLDSTAMP)
+ . . K:$D(^VPRPTJ("JSON",JPID,PID,UID,OLDSTAMP)) ^VPRPTJ("JSON",JPID,PID,UID,OLDSTAMP)
  . . ; Delete previous version of the KEY
- . . K ^VPRPTJ("KEY",UID,PID,OLDSTAMP)
- K ^VPRJGC("PATIENT","RUNNING",PID)
+ . . K:$D(^VPRPTJ("KEY",UID,PID,OLDSTAMP)) ^VPRPTJ("KEY",UID,PID,OLDSTAMP)
+ K:$D(^VPRJGC("PATIENT","RUNNING",PID)) ^VPRJGC("PATIENT","RUNNING",PID)
  Q
  ;
 GCJOB(JPID)
@@ -180,17 +183,17 @@ GCJOB(JPID)
  . . S RJID=^VPRJOB(SC,"rootJobId")
  . . S JID=^VPRJOB(SC,"jobId")
  . . ; Kill the A index entry
- . . K ^VPRJOB("A",JPID,TYPE,RJID,JID,STAMP)
+ . . K:$D(^VPRJOB("A",JPID,TYPE,RJID,JID,STAMP)) ^VPRJOB("A",JPID,TYPE,RJID,JID,STAMP)
  . . ; Kill the B index entry
- . . K ^VPRJOB("B",SC)
+ . . K:$D(^VPRJOB("B",SC)) ^VPRJOB("B",SC)
  . . ; Test to see if the latest stamp has the same JID and RJID as the current one, to avoid removing the C index entry
  . . I RJID'=TRJID&(JID'=TJID) D
  . . . ; Kill the C index entry
- . . . K ^VPRJOB("C",JID,RJID)
+ . . . K:$D(^VPRJOB("C",JID,RJID)) ^VPRJOB("C",JID,RJID)
  . . ; Kill the D index entry
- . . K ^VPRJOB("D",JPID,TYPE,STAMP)
+ . . K:$D(^VPRJOB("D",JPID,TYPE,STAMP)) ^VPRJOB("D",JPID,TYPE,STAMP)
  . . ; Kill the data
- . . K ^VPRJOB(SC)
- K ^VPRJGC("JOB","RUNNING",JPID)
+ . . K:$D(^VPRJOB(SC)) ^VPRJOB(SC)
+ K:$D(^VPRJGC("JOB","RUNNING",JPID)) ^VPRJGC("JOB","RUNNING",JPID)
  Q
  ;
