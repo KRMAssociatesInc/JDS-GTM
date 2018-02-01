@@ -70,7 +70,7 @@ DELETE(KEY) ; Delete an object given its UID
  S STAMP=$O(^VPRJD(KEY,STAMP),-1)
  S OLDOBJ="" I STAMP'="" M OLDOBJ=^VPRJD(KEY,STAMP)
  ; Kill all versions of this object
- TSTART
+ TSTART (*)
  K:$D(^VPRJD(KEY)) ^VPRJD(KEY)
  K:$D(^VPRJDJ("JSON",KEY)) ^VPRJDJ("JSON",KEY)
  K:$D(^VPRJDJ("TEMPLATE",KEY)) ^VPRJDJ("TEMPLATE",KEY)

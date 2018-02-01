@@ -72,7 +72,7 @@ UPDPT(PD,JPID) ; updates JPID indexes, returns JPID
  ; Update the indexes
  ; Add patient to JPID index
  L +^VPRPTJ("JPID",JPID):$G(^VPRCONFIG("timeout","jpid"),5) E  D SETERROR^VPRJRER(502,"Error while creating a new JPID in UPDPT") Q
- TSTART
+ TSTART (*)
  ; Set the JPID Indexes for the given pid and icn
  I $L(PID) D JPIDIDX(JPID,PID)
  I $L(ICN) D JPIDIDX(JPID,ICN)
@@ -518,7 +518,7 @@ ASSOCIATE(ARGS,BODY) ; Associate a PID/ICN with a JPID
  ; Update the indexes
  L +^VPRPTJ("JPID",JPID):$G(^VPRCONFIG("timeout","jpid"),5) E  D SETERROR^VPRJRER(502,"Error acquiring lock in ASSOCIATE") QUIT ""
  ; Add patient to JPID index
- TSTART
+ TSTART (*)
  S EPID=""
  F I=1:1 S EPID=$O(OBJECT("patientIdentifiers",EPID)) Q:EPID=""  Q:$G(ERR)  D
  . I ($$ISPID(OBJECT("patientIdentifiers",EPID))!$$ISICN(OBJECT("patientIdentifiers",EPID))) D JPIDIDX(JPID,OBJECT("patientIdentifiers",EPID))
