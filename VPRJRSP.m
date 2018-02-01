@@ -92,6 +92,7 @@ SENDATA ; write out the data as an HTTP response
  ; RSPTYPE=1  local variable
  ; RSPTYPE=2  data in ^TMP($J)
  ; RSPTYPE=3  pageable data in ^TMP($J,"data") or ^VPRTMP(hash,"data")
+ N %WBUFF S %WBUFF="" ; Write Buffer
  N SIZE,RSPTYPE,PREAMBLE,START,LIMIT,STARTID,RETCNTS
  S RSPTYPE=$S($E($G(HTTPRSP))'="^":1,$D(HTTPRSP("pageable")):3,1:2)
  I RSPTYPE=1 S SIZE=$$VARSIZE^VPRJRUT(.HTTPRSP)
