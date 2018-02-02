@@ -72,14 +72,14 @@ COMPLETEBASICSOLRERR(SITE,ID,STAMPTIME)
  ;
 PATIDS ; Setup patient identifiers
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","BBBB;3")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","1234V4321")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","DOD;12345678")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","HDR;1234V4321")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","VLER;1234V4321")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","BBBB;3")="52833885-af7c-4899-90be-b3a6630b2369"
  S ^VPRPTJ("JPID","1234V4321")="52833885-af7c-4899-90be-b3a6630b2369"
  S ^VPRPTJ("JPID","DOD;12345678")="52833885-af7c-4899-90be-b3a6630b2369"
  S ^VPRPTJ("JPID","HDR;1234V4321")="52833885-af7c-4899-90be-b3a6630b2369"
@@ -88,8 +88,8 @@ PATIDS ; Setup patient identifiers
  ;
 DELPATIDS ; Delete patient identifiers
  K ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")
- K ^VPRPTJ("JPID","SITE;3")
- K ^VPRPTJ("JPID","SITE;3")
+ K ^VPRPTJ("JPID","AAAA;3")
+ K ^VPRPTJ("JPID","BBBB;3")
  K ^VPRPTJ("JPID","1234V4321")
  K ^VPRPTJ("JPID","DOD;12345678")
  K ^VPRPTJ("JPID","HDR;1234V4321")
@@ -114,7 +114,7 @@ JOB(PIDVALUE,ROOTJOBID,STATUS,TIMESTAMP,TYPE) ; Build Job history for business l
  ;
 GETBEFORE ;; @TEST Get Patient Sync Status before metastamp stored
  N DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -125,7 +125,7 @@ GETBEFORE ;; @TEST Get Patient Sync Status before metastamp stored
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
  ;
  ; Try again with an event stored, but no meta-stamp is stored
- S ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")=1
+ S ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"stored")=1
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -172,8 +172,8 @@ GETSTARTEDESR ;; @TEST Get Patient Sync Status ICN - ESR started, no meta-stamp 
  ;
 GETSINGLEINPROGRESS ;; @TEST Get Single Site in-progress Patient Sync Status - no jobs
  N DATA,ARG,ERR,OBJECT,HTTPERR
- D BASIC("SITE",3)
- S ARG("icnpidjpid")="SITE;3"
+ D BASIC("AAAA",3)
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -182,16 +182,16 @@ GETSINGLEINPROGRESS ;; @TEST Get Single Site in-progress Patient Sync Status - n
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLECOMPLETE ;; @TEST Get Single Site complete Patient Sync Status - no jobs
  N DATA,ARG,ERR,OBJECT,HTTPERR
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -200,20 +200,20 @@ GETSINGLECOMPLETE ;; @TEST Get Single Site complete Patient Sync Status - no job
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLEESRERR ;; @TEST Get Single Site complete Patient Sync Status - enterprise-sync-request in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"error",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"error",20160420110400,"enterprise-sync-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -225,16 +225,16 @@ GETSINGLEESRERR ;; @TEST Get Single Site complete Patient Sync Status - enterpri
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
  I $D(DATA) K @DATA
  Q
-GETSINGLEVSR ;; @TEST Get Single Site complete Patient Sync Status - vista-SITE-subscribe-request created
+GETSINGLEVSR ;; @TEST Get Single Site complete Patient Sync Status - vista-AAAA-subscribe-request created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"created",20160420110400,"vista-SITE-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"created",20160420110400,"vista-AAAA-subscribe-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -243,20 +243,20 @@ GETSINGLEVSR ;; @TEST Get Single Site complete Patient Sync Status - vista-SITE-
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
  I $D(DATA) K @DATA
  Q
-GETSINGLEVDP ;; @TEST Get Single Site complete Patient Sync Status - vista-SITE-data-allergy-poller created
+GETSINGLEVDP ;; @TEST Get Single Site complete Patient Sync Status - vista-AAAA-data-allergy-poller created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"created",20160420110400,"vista-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"created",20160420110400,"vista-AAAA-data-allergy-poller")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -265,20 +265,20 @@ GETSINGLEVDP ;; @TEST Get Single Site complete Patient Sync Status - vista-SITE-
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
  I $D(DATA) K @DATA
  Q
-GETSINGLEVHSR ;; @TEST Get Single Site complete Patient Sync Status - vistahdr-SITE-subscribe-request created
+GETSINGLEVHSR ;; @TEST Get Single Site complete Patient Sync Status - vistahdr-AAAA-subscribe-request created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"created",20160420110400,"vistahdr-SITE-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"created",20160420110400,"vistahdr-AAAA-subscribe-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -287,22 +287,22 @@ GETSINGLEVHSR ;; @TEST Get Single Site complete Patient Sync Status - vistahdr-S
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
  I $D(DATA) K @DATA
  Q
-GETSINGLEVHDP ;; @TEST Get Single Site complete Patient Sync Status - vistahdr-SITE-data-allergy-poller created
+GETSINGLEVHDP ;; @TEST Get Single Site complete Patient Sync Status - vistahdr-AAAA-data-allergy-poller created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"created",20160420110400,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"created",20160420110400,"vistahdr-AAAA-data-allergy-poller")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -311,22 +311,22 @@ GETSINGLEVHDP ;; @TEST Get Single Site complete Patient Sync Status - vistahdr-S
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLEHSR ;; @TEST Get Single Site complete Patient Sync Status - hdr-subscribe-request created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
  D JOB("HDR;1234V4321",ROOTJOBID,"created",20160420110400,"hdr-subscribe-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -335,22 +335,22 @@ GETSINGLEHSR ;; @TEST Get Single Site complete Patient Sync Status - hdr-subscri
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("false",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLEHS ;; @TEST Get Single Site complete Patient Sync Status - hdr-sync-allergy-request created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
  D JOB("HDR;1234V4321",ROOTJOBID,"created",20160420110400,"hdr-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -359,22 +359,22 @@ GETSINGLEHS ;; @TEST Get Single Site complete Patient Sync Status - hdr-sync-all
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("false",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLEHX ;; @TEST Get Single Site complete Patient Sync Status - hdr-xform-allergy-request created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
  D JOB("HDR;1234V4321",ROOTJOBID,"created",20160420110400,"hdr-xform-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -383,22 +383,22 @@ GETSINGLEHX ;; @TEST Get Single Site complete Patient Sync Status - hdr-xform-al
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("false",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLEJS ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-sync-request created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
  D JOB("DOD;12345678",ROOTJOBID,"created",20160420110400,"jmeadows-sync-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -407,22 +407,22 @@ GETSINGLEJS ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-syn
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  D ASSERT("DOD;12345678",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD should exist")
  D ASSERT("false",$G(OBJECT("sites","DOD","syncCompleted")),"Site-Sync DOD shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLEJDR ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-document-retrieval created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
  D JOB("DOD;12345678",ROOTJOBID,"created",20160420110400,"jmeadows-document-retrieval")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -431,22 +431,22 @@ GETSINGLEJDR ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-do
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  D ASSERT("DOD;12345678",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD should exist")
  D ASSERT("false",$G(OBJECT("sites","DOD","syncCompleted")),"Site-Sync DOD shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLEJPDT ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-pdf-document-transform created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
  D JOB("DOD;12345678",ROOTJOBID,"created",20160420110400,"jmeadows-pdf-document-transform")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -455,22 +455,22 @@ GETSINGLEJPDT ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-p
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  D ASSERT("DOD;12345678",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD should exist")
  D ASSERT("false",$G(OBJECT("sites","DOD","syncCompleted")),"Site-Sync DOD shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLEJX ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-xform-allergy-vpr created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
  D JOB("DOD;12345678",ROOTJOBID,"created",20160420110400,"jmeadows-xform-allergy-vpr")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -479,22 +479,22 @@ GETSINGLEJX ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-xfo
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  D ASSERT("DOD;12345678",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD should exist")
  D ASSERT("false",$G(OBJECT("sites","DOD","syncCompleted")),"Site-Sync DOD shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETSINGLEJCDC ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-cda-document-conversion created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
  D JOB("DOD;12345678",ROOTJOBID,"created",20160420110400,"jmeadows-cda-document-conversion")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -503,18 +503,18 @@ GETSINGLEJCDC ;; @TEST Get Single Site complete Patient Sync Status - jmeadows-c
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  D ASSERT("DOD;12345678",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD should exist")
  D ASSERT("false",$G(OBJECT("sites","DOD","syncCompleted")),"Site-Sync DOD shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETALLESR ;; @TEST Get ALL site complete Patient Sync Status - enterprise-sync-request created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D BASIC("BBBB",3)
+ D COMPLETEBASIC("BBBB",3)
  D BASIC("HDR","1234V4321")
  D COMPLETEBASIC("HDR","1234V4321")
  D BASIC("DOD",12345678)
@@ -522,9 +522,9 @@ GETALLESR ;; @TEST Get ALL site complete Patient Sync Status - enterprise-sync-r
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"created",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"created",20160420110400,"enterprise-sync-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -533,10 +533,10 @@ GETALLESR ;; @TEST Get ALL site complete Patient Sync Status - enterprise-sync-r
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("false",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB shouldn't be complete")
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("false",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
  D ASSERT("DOD;12345678",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD should exist")
@@ -545,10 +545,10 @@ GETALLESR ;; @TEST Get ALL site complete Patient Sync Status - enterprise-sync-r
  Q
 GETALLESRVHSR ;; @TEST Get ALL site complete Patient Sync Status - enterprise-sync-request,vistahdr-sync-request created
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D BASIC("BBBB",3)
+ D COMPLETEBASIC("BBBB",3)
  D BASIC("HDR","1234V4321")
  D COMPLETEBASIC("HDR","1234V4321")
  D BASIC("DOD",12345678)
@@ -556,10 +556,10 @@ GETALLESRVHSR ;; @TEST Get ALL site complete Patient Sync Status - enterprise-sy
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
- ;D JOB("SITE;3",ROOTJOBID,"created",20160420110400,"enterprise-sync-request")
- ;D JOB("SITE;3",ROOTJOBID,"complete",20160420110400,"vistahdr-SITE-subscribe-request")
+ ;D JOB("AAAA;3",ROOTJOBID,"created",20160420110400,"enterprise-sync-request")
+ ;D JOB("BBBB;3",ROOTJOBID,"complete",20160420110400,"vistahdr-SITE-subscribe-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -568,10 +568,10 @@ GETALLESRVHSR ;; @TEST Get ALL site complete Patient Sync Status - enterprise-sy
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("false",$G(OBJECT("syncCompleted")),"Sync shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("false",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB shouldn't be complete")
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("false",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
  D ASSERT("DOD;12345678",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD should exist")
@@ -580,13 +580,13 @@ GETALLESRVHSR ;; @TEST Get ALL site complete Patient Sync Status - enterprise-sy
  Q
 GETSITESINPROGRESS ;; @TEST Get single site inProgress Patient Sync Status - site filter
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D BASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D BASIC("BBBB",3)
  D BASIC("HDR","1234V4321")
  D BASIC("DOD",12345678)
  ;
- S ARG("icnpidjpid")="SITE;3"
- S ARG("sites")="SITE"
+ S ARG("icnpidjpid")="AAAA;3"
+ S ARG("sites")="AAAA"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -595,11 +595,11 @@ GETSITESINPROGRESS ;; @TEST Get single site inProgress Patient Sync Status - sit
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("",$G(OBJECT("syncCompleted")),"SyncCompleted shouldn't exist")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  ; No other sites should show up
- D ASSERT("",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE shouldn't exist")
- D ASSERT("",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB shouldn't exist")
+ D ASSERT("",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB shouldn't be complete")
  D ASSERT("",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR shouldn't exist")
  D ASSERT("",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
  D ASSERT("",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD shouldn't exist")
@@ -608,17 +608,17 @@ GETSITESINPROGRESS ;; @TEST Get single site inProgress Patient Sync Status - sit
  Q
 GETSITESCOMPLETE ;; @TEST Get single site complete Patient Sync Status - site filter
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D BASIC("BBBB",3)
+ D COMPLETEBASIC("BBBB",3)
  D BASIC("HDR","1234V4321")
  D COMPLETEBASIC("HDR","1234V4321")
  D BASIC("DOD",12345678)
  D COMPLETEBASIC("DOD",12345678)
  ;
- S ARG("icnpidjpid")="SITE;3"
- S ARG("sites")="SITE"
+ S ARG("icnpidjpid")="AAAA;3"
+ S ARG("sites")="AAAA"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -627,11 +627,11 @@ GETSITESCOMPLETE ;; @TEST Get single site complete Patient Sync Status - site fi
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("",$G(OBJECT("syncCompleted")),"SyncCompleted shouldn't exist")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
  ; No other sites should show up
- D ASSERT("",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE shouldn't exist")
- D ASSERT("",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB shouldn't exist")
+ D ASSERT("",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB shouldn't be complete")
  D ASSERT("",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR shouldn't exist")
  D ASSERT("",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
  D ASSERT("",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD shouldn't exist")
@@ -640,10 +640,10 @@ GETSITESCOMPLETE ;; @TEST Get single site complete Patient Sync Status - site fi
  Q
 GETSITESOPENJOB ;; @TEST Get single site complete Patient Sync Status - enterprise-sync-request
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D BASIC("BBBB",3)
+ D COMPLETEBASIC("BBBB",3)
  D BASIC("HDR","1234V4321")
  D COMPLETEBASIC("HDR","1234V4321")
  D BASIC("DOD",12345678)
@@ -651,10 +651,10 @@ GETSITESOPENJOB ;; @TEST Get single site complete Patient Sync Status - enterpri
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"created",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"created",20160420110400,"enterprise-sync-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
- S ARG("sites")="SITE"
+ S ARG("icnpidjpid")="AAAA;3"
+ S ARG("sites")="AAAA"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -663,11 +663,11 @@ GETSITESOPENJOB ;; @TEST Get single site complete Patient Sync Status - enterpri
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("",$G(OBJECT("syncCompleted")),"SyncCompleted shouldn't exist")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
  ; No other sites should show up
- D ASSERT("",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE shouldn't exist")
- D ASSERT("",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB shouldn't exist")
+ D ASSERT("",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB shouldn't be complete")
  D ASSERT("",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR shouldn't exist")
  D ASSERT("",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
  D ASSERT("",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD shouldn't exist")
@@ -676,13 +676,13 @@ GETSITESOPENJOB ;; @TEST Get single site complete Patient Sync Status - enterpri
  Q
 GETMSITESINPROGRESS ;; @TEST Get multiple site inProgress Patient Sync Status - site filter
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D BASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D BASIC("BBBB",3)
  D BASIC("HDR","1234V4321")
  D BASIC("DOD",12345678)
  ;
- S ARG("icnpidjpid")="SITE;3"
- S ARG("sites")="SITE,DOD"
+ S ARG("icnpidjpid")="AAAA;3"
+ S ARG("sites")="AAAA,DOD"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -691,23 +691,23 @@ GETMSITESINPROGRESS ;; @TEST Get multiple site inProgress Patient Sync Status - 
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("",$G(OBJECT("syncCompleted")),"SyncCompleted shouldn't exist")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
  D ASSERT("DOD;12345678",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD should exist")
  D ASSERT("false",$G(OBJECT("sites","DOD","syncCompleted")),"Site-Sync DOD shouldn't be complete")
  ; No other sites should show up
- D ASSERT("",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE shouldn't exist")
- D ASSERT("",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB shouldn't exist")
+ D ASSERT("",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB shouldn't be complete")
  D ASSERT("",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR shouldn't exist")
  D ASSERT("",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETMSITESCOMPLETE ;; @TEST Get multiple site complete Patient Sync Status - site filter
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D BASIC("BBBB",3)
+ D COMPLETEBASIC("BBBB",3)
  D BASIC("HDR","1234V4321")
  D COMPLETEBASIC("HDR","1234V4321")
  D BASIC("DOD",12345678)
@@ -715,11 +715,11 @@ GETMSITESCOMPLETE ;; @TEST Get multiple site complete Patient Sync Status - site
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vistahdr-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vistahdr-AAAA-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110400,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110400,"hdr-sync-allergy-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110400,"hdr-xform-allergy-vpr")
@@ -729,8 +729,8 @@ GETMSITESCOMPLETE ;; @TEST Get multiple site complete Patient Sync Status - site
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110400,"jmeadows-pdf-document-transform")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110400,"jmeadows-xform-allergy-vpr")
  ;
- S ARG("icnpidjpid")="SITE;3"
- S ARG("sites")="SITE,HDR"
+ S ARG("icnpidjpid")="AAAA;3"
+ S ARG("sites")="AAAA,HDR"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -739,23 +739,23 @@ GETMSITESCOMPLETE ;; @TEST Get multiple site complete Patient Sync Status - site
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("",$G(OBJECT("syncCompleted")),"SyncCompleted shouldn't exist")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR shouldn't exist")
  D ASSERT("true",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should be complete")
  ; No other sites should show up
- D ASSERT("",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE shouldn't exist")
- D ASSERT("",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB shouldn't exist")
+ D ASSERT("",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB shouldn't be complete")
  D ASSERT("",$G(OBJECT("sites","DOD","pid")),"Site-pid DOD shouldn't exist")
  D ASSERT("",$G(OBJECT("sites","DOD","syncCompleted")),"Site-Sync DOD shouldn't be complete")
  I $D(DATA) K @DATA
  Q
 GETMSITESOPENJOB ;; @TEST Get multiple site complete Patient Sync Status - enterprise-sync-request
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D BASIC("BBBB",3)
+ D COMPLETEBASIC("BBBB",3)
  D BASIC("HDR","1234V4321")
  D COMPLETEBASIC("HDR","1234V4321")
  D BASIC("DOD",12345678)
@@ -763,10 +763,10 @@ GETMSITESOPENJOB ;; @TEST Get multiple site complete Patient Sync Status - enter
  ;
  ; Create enterprise-sync-request error job
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"created",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"created",20160420110400,"enterprise-sync-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
- S ARG("sites")="SITE,SITE"
+ S ARG("icnpidjpid")="AAAA;3"
+ S ARG("sites")="AAAA,BBBB"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -775,10 +775,10 @@ GETMSITESOPENJOB ;; @TEST Get multiple site complete Patient Sync Status - enter
  ; Ensure that the JSON matches what we expect
  D ASSERT("1234V4321",$G(OBJECT("icn")),"icn attribute should exist")
  D ASSERT("",$G(OBJECT("syncCompleted")),"SyncCompleted shouldn't exist")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE shouldn't exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE shouldn't be complete")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA shouldn't be complete")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB shouldn't exist")
+ D ASSERT("false",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB shouldn't be complete")
  ; No other sites should show up
  D ASSERT("",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR shouldn't exist")
  D ASSERT("",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR shouldn't be complete")
@@ -788,10 +788,10 @@ GETMSITESOPENJOB ;; @TEST Get multiple site complete Patient Sync Status - enter
  Q
 GETMSITESCOMPLETENHX ;; @TEST Get multiple site complete Patient Sync Status - REAL - NO hdr-xform, NO vler-xform, NO jmeadows-pdf, NO jmeadows-ccda, NO jmeadows-xform, NO jmeadows-document
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -801,18 +801,18 @@ GETMSITESCOMPLETENHX ;; @TEST Get multiple site complete Patient Sync Status - R
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"completed",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -826,11 +826,11 @@ GETMSITESCOMPLETENHX ;; @TEST Get multiple site complete Patient Sync Status - R
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
+ D ASSERT("",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should not exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("true",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should be complete")
@@ -838,11 +838,11 @@ GETMSITESCOMPLETENHX ;; @TEST Get multiple site complete Patient Sync Status - R
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should not exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("true",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should be complete")
@@ -859,10 +859,10 @@ GETMSITESCOMPLETENHX ;; @TEST Get multiple site complete Patient Sync Status - R
  Q
 GETMSITESCOMPLETE1E ;; @TEST Get multiple site complete Patient Sync Status - REAL 1st job in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -872,18 +872,18 @@ GETMSITESCOMPLETE1E ;; @TEST Get multiple site complete Patient Sync Status - RE
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"error",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"error",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"completed",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -897,11 +897,11 @@ GETMSITESCOMPLETE1E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should not be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should not be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("true",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should be complete")
@@ -909,11 +909,11 @@ GETMSITESCOMPLETE1E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should not exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("true",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should be complete")
@@ -930,10 +930,10 @@ GETMSITESCOMPLETE1E ;; @TEST Get multiple site complete Patient Sync Status - RE
  Q
 GETMSITESCOMPLETE2E ;; @TEST Get multiple site complete Patient Sync Status - REAL 2nd job in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -943,18 +943,18 @@ GETMSITESCOMPLETE2E ;; @TEST Get multiple site complete Patient Sync Status - RE
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"error",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"error",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"completed",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="BBBB;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -968,11 +968,11 @@ GETMSITESCOMPLETE2E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should not be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should not be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("true",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should be complete")
@@ -980,11 +980,11 @@ GETMSITESCOMPLETE2E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should not exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("true",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should be complete")
@@ -1001,10 +1001,10 @@ GETMSITESCOMPLETE2E ;; @TEST Get multiple site complete Patient Sync Status - RE
  Q
 GETMSITESCOMPLETE3E ;; @TEST Get multiple site complete Patient Sync Status - REAL 3rd job in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -1014,18 +1014,18 @@ GETMSITESCOMPLETE3E ;; @TEST Get multiple site complete Patient Sync Status - RE
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"error",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"error",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"completed",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -1039,11 +1039,11 @@ GETMSITESCOMPLETE3E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
+ D ASSERT("",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should not exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("true",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should be complete")
@@ -1051,11 +1051,11 @@ GETMSITESCOMPLETE3E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should not be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("false",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should not be complete")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("true",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should be complete")
@@ -1072,10 +1072,10 @@ GETMSITESCOMPLETE3E ;; @TEST Get multiple site complete Patient Sync Status - RE
  Q
 GETMSITESCOMPLETE4E ;; @TEST Get multiple site complete Patient Sync Status - REAL 4th job in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -1085,18 +1085,18 @@ GETMSITESCOMPLETE4E ;; @TEST Get multiple site complete Patient Sync Status - RE
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"error",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"error",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"completed",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="BBBB;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -1110,11 +1110,11 @@ GETMSITESCOMPLETE4E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
+ D ASSERT("",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should not exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("true",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should be complete")
@@ -1122,11 +1122,11 @@ GETMSITESCOMPLETE4E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should not be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("false",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should not be complete")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("true",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should be complete")
@@ -1143,10 +1143,10 @@ GETMSITESCOMPLETE4E ;; @TEST Get multiple site complete Patient Sync Status - RE
  Q
 GETMSITESCOMPLETE5E ;; @TEST Get multiple site complete Patient Sync Status - REAL 5th job in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -1156,18 +1156,18 @@ GETMSITESCOMPLETE5E ;; @TEST Get multiple site complete Patient Sync Status - RE
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"error",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"completed",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -1181,11 +1181,11 @@ GETMSITESCOMPLETE5E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
+ D ASSERT("",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should not exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("false",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should not be complete")
@@ -1193,11 +1193,11 @@ GETMSITESCOMPLETE5E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should not exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("true",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should be complete")
@@ -1214,10 +1214,10 @@ GETMSITESCOMPLETE5E ;; @TEST Get multiple site complete Patient Sync Status - RE
  Q
 GETMSITESCOMPLETE6E ;; @TEST Get multiple site complete Patient Sync Status - REAL 6th job in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -1227,18 +1227,18 @@ GETMSITESCOMPLETE6E ;; @TEST Get multiple site complete Patient Sync Status - RE
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"error",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"completed",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="BBBB;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -1252,11 +1252,11 @@ GETMSITESCOMPLETE6E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
+ D ASSERT("",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should not exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("false",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should not be complete")
@@ -1264,11 +1264,11 @@ GETMSITESCOMPLETE6E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should not exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("true",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should be complete")
@@ -1285,10 +1285,10 @@ GETMSITESCOMPLETE6E ;; @TEST Get multiple site complete Patient Sync Status - RE
  Q
 GETMSITESCOMPLETE7E ;; @TEST Get multiple site complete Patient Sync Status - REAL 7th job in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -1298,18 +1298,18 @@ GETMSITESCOMPLETE7E ;; @TEST Get multiple site complete Patient Sync Status - RE
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"error",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -1323,11 +1323,11 @@ GETMSITESCOMPLETE7E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
+ D ASSERT("",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should not exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("true",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should be complete")
@@ -1335,11 +1335,11 @@ GETMSITESCOMPLETE7E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should not exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("false",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should not be complete")
@@ -1356,10 +1356,10 @@ GETMSITESCOMPLETE7E ;; @TEST Get multiple site complete Patient Sync Status - RE
  Q
 GETMSITESCOMPLETE8E ;; @TEST Get multiple site complete Patient Sync Status - REAL 8th job in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -1369,18 +1369,18 @@ GETMSITESCOMPLETE8E ;; @TEST Get multiple site complete Patient Sync Status - RE
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"completed",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"error",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -1394,11 +1394,11 @@ GETMSITESCOMPLETE8E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
+ D ASSERT("",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should not exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("true",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should  be complete")
@@ -1406,11 +1406,11 @@ GETMSITESCOMPLETE8E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should not exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("true",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should be complete")
@@ -1427,10 +1427,10 @@ GETMSITESCOMPLETE8E ;; @TEST Get multiple site complete Patient Sync Status - RE
  Q
 GETMSITESCOMPLETE9E ;; @TEST Get multiple site complete Patient Sync Status - REAL 9th job in error
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
- D BASIC("SITE",3,20141031094920)
- D COMPLETEBASIC("SITE",3,20141031094920)
- D BASIC("SITE",3,20141031095020)
- D COMPLETEBASIC("SITE",3,20141031095020)
+ D BASIC("AAAA",3,20141031094920)
+ D COMPLETEBASIC("AAAA",3,20141031094920)
+ D BASIC("BBBB",3,20141031095020)
+ D COMPLETEBASIC("BBBB",3,20141031095020)
  D BASIC("HDR","1234V4321",20151031094920)
  D COMPLETEBASIC("HDR","1234V4321",20151031094920)
  D BASIC("VLER","1234V4321",20131031094920)
@@ -1440,18 +1440,18 @@ GETMSITESCOMPLETE9E ;; @TEST Get multiple site complete Patient Sync Status - RE
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110500,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110405,"vista-SITE-data-allergy-poller")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110700,"vistahdr-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110800,"vistahdr-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110500,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110405,"vista-AAAA-data-allergy-poller")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110700,"vistahdr-BBBB-subscribe-request")
+ D JOB("BBBB;3",ROOTJOBID,"completed",20160420110800,"vistahdr-BBBB-data-allergy-poller")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420110900,"hdr-sync-request")
  D JOB("HDR;1234V4321",ROOTJOBID,"completed",20160420111000,"hdr-sync-allergy-request")
  D JOB("VLER;1234V4321",ROOTJOBID,"completed",20160420110400,"vler-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"completed",20160420110430,"jmeadows-sync-request")
  D JOB("DOD;12345678",ROOTJOBID,"error",20160420110500,"jmeadows-sync-allergy-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -1465,11 +1465,11 @@ GETMSITESCOMPLETE9E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20161031094920,$G(OBJECT("latestSourceStampTime")),"latestSourceStampTime should exist")
  D ASSERT(20160420110400,$G(OBJECT("latestEnterpriseSyncRequestTimestamp")),"latestEnterpriseSyncRequestTimestamp should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should not exist")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110500,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-Sync AAAA should be complete")
+ D ASSERT("",$G(OBJECT("sites","AAAA","hasError")),"Site-hasError AAAA should not exist")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime AAAA should exist")
+ D ASSERT(20160420110500,$G(OBJECT("sites","AAAA","latestJobTimestamp")),"Site-latestJobTimestamp AAAA should exist")
  ;
  D ASSERT("HDR;1234V4321",$G(OBJECT("sites","HDR","pid")),"Site-pid HDR should exist")
  D ASSERT("true",$G(OBJECT("sites","HDR","syncCompleted")),"Site-Sync HDR should not be complete")
@@ -1477,11 +1477,11 @@ GETMSITESCOMPLETE9E ;; @TEST Get multiple site complete Patient Sync Status - RE
  D ASSERT(20151031094920,$G(OBJECT("sites","HDR","sourceStampTime")),"Site-sourceStampTime HDR should exist")
  D ASSERT(20160420111000,$G(OBJECT("sites","HDR","latestJobTimestamp")),"Site-latestJobTimestamp HDR should exist")
  ;
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-Sync SITE should not be complete")
- D ASSERT("",$G(OBJECT("sites","SITE","hasError")),"Site-hasError SITE should exist")
- D ASSERT(20141031095020,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime SITE should exist")
- D ASSERT(20160420110800,$G(OBJECT("sites","SITE","latestJobTimestamp")),"Site-latestJobTimestamp SITE should exist")
+ D ASSERT("BBBB;3",$G(OBJECT("sites","BBBB","pid")),"Site-pid BBBB should exist")
+ D ASSERT("true",$G(OBJECT("sites","BBBB","syncCompleted")),"Site-Sync BBBB should not be complete")
+ D ASSERT("",$G(OBJECT("sites","BBBB","hasError")),"Site-hasError BBBB should exist")
+ D ASSERT(20141031095020,$G(OBJECT("sites","BBBB","sourceStampTime")),"Site-sourceStampTime BBBB should exist")
+ D ASSERT(20160420110800,$G(OBJECT("sites","BBBB","latestJobTimestamp")),"Site-latestJobTimestamp BBBB should exist")
  ;
  D ASSERT("VLER;1234V4321",$G(OBJECT("sites","VLER","pid")),"Site-pid VLER should exist")
  D ASSERT("true",$G(OBJECT("sites","VLER","syncCompleted")),"Site-Sync VLER should be complete")
@@ -1531,7 +1531,7 @@ GETMSITESCOMPLETENUM ;; @TEST Get multiple site complete Patient Sync Status - F
  ;
 GETSOLRBEFORE ;; @TEST Get Patient Simple Sync Status before metastamp stored with SOLR status
  N DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  ; save off SOLR configuration
  N SOLR
  S SOLR=$G(^VPRCONFIG("sync","status","solr"))
@@ -1549,7 +1549,7 @@ GETSOLRBEFORE ;; @TEST Get Patient Simple Sync Status before metastamp stored wi
  D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"SOLR Sync shouldn't be complete")
  ;
  ; Try again with an event stored, but no meta-stamp is stored
- S ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"solrStored")=1
+ S ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"solrStored")=1
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
@@ -1604,7 +1604,7 @@ GETSOLRMSITESCOMPLETENUM ;; @TEST Get multiple site complete Simple Patient Sync
  ;
 GETSOLREXCEPTIONS ;; @TEST Get Patient Simple Sync Status with SOLR domain exceptions
  N DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  ; save off SOLR configuration
  N SOLR,DOMAINEXCEPTIONS
  S SOLR=$G(^VPRCONFIG("sync","status","solr"))
@@ -1615,18 +1615,18 @@ GETSOLREXCEPTIONS ;; @TEST Get Patient Simple Sync Status with SOLR domain excep
  ; Reset data
  K ^VPRPTJ("JPID")
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-data-allergy-poller")
  ; Unset a SOLR stored item
- K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1001",20141031094920,"solrStored")
+ K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1001",20141031094920,"solrStored")
  ;
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) K OBJECT D DECODE^VPRJSON(DATA,"OBJECT","ERR")
@@ -1635,7 +1635,7 @@ GETSOLREXCEPTIONS ;; @TEST Get Patient Simple Sync Status with SOLR domain excep
  ;
  ; Ensure that the JSON matches what we expect
  D ASSERT(11,$D(OBJECT("icn")),"icn attribute should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","solrSyncCompleted")),"SOLR site sync shouldn't be complete")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"SOLR site sync shouldn't be complete")
  D ASSERT("true",$G(OBJECT("syncCompleted")),"Sync should be complete")
  D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"SOLR Sync shouldn't be complete")
  ;
@@ -1647,23 +1647,23 @@ GETSOLREXCEPTIONS ;; @TEST Get Patient Simple Sync Status with SOLR domain excep
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ; Ensure that the JSON matches what we expect
  D ASSERT(11,$D(OBJECT("icn")),"icn attribute should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"SOLR site sync should be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"SOLR site sync should be complete")
  D ASSERT("true",$G(OBJECT("syncCompleted")),"Sync should be complete")
  D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"SOLR Sync should be complete")
  ;
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-data-allergy-poller")
  ;
  ; Unset a different SOLR stored item
- K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","allergy","urn:va:allergy:SITE:3:1001",20141031094920,"solrStored")
+ K ^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","allergy","urn:va:allergy:AAAA:3:1001",20141031094920,"solrStored")
  ;
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) K OBJECT D DECODE^VPRJSON(DATA,"OBJECT","ERR")
@@ -1672,7 +1672,7 @@ GETSOLREXCEPTIONS ;; @TEST Get Patient Simple Sync Status with SOLR domain excep
  ;
  ; Ensure that the JSON matches what we expect
  D ASSERT(11,$D(OBJECT("icn")),"icn attribute should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","solrSyncCompleted")),"SOLR site sync shouldn't be complete")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"SOLR site sync shouldn't be complete")
  D ASSERT("true",$G(OBJECT("syncCompleted")),"Sync should be complete")
  D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"SOLR Sync shouldn't be complete")
  ;
@@ -1684,7 +1684,7 @@ GETSOLREXCEPTIONS ;; @TEST Get Patient Simple Sync Status with SOLR domain excep
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ; Ensure that the JSON matches what we expect
  D ASSERT(11,$D(OBJECT("icn")),"icn attribute should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"SOLR site sync should be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"SOLR site sync should be complete")
  D ASSERT("true",$G(OBJECT("syncCompleted")),"Sync should be complete")
  D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"SOLR Sync should be complete")
  ;
@@ -1712,19 +1712,19 @@ STORERECORDUNKJPID ;; @TEST Manual Store flag ERROR if UNKNOWN JPID
  Q
 STORERECORDUIDPID ;; @TEST Manual Store flag Mismatch between PID and UID
  N BODY,RETURN,DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("pid")="SITE;3"
+ S ARG("pid")="AAAA;3"
  S BODY("uid")="urn:va:vitals:1234:6:1234"
  S BODY("eventStamp")=20141031094920
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
- D ASSERT("1",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:1234:6:1234",20141031094920,"stored")),"JDS Stored flag doesn't exist")
- D ASSERT("/vpr/SITE;3/urn:va:vitals:1234:6:1234",$G(RETURN),"Returned no data instead of a 201")
+ D ASSERT("1",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:1234:6:1234",20141031094920,"stored")),"JDS Stored flag doesn't exist")
+ D ASSERT("/vpr/AAAA;3/urn:va:vitals:1234:6:1234",$G(RETURN),"Returned no data instead of a 201")
  Q
 STORERECORDND ;; @TEST Manual Store flag ERROR if UID invalid - no domain
  N BODY,RETURN,DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va::SITE:3"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va::AAAA:3"
  S BODY("eventStamp")=20141031094920
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
@@ -1732,13 +1732,13 @@ STORERECORDND ;; @TEST Manual Store flag ERROR if UID invalid - no domain
  D ASSERT(400,$G(HTTPERR),"An HTTP 400 should have occured")
  D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
  D ASSERT(210,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
- D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
+ D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
  D ASSERT("",$G(RETURN),"Returned a 201 instead of no data")
  Q
 STORERECORDNI ;; @TEST Manual Store flag ERROR if UID invalid - no ien
  N BODY,RETURN,DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va:vital:SITE:3"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va:vital:AAAA:3"
  S BODY("eventStamp")=20141031094920
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
@@ -1746,26 +1746,26 @@ STORERECORDNI ;; @TEST Manual Store flag ERROR if UID invalid - no ien
  D ASSERT(400,$G(HTTPERR),"An HTTP 400 should have occured")
  D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
  D ASSERT(210,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
- D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
+ D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
  D ASSERT("",$G(RETURN),"Returned a 201 instead of no data")
  Q
 STORERECORDUES ;; @TEST Manual Store flag ERROR if no eventStamp
  N BODY,RETURN,DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va:vitals:SITE:3:1002"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va:vitals:AAAA:3:1002"
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
  D ASSERT(400,$G(HTTPERR),"An HTTP 400 should have occured")
  D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
  D ASSERT(210,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
- D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
+ D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
  D ASSERT("",$G(RETURN),"Returned a 201 instead of no data")
  Q
 STORERECORDNES ;; @TEST Manual Store flag ERROR if eventStamp=""
  N BODY,RETURN,DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va:vitals:SITE:3:1002"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va:vitals:AAAA:3:1002"
  S BODY("eventStamp")=""
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
@@ -1773,67 +1773,67 @@ STORERECORDNES ;; @TEST Manual Store flag ERROR if eventStamp=""
  D ASSERT(400,$G(HTTPERR),"An HTTP 400 should have occured")
  D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 should have occured")
  D ASSERT(210,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 210 reason code should have occured")
- D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
+ D ASSERT("",$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
  D ASSERT("",$G(RETURN),"Returned a 201 instead of no data")
  Q
 STORERECORDJDS ;; @TEST Manual Store flag is set for JDS
  N BODY,RETURN,DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va:vitals:SITE:3:1002"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va:vitals:AAAA:3:1002"
  S BODY("eventStamp")=20141031094920
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
- D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
- D ASSERT("/vpr/SITE;3/urn:va:vitals:SITE:3:1002",$G(RETURN),"Return not a 201/no data returned")
+ D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
+ D ASSERT("/vpr/AAAA;3/urn:va:vitals:AAAA:3:1002",$G(RETURN),"Return not a 201/no data returned")
  Q
 STORERECORDJDST ;; @TEST Manual Store flag is set for JDS with type field
  N BODY,RETURN,DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va:vitals:SITE:3:1002"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va:vitals:AAAA:3:1002"
  S BODY("eventStamp")=20141031094920
  S BODY("type")="jds"
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
- D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
- D ASSERT("/vpr/SITE;3/urn:va:vitals:SITE:3:1002",$G(RETURN),"Return not a 201/no data returned")
+ D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"stored")),"JDS Stored flag doesn't exist")
+ D ASSERT("/vpr/AAAA;3/urn:va:vitals:AAAA:3:1002",$G(RETURN),"Return not a 201/no data returned")
  Q
 STORERECORDSOLR ;; @TEST Manual Store flag is set for SOLR
  N BODY,RETURN,DATA,ARG,ERR,OBJECT,HTTPERR
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va:vitals:SITE:3:1002"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va:vitals:AAAA:3:1002"
  S BODY("eventStamp")=20141031094920
  S BODY("type")="solr"
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
- D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"solrStored")),"SOLR Stored flag doesn't exist")
- D ASSERT("/vpr/SITE;3/urn:va:vitals:SITE:3:1002",$G(RETURN),"Return not a 201/no data returned")
+ D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"solrStored")),"SOLR Stored flag doesn't exist")
+ D ASSERT("/vpr/AAAA;3/urn:va:vitals:AAAA:3:1002",$G(RETURN),"Return not a 201/no data returned")
  Q
 STORERECORDSOLRERR ;; @TEST Manual Store flag is set for solrError
  N BODY,RETURN,DATA,ARG,ERR,HTTPERR
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va:vitals:SITE:3:1002"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va:vitals:AAAA:3:1002"
  S BODY("eventStamp")=20141031094920
  S BODY("type")="solrError"
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
- D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"solrError")),"SOLR Error flag doesn't exist")
- D ASSERT("/vpr/SITE;3/urn:va:vitals:SITE:3:1002",$G(RETURN),"Return not a 201/no data returned")
+ D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"solrError")),"SOLR Error flag doesn't exist")
+ D ASSERT("/vpr/AAAA;3/urn:va:vitals:AAAA:3:1002",$G(RETURN),"Return not a 201/no data returned")
  Q
 STORERECORDSYNCERR ;; @TEST Manual Store flag is set for syncError
  N BODY,RETURN,DATA,ARG,ERR,HTTPERR
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va:vitals:SITE:3:1002"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va:vitals:AAAA:3:1002"
  S BODY("eventStamp")=20141031094920
  S BODY("type")="syncError"
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  K BODY,ERR
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
- D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","SITE;3","SITE","vitals","urn:va:vitals:SITE:3:1002",20141031094920,"syncError")),"Sync Error flag doesn't exist")
- D ASSERT("/vpr/SITE;3/urn:va:vitals:SITE:3:1002",$G(RETURN),"Return not a 201/no data returned")
+ D ASSERT(1,$G(^VPRSTATUS("52833885-af7c-4899-90be-b3a6630b2369","AAAA;3","AAAA","vitals","urn:va:vitals:AAAA:3:1002",20141031094920,"syncError")),"Sync Error flag doesn't exist")
+ D ASSERT("/vpr/AAAA;3/urn:va:vitals:AAAA:3:1002",$G(RETURN),"Return not a 201/no data returned")
  Q
  ;
  ; SOLR and Sync error flag tests for Simple Sync Status
@@ -1844,48 +1844,48 @@ GETSYNCERRORPARTSYNC ;; @TEST Get Patient Simple Sync Status with a Sync error a
  ; Set up test data
  K ^VPRPTJ("JPID")
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
  ;
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should not be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should be complete")
- D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient SITE;3 should not be sync complete")
- D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should be SOLR sync complete")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should not have Sync error")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should not have SOLR error")
- D ASSERT(0,$D(OBJECT("hasError")),"Patient SITE;3 should not have Sync error")
- D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient SITE;3 should not have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should not be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should be complete")
+ D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should not be sync complete")
+ D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should be SOLR sync complete")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should not have Sync error")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should not have SOLR error")
+ D ASSERT(0,$D(OBJECT("hasError")),"Patient AAAA;3 should not have Sync error")
+ D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should not have SOLR error")
  ;
  I $D(DATA) K @DATA
  ; Set Sync error flags
- D COMPLETEBASICSYNCERR("SITE",3)
+ D COMPLETEBASICSYNCERR("AAAA",3)
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should not be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should be complete")
- D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient SITE;3 should not be sync complete")
- D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should be SOLR sync complete")
- D ASSERT(1,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should have Sync error")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should not have SOLR error")
- D ASSERT(1,$D(OBJECT("hasError")),"Patient SITE;3 should have Sync error")
- D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient SITE;3 should not have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should not be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should be complete")
+ D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should not be sync complete")
+ D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should be SOLR sync complete")
+ D ASSERT(1,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should have Sync error")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should not have SOLR error")
+ D ASSERT(1,$D(OBJECT("hasError")),"Patient AAAA;3 should have Sync error")
+ D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should not have SOLR error")
  Q
  ;
 GETSOLRERRORPARTSYNC ;; @TEST Get Patient Simple Sync Status with a SOLR error after a partial sync
@@ -1894,48 +1894,48 @@ GETSOLRERRORPARTSYNC ;; @TEST Get Patient Simple Sync Status with a SOLR error a
  ; Set up test data
  K ^VPRPTJ("JPID")
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
  ;
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should not be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should be complete")
- D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient SITE;3 should not be sync complete")
- D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should be SOLR sync complete")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should not have Sync error")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should not have SOLR error")
- D ASSERT(0,$D(OBJECT("hasError")),"Patient SITE;3 should not have Sync error")
- D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient SITE;3 should not have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should not be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should be complete")
+ D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should not be sync complete")
+ D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should be SOLR sync complete")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should not have Sync error")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should not have SOLR error")
+ D ASSERT(0,$D(OBJECT("hasError")),"Patient AAAA;3 should not have Sync error")
+ D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should not have SOLR error")
  ;
  I $D(DATA) K @DATA
  ; Set SOLR error flags
- D COMPLETEBASICSOLRERR("SITE",3)
+ D COMPLETEBASICSOLRERR("AAAA",3)
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should not be complete")
- D ASSERT("false",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should not be complete")
- D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient SITE;3 should not be sync complete")
- D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should not be SOLR sync complete")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should not have Sync error")
- D ASSERT(1,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should have SOLR error")
- D ASSERT(0,$D(OBJECT("hasError")),"Patient SITE;3 should not have Sync error")
- D ASSERT(1,$D(OBJECT("hasSolrError")),"Patient SITE;3 should have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should not be complete")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should not be complete")
+ D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should not be sync complete")
+ D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should not be SOLR sync complete")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should not have Sync error")
+ D ASSERT(1,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should have SOLR error")
+ D ASSERT(0,$D(OBJECT("hasError")),"Patient AAAA;3 should not have Sync error")
+ D ASSERT(1,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should have SOLR error")
  Q
  ;
 GETSYNCSOLRERRORPARTSYNC ;; @TEST Get Patient Simple Sync Status with a Sync and a SOLR error after a partial sync
@@ -1944,49 +1944,49 @@ GETSYNCSOLRERRORPARTSYNC ;; @TEST Get Patient Simple Sync Status with a Sync and
  ; Set up test data
  K ^VPRPTJ("JPID")
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
  ;
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should not be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should be complete")
- D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient SITE;3 should not be sync complete")
- D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should be SOLR sync complete")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should not have Sync error")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should not have SOLR error")
- D ASSERT(0,$D(OBJECT("hasError")),"Patient SITE;3 should not have Sync error")
- D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient SITE;3 should not have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should not be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should be complete")
+ D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should not be sync complete")
+ D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should be SOLR sync complete")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should not have Sync error")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should not have SOLR error")
+ D ASSERT(0,$D(OBJECT("hasError")),"Patient AAAA;3 should not have Sync error")
+ D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should not have SOLR error")
  ;
  I $D(DATA) K @DATA
  ; Set Sync and SOLR error flags
- D COMPLETEBASICSYNCERR("SITE",3)
- D COMPLETEBASICSOLRERR("SITE",3)
+ D COMPLETEBASICSYNCERR("AAAA",3)
+ D COMPLETEBASICSOLRERR("AAAA",3)
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should not be complete")
- D ASSERT("false",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should not be complete")
- D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient SITE;3 should not be sync complete")
- D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should not be SOLR sync complete")
- D ASSERT(1,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should have Sync error")
- D ASSERT(1,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should have SOLR error")
- D ASSERT(1,$D(OBJECT("hasError")),"Patient SITE;3 should have Sync error")
- D ASSERT(1,$D(OBJECT("hasSolrError")),"Patient SITE;3 should have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should not be complete")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should not be complete")
+ D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should not be sync complete")
+ D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should not be SOLR sync complete")
+ D ASSERT(1,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should have Sync error")
+ D ASSERT(1,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should have SOLR error")
+ D ASSERT(1,$D(OBJECT("hasError")),"Patient AAAA;3 should have Sync error")
+ D ASSERT(1,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should have SOLR error")
  Q
  ;
 GETSYNCERRORFULLSYNC ;; @TEST Get Patient Simple Sync Status with a Sync error after a full sync
@@ -1995,54 +1995,54 @@ GETSYNCERRORFULLSYNC ;; @TEST Get Patient Simple Sync Status with a Sync error a
  ; Set up test data
  K ^VPRPTJ("JPID")
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
  ;
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-data-allergy-poller")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should be complete")
- D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient SITE;3 should be sync complete")
- D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should be SOLR sync complete")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should not have Sync error")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should not have SOLR error")
- D ASSERT(0,$D(OBJECT("hasError")),"Patient SITE;3 should not have Sync error")
- D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient SITE;3 should not have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should be complete")
+ D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should be sync complete")
+ D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should be SOLR sync complete")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should not have Sync error")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should not have SOLR error")
+ D ASSERT(0,$D(OBJECT("hasError")),"Patient AAAA;3 should not have Sync error")
+ D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should not have SOLR error")
  ;
  I $D(DATA) K @DATA
  ; Set Sync error flags
- D COMPLETEBASICSYNCERR("SITE",3)
+ D COMPLETEBASICSYNCERR("AAAA",3)
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should not be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should be complete")
- D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient SITE;3 should not be sync complete")
- D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should be SOLR sync complete")
- D ASSERT(1,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should have Sync error")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should not have SOLR error")
- D ASSERT(1,$D(OBJECT("hasError")),"Patient SITE;3 should have Sync error")
- D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient SITE;3 should not have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should not be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should be complete")
+ D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should not be sync complete")
+ D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should be SOLR sync complete")
+ D ASSERT(1,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should have Sync error")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should not have SOLR error")
+ D ASSERT(1,$D(OBJECT("hasError")),"Patient AAAA;3 should have Sync error")
+ D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should not have SOLR error")
  Q
  ;
 GETSOLRERRORFULLSYNC ;; @TEST Get Patient Simple Sync Status with a SOLR error after a full sync
@@ -2051,54 +2051,54 @@ GETSOLRERRORFULLSYNC ;; @TEST Get Patient Simple Sync Status with a SOLR error a
  ; Set up test data
  K ^VPRPTJ("JPID")
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
  ;
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-data-allergy-poller")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should be complete")
- D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient SITE;3 should be sync complete")
- D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should be SOLR sync complete")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should not have Sync error")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should not have SOLR error")
- D ASSERT(0,$D(OBJECT("hasError")),"Patient SITE;3 should not have Sync error")
- D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient SITE;3 should not have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should be complete")
+ D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should be sync complete")
+ D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should be SOLR sync complete")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should not have Sync error")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should not have SOLR error")
+ D ASSERT(0,$D(OBJECT("hasError")),"Patient AAAA;3 should not have Sync error")
+ D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should not have SOLR error")
  ;
  I $D(DATA) K @DATA
  ; Set SOLR error flags
- D COMPLETEBASICSOLRERR("SITE",3)
+ D COMPLETEBASICSOLRERR("AAAA",3)
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should be complete")
- D ASSERT("false",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should not be complete")
- D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient SITE;3 should be sync complete")
- D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should not be SOLR sync complete")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should not have Sync error")
- D ASSERT(1,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should have SOLR error")
- D ASSERT(0,$D(OBJECT("hasError")),"Patient SITE;3 should not have Sync error")
- D ASSERT(1,$D(OBJECT("hasSolrError")),"Patient SITE;3 should have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should be complete")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should not be complete")
+ D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should be sync complete")
+ D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should not be SOLR sync complete")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should not have Sync error")
+ D ASSERT(1,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should have SOLR error")
+ D ASSERT(0,$D(OBJECT("hasError")),"Patient AAAA;3 should not have Sync error")
+ D ASSERT(1,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should have SOLR error")
  Q
  ;
 GETSYNCSOLRERRORFULLSYNC ;; @TEST Get Patient Simple Sync Status with a Sync and a SOLR error after a full sync
@@ -2107,55 +2107,55 @@ GETSYNCSOLRERRORFULLSYNC ;; @TEST Get Patient Simple Sync Status with a Sync and
  ; Set up test data
  K ^VPRPTJ("JPID")
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
  ;
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-data-allergy-poller")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should be complete")
- D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient SITE;3 should be sync complete")
- D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should be SOLR sync complete")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should not have Sync error")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should not have SOLR error")
- D ASSERT(0,$D(OBJECT("hasError")),"Patient SITE;3 should not have Sync error")
- D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient SITE;3 should not have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should be complete")
+ D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should be sync complete")
+ D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should be SOLR sync complete")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should not have Sync error")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should not have SOLR error")
+ D ASSERT(0,$D(OBJECT("hasError")),"Patient AAAA;3 should not have Sync error")
+ D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should not have SOLR error")
  ;
  I $D(DATA) K @DATA
  ; Set Sync and SOLR error flags
- D COMPLETEBASICSYNCERR("SITE",3)
- D COMPLETEBASICSOLRERR("SITE",3)
+ D COMPLETEBASICSYNCERR("AAAA",3)
+ D COMPLETEBASICSOLRERR("AAAA",3)
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("false",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should not be complete")
- D ASSERT("false",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should not be complete")
- D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient SITE;3 should not be sync complete")
- D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should not be SOLR sync complete")
- D ASSERT(1,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should have Sync error")
- D ASSERT(1,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should have SOLR error")
- D ASSERT(1,$D(OBJECT("hasError")),"Patient SITE;3 should have Sync error")
- D ASSERT(1,$D(OBJECT("hasSolrError")),"Patient SITE;3 should have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should not be complete")
+ D ASSERT("false",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should not be complete")
+ D ASSERT("false",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should not be sync complete")
+ D ASSERT("false",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should not be SOLR sync complete")
+ D ASSERT(1,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should have Sync error")
+ D ASSERT(1,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should have SOLR error")
+ D ASSERT(1,$D(OBJECT("hasError")),"Patient AAAA;3 should have Sync error")
+ D ASSERT(1,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should have SOLR error")
  Q
 RESETSYNCERROR ;; @TEST Get Patient Simple Sync Status with a Sync and a SOLR error after a full sync
  N BODY,JPID,DATA,ARG,ERR,HTTPERR,STAMPTIME,RETURN
@@ -2163,24 +2163,24 @@ RESETSYNCERROR ;; @TEST Get Patient Simple Sync Status with a Sync and a SOLR er
  D PATIDS
  S JPID="52833885-af7c-4899-90be-b3a6630b2369"
  S STAMPTIME=20141031094920
- S ARG("pid")="SITE;3"
- S BODY("uid")="urn:va:vitals:SITE:3:1001",BODY("eventStamp")=STAMPTIME,BODY("type")="solrErr",BODY("pid")="SITE;3"
+ S ARG("pid")="AAAA;3"
+ S BODY("uid")="urn:va:vitals:AAAA:3:1001",BODY("eventStamp")=STAMPTIME,BODY("type")="solrErr",BODY("pid")="AAAA;3"
  D ENCODE^VPRJSON("BODY","DATA","ERR")
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
  ; Set status to stored
  S BODY("type")="solr"
  K DATA,ERR D ENCODE^VPRJSON("BODY","DATA","ERR")
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
- D ASSERT("",$G(^VPRSTATUS(JPID,"SITE;3","SITE","vitals",BODY("uid"),STAMPTIME,"solrError")),"SOLR Error should have been cleared")
- D ASSERT(1,$G(^VPRSTATUS(JPID,"SITE;3","SITE","vitals",BODY("uid"),STAMPTIME,"solrStored")),"SOLR status should be stored")
- S BODY("uid")="urn:va:vitals:SITE:3:1002",BODY("type")="syncError"
+ D ASSERT("",$G(^VPRSTATUS(JPID,"AAAA;3","AAAA","vitals",BODY("uid"),STAMPTIME,"solrError")),"SOLR Error should have been cleared")
+ D ASSERT(1,$G(^VPRSTATUS(JPID,"AAAA;3","AAAA","vitals",BODY("uid"),STAMPTIME,"solrStored")),"SOLR status should be stored")
+ S BODY("uid")="urn:va:vitals:AAAA:3:1002",BODY("type")="syncError"
  K DATA,ERR D ENCODE^VPRJSON("BODY","DATA","ERR")
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
  S BODY("type")="jds"
  K DATA,ERR D ENCODE^VPRJSON("BODY","DATA","ERR")
  S RETURN=$$STORERECORD^VPRJPSTATUS(.ARG,.DATA)
- D ASSERT("",$G(^VPRSTATUS(JPID,"SITE;3","SITE","vitals",BODY("uid"),STAMPTIME,"syncError")),"Sync Error should have been cleared")
- D ASSERT(1,$G(^VPRSTATUS(JPID,"SITE;3","SITE","vitals",BODY("uid"),STAMPTIME,"stored")),"Object should be stored")
+ D ASSERT("",$G(^VPRSTATUS(JPID,"AAAA;3","AAAA","vitals",BODY("uid"),STAMPTIME,"syncError")),"Sync Error should have been cleared")
+ D ASSERT(1,$G(^VPRSTATUS(JPID,"AAAA;3","AAAA","vitals",BODY("uid"),STAMPTIME,"stored")),"Object should be stored")
  Q
 GET2NDTIME ;; @TEST 1st time Patient sync complete started ESR Job
  N DATA,ARG,ERR,OBJECT,HTTPERR,ROOTJOBID
@@ -2188,38 +2188,38 @@ GET2NDTIME ;; @TEST 1st time Patient sync complete started ESR Job
  ; Set up test data
  K ^VPRPTJ("JPID")
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
  ;
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  ;
  ; Create jobs
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-subscribe-request")
- D JOB("SITE;3",ROOTJOBID,"completed",20160420110400,"vista-SITE-data-allergy-poller")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-subscribe-request")
+ D JOB("AAAA;3",ROOTJOBID,"completed",20160420110400,"vista-AAAA-data-allergy-poller")
  S ROOTJOBID=$$UUID^VPRJRUT
- D JOB("SITE;3",ROOTJOBID,"started",20160420110405,"enterprise-sync-request")
+ D JOB("AAAA;3",ROOTJOBID,"started",20160420110405,"enterprise-sync-request")
  ;
- S ARG("icnpidjpid")="SITE;3"
+ S ARG("icnpidjpid")="AAAA;3"
  D COMBINED^VPRJPSTATUS(.DATA,.ARG)
  I $D(DATA) D DECODE^VPRJSON(DATA,"OBJECT","ERR")
  ; If we can't decode the JSON Fail the test
  D ASSERT(0,$D(ERR),"ERROR DECODING JSON")
  ;
  ; Ensure that the JSON matches what we expect
- D ASSERT("SITE;3",$G(OBJECT("sites","SITE","pid")),"Site-pid SITE should exist")
- D ASSERT("true",$G(OBJECT("sites","SITE","syncCompleted")),"Site-SYNC SITE should be complete")
- D ASSERT("true",$G(OBJECT("sites","SITE","solrSyncCompleted")),"Site-SOLR Sync SITE should be complete")
- D ASSERT(20141031094920,$G(OBJECT("sites","SITE","sourceStampTime")),"Site-sourceStampTime should have a value")
- D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient SITE;3 should be sync complete")
- D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient SITE;3 should be SOLR sync complete")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasError")),"Site-SYNC SITE should not have Sync error")
- D ASSERT(0,$D(OBJECT("sites","SITE","hasSolrError")),"Site-SOLR Sync SITE should not have SOLR error")
- D ASSERT(0,$D(OBJECT("hasError")),"Patient SITE;3 should not have Sync error")
- D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient SITE;3 should not have SOLR error")
+ D ASSERT("AAAA;3",$G(OBJECT("sites","AAAA","pid")),"Site-pid AAAA should exist")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","syncCompleted")),"Site-SYNC AAAA should be complete")
+ D ASSERT("true",$G(OBJECT("sites","AAAA","solrSyncCompleted")),"Site-SOLR Sync AAAA should be complete")
+ D ASSERT(20141031094920,$G(OBJECT("sites","AAAA","sourceStampTime")),"Site-sourceStampTime should have a value")
+ D ASSERT("true",$G(OBJECT("syncCompleted")),"Patient AAAA;3 should be sync complete")
+ D ASSERT("true",$G(OBJECT("solrSyncCompleted")),"Patient AAAA;3 should be SOLR sync complete")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasError")),"Site-SYNC AAAA should not have Sync error")
+ D ASSERT(0,$D(OBJECT("sites","AAAA","hasSolrError")),"Site-SOLR Sync AAAA should not have SOLR error")
+ D ASSERT(0,$D(OBJECT("hasError")),"Patient AAAA;3 should not have Sync error")
+ D ASSERT(0,$D(OBJECT("hasSolrError")),"Patient AAAA;3 should not have SOLR error")
  QUIT
  ;
  ; VLER-DAS tests
@@ -2239,14 +2239,14 @@ ASSERTJOBS(JOBS,PID,SYNCCOMPLETE,SYNCERROR,DEBUG)
  ; Set up test data
  K ^VPRPTJ("JPID")
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","AAAA;3")=""
+ S ^VPRPTJ("JPID","AAAA;3")="52833885-af7c-4899-90be-b3a6630b2369"
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","VLER;1234V4321")=""
  S ^VPRPTJ("JPID","VLER;1234V4321")="52833885-af7c-4899-90be-b3a6630b2369"
  ;
- D BASIC("SITE",3)
- D COMPLETEBASIC("SITE",3)
- D COMPLETEBASICSOLR("SITE",3)
+ D BASIC("AAAA",3)
+ D COMPLETEBASIC("AAAA",3)
+ D COMPLETEBASICSOLR("AAAA",3)
  D BASIC("VLER","1234V4321")
  D:SYNCCOMPLETE="true" COMPLETEBASIC("VLER","1234V4321")
  D:SYNCCOMPLETE="true" COMPLETEBASICSOLR("VLER","1234V4321")

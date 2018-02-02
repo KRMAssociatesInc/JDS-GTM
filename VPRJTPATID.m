@@ -26,10 +26,10 @@ ASSERT(EXPECT,ACTUAL,MSG) ; for convenience
 PATIDS ; Setup patient identifiers
  S ^VPRPTX("count","patient","patient")=1
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
- S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
+ S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","FEEE;3")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","1234V4321")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","FEEE;3")="52833885-af7c-4899-90be-b3a6630b2369"
  S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
  S ^VPRPTJ("JPID","1234V4321")="52833885-af7c-4899-90be-b3a6630b2369"
  Q
@@ -39,7 +39,7 @@ PATIDSNICN ; Setup patient identifiers
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
  S ^VPRPTJ("JPID","52833885-af7c-4899-90be-b3a6630b2369","SITE;3")=""
- S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
+ S ^VPRPTJ("JPID","FEEE;3")="52833885-af7c-4899-90be-b3a6630b2369"
  S ^VPRPTJ("JPID","SITE;3")="52833885-af7c-4899-90be-b3a6630b2369"
  Q
  ;
@@ -138,7 +138,7 @@ DELJPIDA ;; @TEST Delete all Patient identifiers from JPID Index
  K ^TMP
  D PATIDS
  S JPID="52833885-af7c-4899-90be-b3a6630b2369"
- D JPIDDIDX^VPRJPR(JPID,"SITE;3")
+ D JPIDDIDX^VPRJPR(JPID,"FEEE;3")
  D JPIDDIDX^VPRJPR(JPID,"1234V4321")
  D JPIDDIDX^VPRJPR(JPID,"SITE;3")
  D ASSERT(0,$D(^VPRPTJ("JPID",JPID)),"JPID existence index exists but should not")
@@ -181,7 +181,7 @@ PID4JPID ;; @TEST Retrieving a list of PIDs for a JPID
  S JPID="52833885-af7c-4899-90be-b3a6630b2369"
  D PID4JPID^VPRJPR(.PIDS,JPID)
  D ASSERT("1234V4321",$G(PIDS(1)),"ICN not found")
- D ASSERT("SITE;3",$G(PIDS(2)),"SITE;3 PID not found")
+ D ASSERT("FEEE;3",$G(PIDS(2)),"FEEE;3 PID not found")
  D ASSERT("SITE;3",$G(PIDS(3)),"SITE;3 PID not found")
  D ASSERT("",$G(PIDS(4)),"Too many PIDS returned")
  D PID4JPID^VPRJPR(.PIDS,"")
@@ -249,7 +249,7 @@ PIDSJPID ;; @TEST GET PIDs for a JPID
  D ASSERT(1,$D(DATA),"No return from PIDS^VPRJPR and there should be")
  D ASSERT(JPID,$G(OBJECT("jpid")),"JPID doesn't exist")
  D ASSERT("1234V4321",$G(OBJECT("patientIdentifiers",1)),"ICN 1234V4321 does not exit")
- D ASSERT("SITE;3",$G(OBJECT("patientIdentifiers",2)),"PID SITE;3 does not exit")
+ D ASSERT("FEEE;3",$G(OBJECT("patientIdentifiers",2)),"PID FEEE;3 does not exit")
  D ASSERT("SITE;3",$G(OBJECT("patientIdentifiers",3)),"PID SITE;3 does not exit")
  K ^VPRPTJ("JPID")
  K ^VPRPTX("count","patient","patient")
@@ -270,7 +270,7 @@ PIDSPID ;; @TEST GET PIDs for a PID
  D ASSERT(1,$D(DATA),"No return from PIDS^VPRJPR and there should be")
  D ASSERT(JPID,$G(OBJECT("jpid")),"JPID doesn't exist")
  D ASSERT("1234V4321",$G(OBJECT("patientIdentifiers",1)),"ICN 1234V4321 does not exit")
- D ASSERT("SITE;3",$G(OBJECT("patientIdentifiers",2)),"PID SITE;3 does not exit")
+ D ASSERT("FEEE;3",$G(OBJECT("patientIdentifiers",2)),"PID FEEE;3 does not exit")
  D ASSERT("SITE;3",$G(OBJECT("patientIdentifiers",3)),"PID SITE;3 does not exit")
  K ^VPRPTJ("JPID")
  K ^VPRPTX("count","patient","patient")
@@ -291,7 +291,7 @@ PIDSICN ;; @TEST GET PIDs for an ICN
  D ASSERT(1,$D(DATA),"No return from PIDS^VPRJPR and there should be")
  D ASSERT(JPID,$G(OBJECT("jpid")),"JPID doesn't exist")
  D ASSERT("1234V4321",$G(OBJECT("patientIdentifiers",1)),"ICN 1234V4321 does not exit")
- D ASSERT("SITE;3",$G(OBJECT("patientIdentifiers",2)),"PID SITE;3 does not exit")
+ D ASSERT("FEEE;3",$G(OBJECT("patientIdentifiers",2)),"PID FEEE;3 does not exit")
  D ASSERT("SITE;3",$G(OBJECT("patientIdentifiers",3)),"PID SITE;3 does not exit")
  K ^VPRPTJ("JPID")
  K ^VPRPTX("count","patient","patient")
