@@ -94,13 +94,13 @@ POSTQUERY3 ;; @TEST POST query with a massive (3640934 chars) filter on an index
  S LAST=$O(HTTPREQ("body",""),-1)
  S HTTPREQ("body",LAST)=$E(HTTPREQ("body",LAST),1,$L(HTTPREQ("body",LAST))-1)_"""}"
  D RESPOND^VPRJRSP
- D ASSERT(0,$G(HTTPERR))
- D DATA2ARY^VPRJTX(.JSON)
- D ASSERT(4,$G(JSON("data","totalItems")))
- D ASSERT("PHARMACIST,ONE",$G(JSON("data","items",1,"orders",1,"pharmacist","name")))
- D ASSERT("TAB,SA",$G(JSON("data","items",2,"productFormName")))
- D ASSERT("WARFARIN",$G(JSON("data","items",3,"products",1,"ingredientName")))
- D ASSERT("NON-OPIOID ANALGESICS",$G(JSON("data","items",4,"products",1,"drugClassName")))
+ D ASSERT(413,$G(HTTPERR))
+ ; D DATA2ARY^VPRJTX(.JSON)
+ ; D ASSERT(4,$G(JSON("data","totalItems")))
+ ; D ASSERT("PHARMACIST,ONE",$G(JSON("data","items",1,"orders",1,"pharmacist","name")))
+ ; D ASSERT("TAB,SA",$G(JSON("data","items",2,"productFormName")))
+ ; D ASSERT("WARFARIN",$G(JSON("data","items",3,"products",1,"ingredientName")))
+ ; D ASSERT("NON-OPIOID ANALGESICS",$G(JSON("data","items",4,"products",1,"drugClassName")))
  QUIT
  ;
 POSTQUERY4 ;; @TEST POST query with a massive (3640934 chars) filter on an index with start and limit set
@@ -126,18 +126,18 @@ POSTQUERY4 ;; @TEST POST query with a massive (3640934 chars) filter on an index
  S HTTPREQ("body",LAST)=$E(HTTPREQ("body",LAST),1,$L(HTTPREQ("body",LAST))-1)_""","
  S HTTPREQ("body",LAST)=HTTPREQ("body",LAST)_"""start"":1,""limit"":2}"
  D RESPOND^VPRJRSP
- D ASSERT(0,$G(HTTPERR))
+ D ASSERT(413,$G(HTTPERR))
  D DATA2ARY^VPRJTX(.JSON)
- D ASSERT(2,$G(JSON("data","currentItemCount")))
- D ASSERT(4,$G(JSON("data","totalItems")))
- D ASSERT("PHARMACIST,THIRTY",$G(JSON("data","items",1,"orders",1,"pharmacist","name")))
- D ASSERT("METFORMIN",$G(JSON("data","items",1,"products",1,"ingredientName")))
- D ASSERT("TAB,SA",$G(JSON("data","items",1,"productFormName")))
- D ASSERT("ORAL HYPOGLYCEMIC AGENTS,ORAL",$G(JSON("data","items",1,"products",1,"drugClassName")))
- D ASSERT("not active",$G(JSON("data","items",2,"medStatusName")))
- D ASSERT("urn:sct:73639000",$G(JSON("data","items",2,"medType")))
- D ASSERT("VEHU,ONEHUNDRED",$G(JSON("data","items",2,"orders",1,"provider","name")))
- D ASSERT("DISCONTINUED",$G(JSON("data","items",2,"orders",1,"vaOrderStatus")))
+ ; D ASSERT(2,$G(JSON("data","currentItemCount")))
+ ; D ASSERT(4,$G(JSON("data","totalItems")))
+ ; D ASSERT("PHARMACIST,THIRTY",$G(JSON("data","items",1,"orders",1,"pharmacist","name")))
+ ; D ASSERT("METFORMIN",$G(JSON("data","items",1,"products",1,"ingredientName")))
+ ; D ASSERT("TAB,SA",$G(JSON("data","items",1,"productFormName")))
+ ; D ASSERT("ORAL HYPOGLYCEMIC AGENTS,ORAL",$G(JSON("data","items",1,"products",1,"drugClassName")))
+ ; D ASSERT("not active",$G(JSON("data","items",2,"medStatusName")))
+ ; D ASSERT("urn:sct:73639000",$G(JSON("data","items",2,"medType")))
+ ; D ASSERT("VEHU,ONEHUNDRED",$G(JSON("data","items",2,"orders",1,"provider","name")))
+ ; D ASSERT("DISCONTINUED",$G(JSON("data","items",2,"orders",1,"vaOrderStatus")))
  QUIT
  ;
 POSTQUERY5 ;; @TEST POST query with a massive (3640953 chars) filter on an index
