@@ -50,7 +50,7 @@ RIDXALL(INDEX) ; Re-index all operational data
  I FLG QUIT
  D CLRINDEX(.OK,$G(INDEX)) QUIT:'OK
  ;
- S KEY="" F  S KEY=$O(^VPRJD(KEY)) Q:KEY=""  D
+ S KEY="u" F  S KEY=$O(^VPRJD(KEY)) Q:KEY=""  D  ; OSE/SMH - There is "COLLECTION" at a prior node.
  . D RIDXOBJ(KEY,$G(INDEX))
  . D LOGCNT^VPRJ("odc")
  D RESUME^VPRJ
