@@ -9,13 +9,11 @@ SET(ARGS,BODY)  ; Store or update a user data object based on the passed in id
   I $D(ERR) D SETERROR^VPRJRER(202) Q ""
   I $G(DEMOG("_id"))="" D SETERROR^VPRJRER(220) Q ""
   S SID=DEMOG("_id")
-  L +^VPRJUSR(SID):$G(^VPRCONFIG("timeout","gds"),5) E  D SETERROR^VPRJRER(502) Q ""
-  TSTART *
+  TSTART ():SERIAL
   I $O(^VPRJUSR(SID,""))']"" S INCR=$I(^VPRJUSR(0))
-  K:$D(^VPRJUSR(SID)) ^VPRJUSR(SID)
+  K ^VPRJUSR(SID)
   M ^VPRJUSR(SID)=DEMOG
   TCOMMIT
-  L -^VPRJUSR(SID)
   Q ""
   ;
 CLR(RESULT,ARGS)  ; Clear ALL user data object!!!
@@ -23,8 +21,8 @@ CLR(RESULT,ARGS)  ; Clear ALL user data object!!!
   N VPRJA
   L +^VPRJUSR:$G(^VPRCONFIG("timeout","gds"),5) E  D SETERROR^VPRJRER(502) Q
   S VPRJA=0
-  TSTART *
-  F  S VPRJA=$O(^VPRJUSR(VPRJA)) Q:VPRJA']""  K:$D(^VPRJUSR(VPRJA)) ^VPRJUSR(VPRJA)
+  TSTART (VPRJA):SERIAL
+  F  S VPRJA=$O(^VPRJUSR(VPRJA)) Q:VPRJA']""  K ^VPRJUSR(VPRJA)
   S ^VPRJUSR(0)=0
   TCOMMIT
   L -^VPRJUSR
@@ -33,12 +31,7 @@ CLR(RESULT,ARGS)  ; Clear ALL user data object!!!
   ;
 DEL(RESULT,ARGS)  ; Delete a given user data object
   I $$UNKARGS^VPRJCU(.ARGS,"_id") Q
-  I $D(^VPRJUSR(ARGS("_id"))) D
-  .L +^VPRJUSR(ARGS("_id")):$G(^VPRCONFIG("timeout","gds"),5)
-  .TSTART *
-  .K:$D(^VPRJUSR(ARGS("_id"))) ^VPRJUSR(ARGS("_id"))
-  .TCOMMIT
-  .L -^VPRJUSR(ARGS("_id"))
+  K ^VPRJUSR(ARGS("_id"))
   S RESULT="{}"
   Q
   ;
