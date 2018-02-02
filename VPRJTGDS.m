@@ -18,6 +18,12 @@ VPRJTGDS ;KRM/CJE -- Unit Tests for CRUD operations for Generic Data Stores
 STARTUP  ; Run once before all tests
  ; ensure that we have a store for the unit tests
  N HTTPREQ,HTTPERR
+ ; OSE/SMH: Must kill existing data in store
+ K ^VPRJUT
+ K ^VPRJUTX
+ K ^VPRJUTJ
+ K ^VPRCONFIG("store","ut")
+ D SHUTDOWN
  D ADDSTORE^VPRJCONFIG("ut")
  K ^TMP("HTTPERR",$J)
  Q
@@ -25,6 +31,7 @@ SHUTDOWN ; Run once after all tests
  ; DELETE database test will remove the store from the database and route map
  K HTTPREQ
  K ^VPRMETA("collection","ut"),^VPRMETA("index","gdsutest"),^VPRMETA("index","gdsutest2"),^VPRMETA("index","gdsutest3")
+ K ^VPRMETA("template","gdsutest"),^VPRMETA("template","gdsutest2"),^VPRMETA("template","gdsutest3")
  Q
 TEARDOWN ; Run after each test
  K ^TMP($J)
@@ -642,13 +649,14 @@ GETFILTER ;; @TEST Get object with filter
  ;
  ;
 CINDEXNOSTORE ;; @TEST Create Index - Error code is set if no store in HTTPREQ
+ K ^VPRJUTX ; *** NB
  N RETURN,BODY,ARG,HTTPERR
  K HTTPREQ
  ; Create sample JSON
  S BODY(1)=$$SAMPLEINDEX("gdsutest","roles[]","roles asc","attr")
  ; Send it to the URL
  S RETURN=$$CINDEX^VPRJGDS(.ARG,.BODY)
- D ASSERT(0,$D(^VPRJUTX("attr","gdsutest")),"Index created when it shouldn't be")
+ D ASSERT(0,$D(^VPRJUTX("attr","gdsutest89")),"Index created when it shouldn't be")
  D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
  D ASSERT(253,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 253 reason code should have occurred")
  ; Cleanup HTTPERR
@@ -667,7 +675,7 @@ CINDEXNOGLOBAL ;; @TEST Error code is set if no global is in VPRCONFIG
  S HTTPREQ("store")="ut"
  S RETURN=$$CINDEX^VPRJGDS(.ARG,.BODY)
  D ASSERT(0,$D(^VPRCONFIG("store","ut","global")),"VPRCONFIG global storage area exists and it shouldn't")
- D ASSERT(0,$D(^VPRJUTX("attr","gdsutest")),"Index created when it shouldn't be")
+ D ASSERT(0,$D(^VPRJUTX("attr","gdsutest100")),"Index created when it shouldn't be")
  D ASSERT(400,$G(^TMP("HTTPERR",$J,1,"error","code")),"An HTTP 400 error should have occured")
  D ASSERT(253,$G(^TMP("HTTPERR",$J,1,"error","errors",1,"reason")),"An 253 reason code should have occurred")
  ; Cleanup HTTPERR
@@ -2196,7 +2204,7 @@ RDKSESSION ;; @TEST Realistic RDK session store test
  ; Add sample session
  N RETURN,BODY,ARG,HTTPREQ,DATA,ERR
  S HTTPREQ("store")="utses"
- S BODY(1)="{""uid"":""ZOUjqD3uh48eOuMrB4meSlCzcFV9IWv-"",""expires"":""2016-06-09T19:02:09.395Z"",""session"":{""cookie"":{""expires"":""2016-06-09T19:02:09.395Z"",""httpOnly"":true,""originalMaxAge"":8PORT8,""path"":""/""},""csrf"":{""PW    "":""v06210J1hu2MYpqUwg0IeJwZ""},""jwt"":{""PW    "":""zTAhkVWhJ4DHC13_0lNSAyW5""},""user"":{""accessCode"":""USER  "",""consumerType"":""user"",""corsTabs"":""true"",""dgRecordAccess"":""false"",""dgSecurityOfficer"":""false"",""dgSensitiveAccess"":""false"",""disabled"":false,""division"":""500"",""divisionSelect"":false,""duz"":{""SITE"":""10000000270""},""eHMPUIContext"":[{""lastAccessed"":""20160609103852321"",""patientId"":{""type"":""pid"",""value"":""SITE;100022""},""patientIdentifier"":""pid:SITE;100022"",""workspaceContext"":{""contextId"":""patient"",""workspaceId"":""overview""}},{""lastAccessed"":""20160609115349599"",""patientId"":{""type"":""pid"",""value"":""SITE;3""},""patientIdentifier"":""pid:SITE;3"",""workspaceContext"":{""contextId"":""patient"",""workspaceId"":""overview""}}],""expires"":""2016-06-09T19:02:09.395Z"",""facility"":""PANORAMA"",""firstname"":""PANORAMA"",""infoButtonOid"":""1.3.6.1.4.1.3768"",""lastname"":""USER"",""password"":""PW      "",""pcmm"":[{""roles"":[""NURSE (RN)"",""NURSE PRACTITIONER"",""OIF OEF CLINICAL CASE MANAGER"",""PHYSICIAN-ATTENDING"",""PHYSICIAN-PRIMARY CARE"",""RN CARE COORDINATOR"",""SOCIAL WORKER""],""service"":[""HOME TELEHEALTH"",""HOSPITAL MEDICINE"",""IMAGING"",""INFECTIOUS DISEASE""],""team"":[""TEAM1"",""TEAM2"",""TEAM3""]}],""permissionSets"":[""read-access"",""standard-doctor""],""permissions"":[""read-active-medication"",""read-allergy"",""read-clinical-reminder"",""read-community-health-summary"",""read-document"",""read-encounter"",""read-immunization"",""read-medication-review"",""read-order"",""read-patient-history"",""read-condition-problem"",""read-patient-record"",""access-stack-graph"",""read-task"",""read-vital"",""read-vista-health-summary"",""read-stack-graph"",""read-timeline"",""add-active-medication"",""add-allergy"",""add-condition-problem"",""add-consult-order"",""add-encounter"",""add-immunization"",""add-lab-order"",""add-med-order"",""add-non-va-medication"",""add-note"",""add-note-addendum"",""add-patient-history"",""add-radiology-order"",""add-task"",""add-vital"",""cancel-task"",""complete-consult-order"",""cosign-lab-order"",""cosign-med-order"",""cosign-note"",""cosign-radiology-order"",""delete-note"",""discontinue-active-medication"",""discontinue-consult-order"",""discontinue-lab-order"",""discontinue-med-order"",""discontinue-radiology-order"",""edit-active-medication"",""edit-allergy"",""edit-condition-problem"",""edit-consult-order"",""edit-encounter-form"",""edit-lab-order"",""edit-med-order"",""edit-non-va-medication"",""edit-note"",""edit-note-addendum"",""edit-patient-history"",""edit-radiology-order"",""edit-task"",""eie-allergy"",""eie-immunization"",""eie-patient-history"",""eie-vital"",""release-lab-order"",""release-med-order"",""release-radiology-order"",""remove-condition-problem"",""schedule-consult-order"",""sign-consult-order"",""sign-lab-order"",""sign-med-order"",""sign-note"",""sign-note-addendum"",""sign-radiology-order"",""triage-consult-order"",""abort-task"",""edit-encounter"",""eie-encounter"",""edit-immunization"",""edit-vital""],""provider"":true,""requiresReset"":false,""rptTabs"":""false"",""section"":""Medicine"",""sessionLength"":900000,""site"":""SITE"",""ssn"":666441233,""title"":""Clinician"",""uid"":""urn:va:user:SITE:10000000270"",""username"":""PW         "",""verifyCode"":""PW      "",""vistaKeys"":[""GMRA-SUPERVISOR"",""GMRC101"",""GMV MANAGER"",""ORES"",""PROVIDER"",""PSB CPRS MED BUTTON""],""vistaUserClass"":[{""role"":""USER"",""uid"":""urn:va:asu-class:SITE:561""}]}}}"
+ S BODY(1)="{""uid"":""ZOUjqD3uh48eOuMrB4meSlCzcFV9IWv-"",""expires"":""2016-06-09T19:02:09.395Z"",""session"":{""cookie"":{""expires"":""2016-06-09T19:02:09.395Z"",""httpOnly"":true,""originalMaxAge"":8,""path"":""/""},""csrf"":{""PW    "":""v06210J1hu2MYpqUwg0IeJwZ""},""jwt"":{""PW    "":""zTAhkVWhJ4DHC13_0lNSAyW5""},""user"":{""accessCode"":""USER  "",""consumerType"":""user"",""corsTabs"":""true"",""dgRecordAccess"":""false"",""dgSecurityOfficer"":""false"",""dgSensitiveAccess"":""false"",""disabled"":false,""division"":""500"",""divisionSelect"":false,""duz"":{""SITE"":""10000000270""},""eHMPUIContext"":[{""lastAccessed"":""20160609103852321"",""patientId"":{""type"":""pid"",""value"":""SITE;100022""},""patientIdentifier"":""pid:SITE;100022"",""workspaceContext"":{""contextId"":""patient"",""workspaceId"":""overview""}},{""lastAccessed"":""20160609115349599"",""patientId"":{""type"":""pid"",""value"":""SITE;3""},""patientIdentifier"":""pid:SITE;3"",""workspaceContext"":{""contextId"":""patient"",""workspaceId"":""overview""}}],""expires"":""2016-06-09T19:02:09.395Z"",""facility"":""PANORAMA"",""firstname"":""PANORAMA"",""infoButtonOid"":""1.3.6.1.4.1.3768"",""lastname"":""USER"",""password"":""PW      "",""pcmm"":[{""roles"":[""NURSE (RN)"",""NURSE PRACTITIONER"",""OIF OEF CLINICAL CASE MANAGER"",""PHYSICIAN-ATTENDING"",""PHYSICIAN-PRIMARY CARE"",""RN CARE COORDINATOR"",""SOCIAL WORKER""],""service"":[""HOME TELEHEALTH"",""HOSPITAL MEDICINE"",""IMAGING"",""INFECTIOUS DISEASE""],""team"":[""TEAM1"",""TEAM2"",""TEAM3""]}],""permissionSets"":[""read-access"",""standard-doctor""],""permissions"":[""read-active-medication"",""read-allergy"",""read-clinical-reminder"",""read-community-health-summary"",""read-document"",""read-encounter"",""read-immunization"",""read-medication-review"",""read-order"",""read-patient-history"",""read-condition-problem"",""read-patient-record"",""access-stack-graph"",""read-task"",""read-vital"",""read-vista-health-summary"",""read-stack-graph"",""read-timeline"",""add-active-medication"",""add-allergy"",""add-condition-problem"",""add-consult-order"",""add-encounter"",""add-immunization"",""add-lab-order"",""add-med-order"",""add-non-va-medication"",""add-note"",""add-note-addendum"",""add-patient-history"",""add-radiology-order"",""add-task"",""add-vital"",""cancel-task"",""complete-consult-order"",""cosign-lab-order"",""cosign-med-order"",""cosign-note"",""cosign-radiology-order"",""delete-note"",""discontinue-active-medication"",""discontinue-consult-order"",""discontinue-lab-order"",""discontinue-med-order"",""discontinue-radiology-order"",""edit-active-medication"",""edit-allergy"",""edit-condition-problem"",""edit-consult-order"",""edit-encounter-form"",""edit-lab-order"",""edit-med-order"",""edit-non-va-medication"",""edit-note"",""edit-note-addendum"",""edit-patient-history"",""edit-radiology-order"",""edit-task"",""eie-allergy"",""eie-immunization"",""eie-patient-history"",""eie-vital"",""release-lab-order"",""release-med-order"",""release-radiology-order"",""remove-condition-problem"",""schedule-consult-order"",""sign-consult-order"",""sign-lab-order"",""sign-med-order"",""sign-note"",""sign-note-addendum"",""sign-radiology-order"",""triage-consult-order"",""abort-task"",""edit-encounter"",""eie-encounter"",""edit-immunization"",""edit-vital""],""provider"":true,""requiresReset"":false,""rptTabs"":""false"",""section"":""Medicine"",""sessionLength"":900000,""site"":""SITE"",""ssn"":666441233,""title"":""Clinician"",""uid"":""urn:va:user:SITE:10000000270"",""username"":""PW         "",""verifyCode"":""PW      "",""vistaKeys"":[""GMRA-SUPERVISOR"",""GMRC101"",""GMV MANAGER"",""ORES"",""PROVIDER"",""PSB CPRS MED BUTTON""],""vistaUserClass"":[{""role"":""USER"",""uid"":""urn:va:asu-class:SITE:561""}]}}}"
  S RETURN=$$SET^VPRJGDS(.ARG,.BODY)
  D ASSERT(10,$D(^VPRJUTSES("ZOUjqD3uh48eOuMrB4meSlCzcFV9IWv-")),"Data NOT stored when it should be")
  ; Patch the expires date/times
