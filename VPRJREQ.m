@@ -24,7 +24,7 @@ START(TCPPORT) ; set up listening for connections
  I OS="GT.M" O TCPIO:(LISTEN=TCPPORT_":TCP":delim=$C(13,10):attach="server"):15:"socket" E  U 0 W !,"error cannot open port "_TCPPORT Q
  ;
  ; Now we are really really listening.
- S ^VPRHTTP(0,"listener")="running"
+ S ^VPRHTTP(TCPPORT,"listener")="running"
  ;
  ; This is the same for GT.M and Cache
  U TCPIO
@@ -58,10 +58,10 @@ LOOP ; wait for connection, spawn process to handle it
  . ;
  . ; Wait until we have a connection (inifinte wait). 
  . ; Stop if the listener asked us to stop.
- . FOR  W /WAIT(10) Q:$KEY]""  Q:($E(^VPRHTTP(0,"listener"),1,4)="stop")
+ . FOR  W /WAIT(10) Q:$KEY]""  Q:($E(^VPRHTTP(TCPPORT,"listener"),1,4)="stop")
  . ;
  . ; We have to stop! When we quit, we go to loop, and we exit at LOOP+1
- . I $E(^VPRHTTP(0,"listener"),1,4)="stop" QUIT
+ . I $E(^VPRHTTP(TCPPORT,"listener"),1,4)="stop" QUIT
  . ; 
  . ; At connection, job off the new child socket to be served away.
  . ; I $P($KEY,"|")="CONNECT" QUIT ; before 6.1
