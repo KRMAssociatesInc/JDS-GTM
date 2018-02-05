@@ -35,7 +35,7 @@ STOPW ; tell the listeners to stop running and wait until they stop
  . . W " ."
  . . F I=1:1:30 S STATUS=$D(^VPRHTTP(0,"child"))  S:STATUS=0 CHILD=0 Q:STATUS=0  D
  . . . S CHILD=1
- . . . S JOB=0 F  S JOB=$O(^VPRHTTP(0,"child",JOB)) Q:JOB=""  I $D(^$J(JOB))=0 K:$D(^VPRHTTP(0,"child",JOB)) ^VPRHTTP(0,"child",JOB)
+ . . . S JOB=0 F  S JOB=$O(^VPRHTTP(0,"child",JOB)) Q:JOB=""  I $zgetjpi(JOB,"isprocalive")=0 K:$D(^VPRHTTP(0,"child",JOB)) ^VPRHTTP(0,"child",JOB)
  . . . W "."
  . . . H 1
  . W "."
@@ -99,14 +99,14 @@ STATUS() ; Return status of the HTTP listener
  ;{"status":"running"}
  ;
  N HTTPLOG,HTTPREQ,PORT,X,NUM,STATUS
- S (NUM,X)="",STATUS=""
+ S (NUM,X)=0,STATUS=""
  F  S NUM=$O(^VPRHTTP(NUM)) Q:NUM'=+NUM  I $D(^VPRHTTP(NUM,"listener"))#2 D
  . S HTTPLOG=0,PORT=^VPRHTTP(NUM,"port")
- . O "|TCP|2":("127.0.0.1":PORT:"CT"):2 E  S STATUS=STATUS_"Port "_PORT_" not responding, " Q
- . U "|TCP|2"
- . W "GET /ping HTTP/1.1"_$C(10,13)_"Host: JDSlocalhost"_$C(10,13,10,13),!
+ . O "|TCP|2":(connect="127.0.0.1:"_PORT_":TCP":attach="client"):1:"socket" E  S STATUS=STATUS_"Port "_PORT_" not responding, " Q
+ . U "|TCP|2":(delimiter=$c(13,10))
+ . W "GET /ping HTTP/1.1"_$C(13,10)_"Host: JDSlocalhost"_$C(13,10,13,10),!
  . F  S X=$$RDCRLF^VPRJREQ() Q:'$L(X)  D ADDHEAD^VPRJREQ(X)
- . U "|TCP|2":(::"S")
+ . U "|TCP|2"
  . I $G(HTTPREQ("header","content-length"))>0 D RDLEN^VPRJREQ(HTTPREQ("header","content-length"),2)
  . C "|TCP|2"
  . S X=$P($G(HTTPREQ("body",1)),"""",4)

@@ -50,7 +50,7 @@ RIDXALL(INDEX) ; Re-index all operational data
  I FLG QUIT
  D CLRINDEX(.OK,$G(INDEX)) QUIT:'OK
  ;
- S KEY="" F  S KEY=$O(^VPRJD(KEY)) Q:KEY=""  D
+ S KEY="u" F  S KEY=$O(^VPRJD(KEY)) Q:KEY=""  D  ; OSE/SMH - There is "COLLECTION" at a prior node.
  . D RIDXOBJ(KEY,$G(INDEX))
  . D LOGCNT^VPRJ("odc")
  D RESUME^VPRJ
@@ -93,14 +93,12 @@ RIDXOBJ(KEY,INDEX) ; Re-index a single object
  ; Using ECP with a lot of data, locking and using transactions around the re-indexing code might have a performance penalty
  ; Check to see if we should wrap this with a lock and a transaction in this environment
  S LTP=$G(^VPRCONFIG("reindexLockTransactions"),0)
- I LTP L +^VPRJD(KEY):$G(^VPRCONFIG("timeout","odindex"),5) E  D LOGMSG^VPRJ("odc","Unable to obtain lock for "_KEY) QUIT
  S STAMP=$O(^VPRJD(KEY,""),-1)
  I STAMP="" W "KEY: "_KEY_" HAS NO EVENTSTAMP",! L:LTP -^VPRJD(KEY) QUIT
  M OBJECT=^VPRJD(KEY,STAMP)
- I LTP TSTART (*)
+ I LTP TSTART (KEY,OBJECT,INDEX):SERIAL
  D INDEX^VPRJDX(KEY,"",.OBJECT,$G(INDEX))
  I LTP TCOMMIT
- I LTP L -^VPRJD(KEY)
  QUIT
  ;
 RBLDOBJ(KEY) ; Re-build a single object

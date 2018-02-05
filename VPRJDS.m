@@ -63,20 +63,18 @@ DELETE(KEY) ; Delete an object given its UID
  S COLL=$P(KEY,":",3)
  I '$L(COLL) D SETERROR^VPRJRER(210,KEY) QUIT ""
  ;
- L +^VPRJD(KEY):$G(^VPRCONFIG("timeout","oddelete"),5) E  D SETERROR^VPRJRER(502) QUIT ""
  ; kill the old indexes and object
  S OBJECT=""
  S STAMP=""
  S STAMP=$O(^VPRJD(KEY,STAMP),-1)
  S OLDOBJ="" I STAMP'="" M OLDOBJ=^VPRJD(KEY,STAMP)
  ; Kill all versions of this object
- TSTART (*)
+ TSTART (KEY,OLDOBJ,OBJECT):SERIAL
  K:$D(^VPRJD(KEY)) ^VPRJD(KEY)
  K:$D(^VPRJDJ("JSON",KEY)) ^VPRJDJ("JSON",KEY)
  K:$D(^VPRJDJ("TEMPLATE",KEY)) ^VPRJDJ("TEMPLATE",KEY)
  D INDEX^VPRJDX(KEY,.OLDOBJ,.OBJECT)
  TCOMMIT
- L -^VPRJD(KEY)
  Q
 DELCTN(COLL,SYSID) ; Delete a collection given its name
  I '$L(COLL) D SETERROR^VPRJRER(215) QUIT ""

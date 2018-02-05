@@ -143,14 +143,12 @@ RIDXOBJ(PID,KEY,INDEX) ; Re-index a single object
  ; Using ECP with a lot of data, locking and using transactions around the re-indexing code might have a performance penalty
  ; Check to see if we should wrap this with a lock and a transaction in this environment
  S LTP=$G(^VPRCONFIG("reindexLockTransactions"),0)
- I LTP L +^VPRPT(JPID,PID,KEY):$G(^VPRCONFIG("timeout","ptindex"),5) E  D LOGMSG^VPRJ("vpr","Unable to obtain lock for "_KEY) QUIT
  S STAMP=$O(^VPRPT(JPID,PID,KEY,""),-1)
  I STAMP="" W "PID: "_PID_"; UID: "_KEY_" HAS NO EVENTSTAMP",! L:LTP -^VPRPT(JPID,PID,KEY) QUIT
  M OBJECT=^VPRPT(JPID,PID,KEY,STAMP)
- I LTP TSTART (*)
+ I LTP TSTART (PID,KEY,OBJECT,INDEX):SERIAL
  D INDEX^VPRJPX(PID,KEY,"",.OBJECT,$G(INDEX))
  I LTP TCOMMIT
- I LTP L -^VPRPT(JPID,PID,KEY)
  QUIT
  ;
 RBLDOBJ(PID,KEY) ; Re-build a single object

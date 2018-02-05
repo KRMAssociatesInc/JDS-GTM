@@ -74,7 +74,7 @@ QCONCAT(ARGS) ; flatten any extension nodes in ARGS, caused by long query argume
  N BAIL,COUNT,LINE,MAX,NODE,TEST
  S NODE="",(COUNT,BAIL)=0
  ; max string length limit (in Cache) is 3641144, but ARGS is concatenated with other strings later on, so need lower limit
- S MAX=$G(^VPRCONFIG("maxStringLimit"),3641000)
+ S MAX=$G(^VPRCONFIG("maxStringLimit"),2**20)
  ; this loop has to keep a running count of the length of all argument nodes added together, because they will be concatenated
  ; together later on in VPRJPR (E.g. INDEX^VPRJPR)
  F  S NODE=$O(ARGS(NODE)) Q:(NODE="")!(BAIL)  S COUNT=COUNT+$L(ARGS(NODE)) S:COUNT>MAX BAIL=1 I $D(ARGS(NODE,"\"))=10 D
@@ -92,6 +92,7 @@ SENDATA ; write out the data as an HTTP response
  ; RSPTYPE=1  local variable
  ; RSPTYPE=2  data in ^TMP($J)
  ; RSPTYPE=3  pageable data in ^TMP($J,"data") or ^VPRTMP(hash,"data")
+ N %WBUFF S %WBUFF="" ; Write Buffer
  N SIZE,RSPTYPE,PREAMBLE,START,LIMIT,STARTID,RETCNTS
  S RSPTYPE=$S($E($G(HTTPRSP))'="^":1,$D(HTTPRSP("pageable")):3,1:2)
  I RSPTYPE=1 S SIZE=$$VARSIZE^VPRJRUT(.HTTPRSP)

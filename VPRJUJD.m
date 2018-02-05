@@ -200,7 +200,7 @@ ESTRING ;; @TEST a value that looks like an exponents, other numerics
  D ASSERT(0,$D(ERR))
  D ASSERT("32E497ABC",Y("b"))
  D ASSERT(.123,Y("c"))
- D ASSERT(3E22,Y("g"))
+ D ASSERT(3,Y("g"))
  D ASSERT(1,$D(Y("g","\n")))
  D ASSERT(0,Y("h")=2E8)
  D ENCODE^VPRJSON("Y","JSON2","ERR")

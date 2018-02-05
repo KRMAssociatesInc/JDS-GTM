@@ -28,7 +28,7 @@ SETUP ;
  S:'$G(^VPRCONFIG("timeout","jpid")) ^VPRCONFIG("timeout","jpid")=30
  ;
  ; String size limit for POST query parameters
- S:'$G(^VPRCONFIG("maxStringLimit")) ^VPRCONFIG("maxStringLimit")=3641000
+ S:'$G(^VPRCONFIG("maxStringLimit")) ^VPRCONFIG("maxStringLimit")=2**20
  ; Garbage Collector
  S:'$G(^VPRCONFIG("timeout","gc")) ^VPRCONFIG("timeout","gc")=30
  ; Generic Data Store
